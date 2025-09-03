@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Amplify } from "aws-amplify";
-import { signIn } from "aws-amplify/auth";
+import { signIn, signOut } from "aws-amplify/auth";
 import outputs from "@/amplify_outputs.json";
 import "@aws-amplify/ui-react/styles.css";
 import "./login.css";
@@ -15,22 +15,64 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // ページ読み込み時に既存のセッションをクリア
+  useEffect(() => {
+    const clearSession = async () => {
+      try {
+        await signOut();
+      } catch (error) {
+        // サインアウトに失敗しても問題なし（ログインしていない場合など）
+        console.log("初期サインアウト:", error);
+      }
+    };
+    clearSession();
+  }, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
 
     try {
-      await signIn({
+      // まず既存のセッションをクリア
+      try {
+        await signOut();
+      } catch (signOutError) {
+        // サインアウトに失敗しても続行
+        console.log("サインアウト処理:", signOutError);
+      }
+
+      const result = await signIn({
         username: email,
         password: password,
       });
+      console.log("ログイン結果:", result);
       // ログイン成功時の処理（ホーム画面への遷移など）
-      window.location.href = "/home";
+      window.location.href = "/biory/home";
     } catch (err: any) {
-      setError("ログインに失敗しました。IDまたはパスワードが正しくありません。");
+      console.error("ログインエラー:", err);
+      if (err.name === 'UserNotConfirmedException') {
+        setError("メールアドレスの認証が完了していません。メールを確認してください。");
+      } else if (err.name === 'NotAuthorizedException') {
+        setError("メールアドレスまたはパスワードが正しくありません。");
+      } else if (err.name === 'UserNotFoundException') {
+        setError("このメールアドレスは登録されていません。");
+      } else {
+        setError(`ログインエラー: ${err.message || 'IDまたはパスワードが正しくありません'}`);
+      }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleClearSession = async () => {
+    try {
+      await signOut();
+      setError("");
+      alert("セッションをクリアしました。再度ログインしてください。");
+    } catch (error) {
+      console.log("セッションクリアエラー:", error);
+      alert("セッションクリア完了");
     }
   };
 
@@ -81,9 +123,26 @@ export default function LoginPage() {
           </button>
 
           <div style={{ textAlign: "center", marginTop: "15px" }}>
-            <a href="/signup" style={{ color: "#20B2AA", fontSize: "14px" }}>
+            <a href="/biory/signup" style={{ color: "#20B2AA", fontSize: "14px" }}>
               アカウントをお持ちでない方はこちら
             </a>
+          </div>
+
+          <div style={{ textAlign: "center", marginTop: "10px" }}>
+            <button 
+              type="button" 
+              onClick={handleClearSession}
+              style={{ 
+                background: "none", 
+                border: "none", 
+                color: "#999", 
+                fontSize: "12px", 
+                cursor: "pointer",
+                textDecoration: "underline"
+              }}
+            >
+              セッションをクリア
+            </button>
           </div>
         </form>
       </div>

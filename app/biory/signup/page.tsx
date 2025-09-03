@@ -5,7 +5,7 @@ import { Amplify } from "aws-amplify";
 import { signUp, confirmSignUp } from "aws-amplify/auth";
 import outputs from "@/amplify_outputs.json";
 import "@aws-amplify/ui-react/styles.css";
-import "../login.css";
+import "../../login.css";
 
 Amplify.configure(outputs);
 
