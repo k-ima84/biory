@@ -6,6 +6,7 @@ import type { Schema } from "@/amplify/data/resource";
 import { Amplify } from "aws-amplify";
 import outputs from "@/amplify_outputs.json";
 import { useRouter } from "next/navigation";
+import BioryLayout from "../components/BioryLayout";
 import "./settings.css";
 
 Amplify.configure(outputs);
@@ -35,6 +36,9 @@ export default function SettingsPage() {
   const router = useRouter();
   const [currentUserId] = useState("user2"); // 現在のユーザーID（実際の認証では動的に取得）
   const [userEmail] = useState("xxxx@outlook.com"); // 現在のユーザーEmail
+  const [isEditMode, setIsEditMode] = useState(false); // 編集モードフラグ
+  const [isUserInfoEditMode, setIsUserInfoEditMode] = useState(false); // ユーザー情報編集モードフラグ
+  const [userProfile, setUserProfile] = useState<UserProfileForm | null>(null); // 保存されたプロフィール
   
   const [formData, setFormData] = useState<UserProfileForm>({
     name: "",
@@ -79,7 +83,7 @@ export default function SettingsPage() {
 
       if (profiles && profiles.length > 0) {
         const profile = profiles[0];
-        setFormData({
+        const profileData = {
           name: profile.name || "",
           height: profile.height?.toString() || "",
           weight: profile.weight?.toString() || "",
@@ -89,7 +93,24 @@ export default function SettingsPage() {
           dislikedFoods: profile.dislikedFoods || "",
           exerciseFrequency: profile.exerciseFrequency || "",
           exerciseFrequencyOther: profile.exerciseFrequencyOther || "",
-        });
+        };
+        setFormData(profileData);
+        setUserProfile(profileData);
+      } else {
+        // プロフィールがない場合はサンプルデータを表示
+        const sampleData = {
+          name: "田中 太郎",
+          height: "170.5",
+          weight: "65.0",
+          gender: "男",
+          favoriteFoods: "寿司",
+          allergies: "卵",
+          dislikedFoods: "パクチー",
+          exerciseFrequency: "週に1回程度運動する",
+          exerciseFrequencyOther: "",
+        };
+        setFormData(sampleData);
+        setUserProfile(sampleData);
       }
     } catch (error) {
       console.error("ユーザー情報の取得エラー:", error);
@@ -149,7 +170,26 @@ export default function SettingsPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  // フォーム送信処理
+  // 編集モードの切り替え
+  const handleEditModeToggle = () => {
+    if (isEditMode) {
+      // 編集をキャンセルして元のデータに戻す
+      if (userProfile) {
+        setFormData({ ...userProfile });
+      }
+      setErrors({});
+    }
+    setIsEditMode(!isEditMode);
+  };
+
+  // 保存処理
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (validateForm()) {
+      await handleSubmit(e);
+      setIsEditMode(false);
+    }
+  };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -213,39 +253,74 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="settings-container">
-      {/* ヘッダー */}
-      <header className="settings-header">
-        <h1 className="settings-logo">biory</h1>
-        <h2 className="settings-title">設定</h2>
-      </header>
+    <BioryLayout>
+      <div className="settings-container">
+        {/* 設定画面のタイトル */}
+        <div className="page-title">
+          <h2 className="settings-title">設定</h2>
+        </div>
 
-      {/* ユーザー情報セクション */}
-      <section className="user-info-section">
-        <div className="section-header">
-          <h3>＜ユーザ情報＞</h3>
-          <button className="change-button" onClick={() => console.log("変更ボタンクリック")}>
-            変更
-          </button>
-        </div>
-        <div className="user-info-content">
-          <div className="info-row">
-            <span className="info-label">Mail：</span>
-            <span className="info-value">{userEmail}</span>
+        {/* ユーザー情報セクション */}
+        <section className="user-info-section">
+          <div className="section-header">
+            <h3>＜ユーザ情報＞</h3>
+            <button className="change-button" onClick={() => setIsUserInfoEditMode(!isUserInfoEditMode)}>
+              {isUserInfoEditMode ? "キャンセル" : "編集"}
+            </button>
           </div>
-          <div className="info-row">
-            <span className="info-label">PW：</span>
-            <span className="info-value">******</span>
+          <div className="user-info-content">
+            {isUserInfoEditMode ? (
+              <form className="profile-form">
+                <div className="form-group">
+                  <label className="form-label">Mail：</label>
+                  <input
+                    type="email"
+                    value={userEmail}
+                    className="form-input"
+                    placeholder="メールアドレスを入力"
+                    readOnly
+                  />
+                  <small style={{color: '#666', fontSize: '12px'}}>※メールアドレスの変更はサポートまでお問い合わせください</small>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">PW：</label>
+                  <input
+                    type="password"
+                    value="******"
+                    className="form-input"
+                    placeholder="新しいパスワード"
+                    readOnly
+                  />
+                  <small style={{color: '#666', fontSize: '12px'}}>※パスワードの変更は準備中です</small>
+                </div>
+              </form>
+            ) : (
+              <>
+                <div className="info-row">
+                  <span className="info-label">Mail：</span>
+                  <span className="info-value">{userEmail}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">PW：</span>
+                  <span className="info-value">******</span>
+                </div>
+              </>
+            )}
           </div>
-        </div>
-      </section>
+        </section>
 
       {/* 基礎情報セクション */}
       <section className="basic-info-section">
         <div className="section-header">
           <h3>＜基礎情報＞</h3>
-          <button className="change-button" type="submit" form="user-profile-form" disabled={isLoading}>
-            {isLoading ? "保存中..." : "変更"}
+          <button 
+            className="change-button" 
+            onClick={isEditMode ? undefined : handleEditModeToggle}
+            type={isEditMode ? "submit" : "button"}
+            form={isEditMode ? "user-profile-form" : undefined}
+            disabled={isLoading}
+          >
+            {isLoading ? "保存中..." : isEditMode ? "保存" : "編集"}
           </button>
         </div>
 
@@ -253,123 +328,170 @@ export default function SettingsPage() {
           {/* 名前 */}
           <div className="form-group">
             <label className="form-label">氏名：</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => handleInputChange("name", e.target.value)}
-              className={`form-input ${errors.name ? "error" : ""}`}
-              placeholder="山田 太郎"
-              maxLength={64}
-            />
-            {errors.name && <span className="error-message">{errors.name}</span>}
+            {isEditMode ? (
+              <>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange("name", e.target.value)}
+                  className={`form-input ${errors.name ? "error" : ""}`}
+                  placeholder="山田 太郎"
+                  maxLength={64}
+                />
+                {errors.name && <span className="error-message">{errors.name}</span>}
+              </>
+            ) : (
+              <div className="info-value">{formData.name || "未設定"}</div>
+            )}
           </div>
 
           {/* 身長 */}
           <div className="form-group">
             <label className="form-label">身長：</label>
-            <div className="input-with-unit">
-              <input
-                type="text"
-                value={formData.height}
-                onChange={(e) => handleInputChange("height", e.target.value)}
-                className={`form-input ${errors.height ? "error" : ""}`}
-                placeholder="170.5"
-              />
-              <span className="unit">cm</span>
-            </div>
-            {errors.height && <span className="error-message">{errors.height}</span>}
+            {isEditMode ? (
+              <>
+                <div className="input-with-unit">
+                  <input
+                    type="text"
+                    value={formData.height}
+                    onChange={(e) => handleInputChange("height", e.target.value)}
+                    className={`form-input ${errors.height ? "error" : ""}`}
+                    placeholder="170.5"
+                  />
+                  <span className="unit">cm</span>
+                </div>
+                {errors.height && <span className="error-message">{errors.height}</span>}
+              </>
+            ) : (
+              <div className="info-value">{formData.height ? `${formData.height} cm` : "未設定"}</div>
+            )}
           </div>
 
           {/* 体重 */}
           <div className="form-group">
             <label className="form-label">体重：</label>
-            <div className="input-with-unit">
-              <input
-                type="text"
-                value={formData.weight}
-                onChange={(e) => handleInputChange("weight", e.target.value)}
-                className={`form-input ${errors.weight ? "error" : ""}`}
-                placeholder="65.5"
-              />
-              <span className="unit">kg</span>
-            </div>
-            {errors.weight && <span className="error-message">{errors.weight}</span>}
+            {isEditMode ? (
+              <>
+                <div className="input-with-unit">
+                  <input
+                    type="text"
+                    value={formData.weight}
+                    onChange={(e) => handleInputChange("weight", e.target.value)}
+                    className={`form-input ${errors.weight ? "error" : ""}`}
+                    placeholder="65.5"
+                  />
+                  <span className="unit">kg</span>
+                </div>
+                {errors.weight && <span className="error-message">{errors.weight}</span>}
+              </>
+            ) : (
+              <div className="info-value">{formData.weight ? `${formData.weight} kg` : "未設定"}</div>
+            )}
           </div>
 
           {/* 性別 */}
           <div className="form-group">
             <label className="form-label">性別：</label>
-            <select
-              value={formData.gender}
-              onChange={(e) => handleInputChange("gender", e.target.value)}
-              className={`form-select ${errors.gender ? "error" : ""}`}
-            >
-              <option value="">選択してください</option>
-              {genderOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            {errors.gender && <span className="error-message">{errors.gender}</span>}
+            {isEditMode ? (
+              <>
+                <select
+                  value={formData.gender}
+                  onChange={(e) => handleInputChange("gender", e.target.value)}
+                  className={`form-select ${errors.gender ? "error" : ""}`}
+                >
+                  <option value="">選択してください</option>
+                  {genderOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                {errors.gender && <span className="error-message">{errors.gender}</span>}
+              </>
+            ) : (
+              <div className="info-value">{formData.gender || "未設定"}</div>
+            )}
           </div>
 
           {/* 好きな食べ物 */}
           <div className="form-group">
             <label className="form-label">好きなたべもの：</label>
-            <input
-              type="text"
-              value={formData.favoriteFoods}
-              onChange={(e) => handleInputChange("favoriteFoods", e.target.value)}
-              className="form-input"
-              placeholder="寿司、ラーメン"
-            />
+            {isEditMode ? (
+              <input
+                type="text"
+                value={formData.favoriteFoods}
+                onChange={(e) => handleInputChange("favoriteFoods", e.target.value)}
+                className="form-input"
+                placeholder="寿司、ラーメン"
+              />
+            ) : (
+              <div className="info-value">{formData.favoriteFoods || "未設定"}</div>
+            )}
           </div>
 
           {/* アレルギー */}
           <div className="form-group">
             <label className="form-label">アレルギー：</label>
-            <input
-              type="text"
-              value={formData.allergies}
-              onChange={(e) => handleInputChange("allergies", e.target.value)}
-              className="form-input"
-              placeholder="卵、牛乳"
-            />
+            {isEditMode ? (
+              <input
+                type="text"
+                value={formData.allergies}
+                onChange={(e) => handleInputChange("allergies", e.target.value)}
+                className="form-input"
+                placeholder="卵、牛乳"
+              />
+            ) : (
+              <div className="info-value">{formData.allergies || "なし"}</div>
+            )}
           </div>
 
           {/* 嫌いな食べ物 */}
           <div className="form-group">
             <label className="form-label">嫌いな食べ物：</label>
-            <input
-              type="text"
-              value={formData.dislikedFoods}
-              onChange={(e) => handleInputChange("dislikedFoods", e.target.value)}
-              className="form-input"
-              placeholder="ピーマン、にんじん"
-            />
+            {isEditMode ? (
+              <input
+                type="text"
+                value={formData.dislikedFoods}
+                onChange={(e) => handleInputChange("dislikedFoods", e.target.value)}
+                className="form-input"
+                placeholder="ピーマン、にんじん"
+              />
+            ) : (
+              <div className="info-value">{formData.dislikedFoods || "なし"}</div>
+            )}
           </div>
 
           {/* 運動頻度 */}
           <div className="form-group">
             <label className="form-label">運動量：</label>
-            <select
-              value={formData.exerciseFrequency}
-              onChange={(e) => handleInputChange("exerciseFrequency", e.target.value)}
-              className={`form-select ${errors.exerciseFrequency ? "error" : ""}`}
-            >
-              <option value="">選択してください</option>
-              {exerciseOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            {errors.exerciseFrequency && <span className="error-message">{errors.exerciseFrequency}</span>}
+            {isEditMode ? (
+              <>
+                <select
+                  value={formData.exerciseFrequency}
+                  onChange={(e) => handleInputChange("exerciseFrequency", e.target.value)}
+                  className={`form-select ${errors.exerciseFrequency ? "error" : ""}`}
+                >
+                  <option value="">選択してください</option>
+                  {exerciseOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                {errors.exerciseFrequency && <span className="error-message">{errors.exerciseFrequency}</span>}
+              </>
+            ) : (
+              <div className="info-value">
+                {formData.exerciseFrequency === "そのほか" && formData.exerciseFrequencyOther 
+                  ? formData.exerciseFrequencyOther 
+                  : formData.exerciseFrequency || "未設定"
+                }
+              </div>
+            )}
           </div>
 
           {/* その他運動頻度 */}
-          {formData.exerciseFrequency === "そのほか" && (
+          {isEditMode && formData.exerciseFrequency === "そのほか" && (
             <div className="form-group">
               <label className="form-label">運動量（詳細）：</label>
               <input
@@ -384,21 +506,7 @@ export default function SettingsPage() {
         </form>
       </section>
 
-      {/* ボトムナビゲーション */}
-      <nav className="bottom-nav">
-        <button className="nav-item" onClick={handleBackToHome}>
-          <div className="nav-icon home-icon"></div>
-        </button>
-        <button className="nav-item" onClick={() => console.log("meal clicked")}>
-          <div className="nav-icon meal-icon"></div>
-        </button>
-        <button className="nav-item" onClick={() => console.log("calendar clicked")}>
-          <div className="nav-icon calendar-icon"></div>
-        </button>
-        <button className="nav-item active" onClick={() => console.log("settings clicked")}>
-          <div className="nav-icon settings-icon"></div>
-        </button>
-      </nav>
-    </div>
+      </div>
+    </BioryLayout>
   );
 }

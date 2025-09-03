@@ -6,6 +6,7 @@ import type { Schema } from "@/amplify/data/resource";
 import { Amplify } from "aws-amplify";
 import outputs from "@/amplify_outputs.json";
 import { useRouter } from "next/navigation";
+import BioryLayout from "../components/BioryLayout";
 import "./home.css";
 
 Amplify.configure(outputs);
@@ -33,7 +34,8 @@ interface HealthData {
 export default function HomePage() {
   const router = useRouter();
   const [currentDate, setCurrentDate] = useState("");
-  const [userName] = useState("○○");
+  const [userName, setUserName] = useState("○○"); // 設定画面から取得するユーザー名
+  const [currentUserId] = useState("user2"); // 現在のユーザーID（実際の認証では動的に取得）
   const [nutritionData, setNutritionData] = useState<NutritionData>({
     calories: 0,
     protein: { value: 0, percentage: 0 },
@@ -50,6 +52,29 @@ export default function HomePage() {
     mood: "ポジティブ",
     weight: 0,
   });
+
+  // ユーザープロフィールからユーザー名を取得する関数
+  async function fetchUserProfile() {
+    try {
+      const { data: profiles } = await client.models.UserProfile.list({
+        filter: { userId: { eq: currentUserId } }
+      });
+
+      if (profiles && profiles.length > 0) {
+        const profile = profiles[0];
+        console.log('取得したユーザープロフィール:', profile);
+        
+        // ユーザー名を設定（名前が登録されている場合は使用、なければ「○○」のまま）
+        if (profile.name && profile.name.trim() !== "") {
+          setUserName(profile.name);
+        }
+      } else {
+        console.log('ユーザープロフィールが見つかりません');
+      }
+    } catch (error) {
+      console.error("ユーザープロフィールの取得エラー:", error);
+    }
+  }
 
   // データベースから栄養情報を取得する関数
   async function fetchNutritionData() {
@@ -142,8 +167,34 @@ export default function HomePage() {
     // 9/3の日付を固定で表示
     setCurrentDate("9/3 (火)");
 
+    // ユーザープロフィールを取得
+    fetchUserProfile();
+
     // 栄養データを取得
     fetchNutritionData();
+  }, []);
+
+  // ページがフォーカスされた時にもユーザー情報を再取得
+  useEffect(() => {
+    const handleFocus = () => {
+      fetchUserProfile(); // ユーザー情報を再取得
+    };
+
+    window.addEventListener('focus', handleFocus);
+    
+    // Visibility API を使用してタブがアクティブになった時も検知
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchUserProfile();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   const handleEditClick = () => {
@@ -158,12 +209,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="home-container">
-      {/* ヘッダー */}
-      <header className="header">
-        <h1 className="logo">biory</h1>
-      </header>
-
+    <BioryLayout>
       {/* 日付・挨拶セクション */}
       <section className="date-greeting">
         <div className="date">{currentDate}</div>
@@ -238,34 +284,6 @@ export default function HomePage() {
           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
         </svg>
       </button>
-
-      {/* ボトムナビゲーション */}
-      <nav className="bottom-nav">
-        <button 
-          className="nav-item active" 
-          onClick={() => handleNavClick("home")}
-        >
-          <div className="nav-icon home-icon"></div>
-        </button>
-        <button 
-          className="nav-item" 
-          onClick={() => handleNavClick("meal")}
-        >
-          <div className="nav-icon meal-icon"></div>
-        </button>
-        <button 
-          className="nav-item" 
-          onClick={() => handleNavClick("calendar")}
-        >
-          <div className="nav-icon calendar-icon"></div>
-        </button>
-        <button 
-          className="nav-item" 
-          onClick={() => handleNavClick("settings")}
-        >
-          <div className="nav-icon settings-icon"></div>
-        </button>
-      </nav>
-    </div>
+    </BioryLayout>
   );
 }

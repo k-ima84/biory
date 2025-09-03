@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import BioryLayout from "../../components/BioryLayout";
 
 export default function SettingsCompletePage() {
   const router = useRouter();
@@ -24,12 +25,7 @@ export default function SettingsCompletePage() {
   };
 
   return (
-    <div className="complete-container">
-      {/* ヘッダー */}
-      <header className="complete-header">
-        <h1 className="complete-logo">biory</h1>
-      </header>
-
+    <BioryLayout>
       {/* 完了メッセージ */}
       <div className="complete-content">
         <div className="success-icon">✓</div>
@@ -54,31 +50,6 @@ export default function SettingsCompletePage() {
       </div>
 
       <style jsx>{`
-        .complete-container {
-          min-height: 100vh;
-          background-color: #f5f5f5;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          padding: 20px;
-        }
-
-        .complete-header {
-          position: absolute;
-          top: 20px;
-          left: 0;
-          right: 0;
-          text-align: center;
-        }
-
-        .complete-logo {
-          font-size: 24px;
-          font-weight: bold;
-          color: #4CAF50;
-          margin: 0;
-        }
-
         .complete-content {
           text-align: center;
           background-color: white;
@@ -87,6 +58,7 @@ export default function SettingsCompletePage() {
           box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
           max-width: 400px;
           width: 100%;
+          margin: 50px auto 0;
         }
 
         .success-icon {
@@ -130,6 +102,8 @@ export default function SettingsCompletePage() {
           gap: 15px;
           width: 100%;
           max-width: 300px;
+          margin-left: auto;
+          margin-right: auto;
         }
 
         .complete-button {
@@ -171,6 +145,6 @@ export default function SettingsCompletePage() {
           }
         }
       `}</style>
-    </div>
+    </BioryLayout>
   );
 }

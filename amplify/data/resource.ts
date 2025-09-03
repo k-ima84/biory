@@ -7,11 +7,6 @@ specifies that any user authenticated via an API key can "create", "read",
 "update", and "delete" any "Todo" records.
 =========================================================================*/
 const schema = a.schema({
-  Todo: a
-    .model({
-      content: a.string(),
-    })
-    .authorization((allow) => [allow.publicApiKey()]),
   
   Nutrition: a
     .model({
@@ -21,6 +16,15 @@ const schema = a.schema({
       protein: a.float(),
       fat: a.float(),
       carbs: a.float(),
+    })
+    .authorization((allow) => [allow.publicApiKey()]),
+
+  Meal: a
+    .model({
+      userId: a.string(),
+      date: a.string(),
+      mealType: a.string(), // breakfast, lunch, dinner
+      content: a.string(),
     })
     .authorization((allow) => [allow.publicApiKey()]),
 
