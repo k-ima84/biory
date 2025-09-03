@@ -8,12 +8,12 @@
     'Fira Mono', 'Droid Sans Mono', 'Courier New', monospace;
 
   --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: #fff9e6;
-  --background-end-rgb: #fff3d6;
+  --background-start-rgb: 255, 255, 255;
+  --background-end-rgb: 255, 255, 255;
 
   --callout-rgb: 238, 240, 241;
   --callout-border-rgb: 172, 175, 176;
-  --card-rgb: #6649AE;
+  --card-rgb: 240, 240, 240;
   --card-border-rgb: 131, 134, 135;
 }
 
@@ -40,12 +40,12 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
-  font-family: 'Noto Sans JP', sans-serif;
+  background-color: white;
 }
 
 body {
   color: rgb(var(--foreground-rgb));
-  background: linear-gradient(135deg, rgb(var(--background-start-rgb)), rgb(var(--background-end-rgb)));
+  background: white;
 }
 
 a {

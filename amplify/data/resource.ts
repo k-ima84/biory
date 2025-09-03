@@ -12,6 +12,17 @@ const schema = a.schema({
       content: a.string(),
     })
     .authorization((allow) => [allow.publicApiKey()]),
+  
+  Nutrition: a
+    .model({
+      userId: a.string(),
+      date: a.string(),
+      calories: a.integer(),
+      protein: a.float(),
+      fat: a.float(),
+      carbs: a.float(),
+    })
+    .authorization((allow) => [allow.publicApiKey()]),
 });
 
 export type Schema = ClientSchema<typeof schema>;

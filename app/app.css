@@ -1,6 +1,8 @@
+/*変更内容：背景の紫を白に変更（小澤）*/
+
 body {
     margin: 0;
-    background: #fff8e1;
+    background: white;
     display: flex;
     font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
     height: 100vh;
@@ -56,7 +58,7 @@ body {
   }
   
   li:hover {
-    background: #dadbf9;
+    background: #f0f0f0;
   }
   
   a {
