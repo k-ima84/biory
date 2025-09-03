@@ -5,6 +5,7 @@ import { generateClient } from "aws-amplify/data";
 import type { Schema } from "@/amplify/data/resource";
 import { Amplify } from "aws-amplify";
 import outputs from "@/amplify_outputs.json";
+import { useRouter } from "next/navigation";
 import "./home.css";
 
 Amplify.configure(outputs);
@@ -30,6 +31,7 @@ interface HealthData {
 }
 
 export default function HomePage() {
+  const router = useRouter();
   const [currentDate, setCurrentDate] = useState("");
   const [userName] = useState("○○");
   const [nutritionData, setNutritionData] = useState<NutritionData>({
@@ -150,6 +152,9 @@ export default function HomePage() {
 
   const handleNavClick = (section: string) => {
     console.log(`${section}がクリックされました`);
+    if (section === "settings") {
+      router.push("/biory/settings");
+    }
   };
 
   return (
