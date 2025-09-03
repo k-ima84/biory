@@ -24,6 +24,15 @@ const schema = a.schema({
     })
     .authorization((allow) => [allow.publicApiKey()]),
 
+  Meal: a
+    .model({
+      userId: a.string(),
+      date: a.string(),
+      mealType: a.string(), // breakfast, lunch, dinner
+      content: a.string(),
+    })
+    .authorization((allow) => [allow.publicApiKey()]),
+
   UserProfile: a
     .model({
       userId: a.string().required(),

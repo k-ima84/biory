@@ -66,7 +66,12 @@ export const seedData = async () => {
         }
       });
 
-      console.log(`✅ データ ${i + 1} の投入完了:`, result.data.createNutrition);
+      // 型安全なアクセス
+      if ('data' in result && result.data) {
+        console.log(`✅ データ ${i + 1} の投入完了:`, (result.data as any).createNutrition);
+      } else {
+        console.error(`❌ データ ${i + 1} の投入エラー`);
+      }
     }
 
     console.log('🎉 全データの投入が完了しました！');
@@ -79,7 +84,7 @@ export const seedData = async () => {
 export default seedData;
 
 // スクリプトとして実行された場合の処理
-if (import.meta.url === `file://${process.argv[1]}` || process.argv[1].endsWith('seed.ts')) {
+if (typeof require !== 'undefined' && require.main === module) {
   console.log('Starting seed data insertion...');
   seedData()
     .then(() => {
