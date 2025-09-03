@@ -7,7 +7,7 @@ import { Amplify } from "aws-amplify";
 import { signOut, getCurrentUser } from "aws-amplify/auth";
 import outputs from "@/amplify_outputs.json";
 import "@aws-amplify/ui-react/styles.css";
-import "../../home.css";
+import "./home.css";
 
 Amplify.configure(outputs);
 

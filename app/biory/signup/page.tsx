@@ -5,7 +5,7 @@ import { Amplify } from "aws-amplify";
 import { signUp, confirmSignUp } from "aws-amplify/auth";
 import outputs from "@/amplify_outputs.json";
 import "@aws-amplify/ui-react/styles.css";
-import "../../login.css";
+import "../login/login.css";
 
 Amplify.configure(outputs);
 
@@ -14,20 +14,45 @@ export default function SignUpPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
-  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState("signup"); // 'signup' or 'verify'
+  const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{[key: string]: string}>({});
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // エラーをクリア
     setError("");
-    setIsLoading(true);
-
-    if (password !== confirmPassword) {
-      setError("パスワードが一致しません。");
-      setIsLoading(false);
+    setFieldErrors({});
+    
+    // カスタムバリデーション
+    const newFieldErrors: {[key: string]: string} = {};
+    
+    if (!email) {
+      newFieldErrors.email = "メールアドレスを入力してください";
+    } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
+      newFieldErrors.email = "有効なメールアドレスを入力してください";
+    }
+    
+    if (!password) {
+      newFieldErrors.password = "パスワードを入力してください";
+    } else if (password.length < 8) {
+      newFieldErrors.password = "パスワードは8文字以上で入力してください";
+    }
+    
+    if (!confirmPassword) {
+      newFieldErrors.confirmPassword = "確認用パスワードを入力してください";
+    } else if (password !== confirmPassword) {
+      newFieldErrors.confirmPassword = "パスワードが一致しません";
+    }
+    
+    if (Object.keys(newFieldErrors).length > 0) {
+      setFieldErrors(newFieldErrors);
       return;
     }
+    
+    setIsLoading(true);
 
     try {
       await signUp({
@@ -49,7 +74,17 @@ export default function SignUpPage() {
 
   const handleVerification = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // エラーをクリア
     setError("");
+    setFieldErrors({});
+    
+    // カスタムバリデーション
+    if (!verificationCode || verificationCode.length !== 6) {
+      setFieldErrors({ verificationCode: "6桁の認証コードを入力してください" });
+      return;
+    }
+    
     setIsLoading(true);
 
     try {
@@ -57,8 +92,10 @@ export default function SignUpPage() {
         username: email,
         confirmationCode: verificationCode,
       });
-      alert("アカウントが作成されました！ログイン画面に移動します。");
-      window.location.href = "/";
+      setError("アカウントが作成されました！ログイン画面に移動します。");
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 2000);
     } catch (err: any) {
       setError("認証コードが正しくありません。");
     } finally {
@@ -71,36 +108,7 @@ export default function SignUpPage() {
       <div className="login-box">
         {/* ロゴとアプリ名 */}
         <div className="logo-section">
-          <div className="logo-icons">
-            <div className="brain-icon">
-              <div className="brain-shape">
-                <div className="brain-top"></div>
-                <div className="brain-body">
-                  <div className="face">
-                    <div className="eye left"></div>
-                    <div className="eye right"></div>
-                    <div className="smile"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="exercise-icon">
-              <div className="person-shape">
-                <div className="head"></div>
-                <div className="body">
-                  <div className="face">
-                    <div className="eye left"></div>
-                    <div className="eye right"></div>
-                    <div className="smile"></div>
-                  </div>
-                  <div className="arm left"></div>
-                  <div className="arm right">
-                    <div className="dumbbell"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <img src="/logo.png" alt="Biory Logo" className="logo-image" />
           <h1 className="app-name">biory</h1>
           <p className="app-subtitle">バイオリー</p>
           <p className="app-description">
@@ -111,6 +119,13 @@ export default function SignUpPage() {
 
         {step === "signup" ? (
           <form onSubmit={handleSignUp} className="login-form">
+            {/* 全体エラーメッセージ */}
+            {error && (
+              <div className={`error-message ${error ? 'show' : ''}`}>
+                {error}
+              </div>
+            )}
+
             <div className="form-group">
               <label htmlFor="email">ID（メールアドレス）</label>
               <input
@@ -120,7 +135,12 @@ export default function SignUpPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="form-input"
+                title="メールアドレスに「@」を挿入してください。"
+                placeholder="example@email.com"
               />
+              {fieldErrors.email && (
+                <div className="field-error">{fieldErrors.email}</div>
+              )}
             </div>
 
             <div className="form-group">
@@ -133,7 +153,12 @@ export default function SignUpPage() {
                 required
                 className="form-input"
                 minLength={8}
+                title="8文字以上入力してください。"
+                placeholder="8文字以上のパスワード"
               />
+              {fieldErrors.password && (
+                <div className="field-error">{fieldErrors.password}</div>
+              )}
             </div>
 
             <div className="form-group">
@@ -146,10 +171,13 @@ export default function SignUpPage() {
                 required
                 className="form-input"
                 minLength={8}
+                title="8文字以上入力してください。"
+                placeholder="パスワードを再入力"
               />
+              {fieldErrors.confirmPassword && (
+                <div className="field-error">{fieldErrors.confirmPassword}</div>
+              )}
             </div>
-
-            {error && <div className="error-message">{error}</div>}
 
             <button type="submit" disabled={isLoading} className="login-button">
               {isLoading ? "作成中..." : "アカウント作成"}
@@ -163,6 +191,13 @@ export default function SignUpPage() {
           </form>
         ) : (
           <form onSubmit={handleVerification} className="login-form">
+            {/* 全体エラーメッセージ */}
+            {error && (
+              <div className={`error-message ${error ? 'show' : ''}`}>
+                {error}
+              </div>
+            )}
+
             <p style={{ marginBottom: "20px", color: "#8B5A3C" }}>
               {email} に認証コードを送信しました。<br />
               受信したコードを入力してください。
@@ -178,10 +213,14 @@ export default function SignUpPage() {
                 required
                 className="form-input"
                 placeholder="6桁のコードを入力"
+                minLength={6}
+                maxLength={6}
+                title="6桁の認証コードを入力してください。"
               />
+              {fieldErrors.verificationCode && (
+                <div className="field-error">{fieldErrors.verificationCode}</div>
+              )}
             </div>
-
-            {error && <div className="error-message">{error}</div>}
 
             <button type="submit" disabled={isLoading} className="login-button">
               {isLoading ? "認証中..." : "認証"}
