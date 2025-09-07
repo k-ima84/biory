@@ -1,12 +1,10 @@
+/*修正内容：BioryLayoutで幅制御統一（2025-09-07）*/
+
+/* BioryLayoutが幅を制御するため、コンテナの幅制御は削除 */
 .settings-container {
-  min-height: 100vh;
   background-color: #f5f5f5;
+  min-height: 100vh;
   padding-bottom: 80px;
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
-  padding-left: 20px;
-  padding-right: 20px;
 }
 
 /* ページタイトル */
@@ -28,11 +26,14 @@
 .user-info-section,
 .basic-info-section {
   background-color: white;
-  margin: 15px 0;
+  margin: 15px 0; /* 上下のみ */
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 15px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  /* 幅をコンテナいっぱいに（2025-09-07） */
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .section-header {
@@ -100,14 +101,56 @@
 
 .form-group {
   margin-bottom: 15px;
+  /* 表示モード用の横並びレイアウト（2025-09-07） */
+  display: flex;
+  align-items: flex-start;
+}
+
+/* 編集モード時は縦並びに戻す */
+.form-group:has(.form-input),
+.form-group:has(.form-select),
+.form-group:has(.input-with-unit) {
+  flex-direction: column;
+  align-items: stretch;
 }
 
 .form-label {
-  display: block;
   font-size: 14px;
   font-weight: bold;
   color: #333;
   margin-bottom: 5px;
+  /* 表示モード用：コロン位置を揃える（2025-09-07） */
+  width: 120px;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* 表示モード用：ラベルテキストのコロン位置を統一 */
+.form-label::after {
+  content: "：";
+}
+
+/* 編集モード時はコロンを非表示にして通常のレイアウト */
+.form-group:has(.form-input) .form-label,
+.form-group:has(.form-select) .form-label,
+.form-group:has(.input-with-unit) .form-label {
+  display: block;
+  width: auto;
+}
+
+.form-group:has(.form-input) .form-label::after,
+.form-group:has(.form-select) .form-label::after,
+.form-group:has(.input-with-unit) .form-label::after {
+  content: "";
+}
+
+.info-value {
+  flex: 1;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.4;
 }
 
 .form-input,
@@ -160,9 +203,71 @@
 /* モバイル対応 */
 @media (max-width: 767px) {
   .settings-container {
-    padding-left: 10px;
-    padding-right: 10px;
+    padding-left: var(--biory-padding-mobile);
+    padding-right: var(--biory-padding-mobile);
     padding-bottom: 90px;
+    max-width: var(--biory-width-mobile);
+  }
+  
+  .user-info-section,
+  .basic-info-section {
+    margin: 10px 0;
+    padding: 12px;
+  }
+  
+  .page-title {
+    padding: 15px 0 5px 0;
+  }
+  
+  .settings-title {
+    font-size: 18px;
+  }
+  
+  .form-input,
+  .form-select {
+    padding: 12px;
+    font-size: 16px;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .section-header h3 {
+    font-size: 16px;
+  }
+  
+  .change-button {
+    align-self: flex-end;
+    padding: 6px 15px;
+    font-size: 12px;
+  }
+  
+  .info-row {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  
+  .info-label {
+    margin-bottom: 4px;
+    min-width: auto;
+  }
+  
+  .info-value {
+    margin-left: 0;
+  }
+}
+
+/* モバイル対応 */
+@media (max-width: 767px) {
+  .settings-container {
+    padding-left: var(--biory-padding-mobile);
+    padding-right: var(--biory-padding-mobile);
+    padding-bottom: 90px;
+    max-width: var(--biory-width-mobile);
   }
   
   .user-info-section,
@@ -220,10 +325,10 @@
 /* タブレット・PC対応 */
 @media (min-width: 768px) {
   .settings-container {
-    padding-left: 30px;
-    padding-right: 30px;
+    padding-left: var(--biory-padding-tablet) !important;
+    padding-right: var(--biory-padding-tablet) !important;
     padding-bottom: 90px;
-    max-width: 600px;
+    max-width: var(--biory-width-tablet) !important;
   }
   
   .user-info-section,
@@ -255,9 +360,9 @@
 /* 大画面対応 */
 @media (min-width: 1024px) {
   .settings-container {
-    padding-left: 40px;
-    padding-right: 40px;
-    max-width: 700px;
+    padding-left: var(--biory-padding-desktop);
+    padding-right: var(--biory-padding-desktop);
+    max-width: var(--biory-width-desktop);
   }
   
   .page-title {
@@ -283,9 +388,9 @@
 /* 超大画面対応 */
 @media (min-width: 1440px) {
   .settings-container {
-    max-width: 800px;
-    padding-left: 50px;
-    padding-right: 50px;
+    max-width: var(--biory-width-large);
+    padding-left: var(--biory-padding-large);
+    padding-right: var(--biory-padding-large);
   }
   
   .page-title {

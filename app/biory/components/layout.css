@@ -35,6 +35,12 @@
   margin-bottom: 80px; /* フッターの高さ分 */
   padding: 20px;
   overflow-y: auto;
+  /* 幅を固定して統一（2025-09-07） */
+  width: 100%;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
 }
 
 /* ボトムナビゲーション */

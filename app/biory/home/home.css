@@ -1,14 +1,5 @@
 /*修正内容：縦長解消、ナビゲーションボタン（小澤）*/
-
-.home-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  background-color: white;
-  min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  position: relative;
-  padding: 0 20px;
-}
+/*修正内容：BioryLayoutで幅制御統一（2025-09-07）*/
 
 /* ヘッダー */
 .header {
@@ -286,7 +277,8 @@
 /* タブレット・PC対応 */
 @media (min-width: 768px) {
   .home-container {
-    padding: 0 40px;
+    padding: 0 var(--biory-padding-tablet);
+    max-width: var(--biory-width-tablet);
   }
   
   .main-content {
@@ -298,7 +290,8 @@
 /* モバイル対応 */
 @media (max-width: 767px) {
   .home-container {
-    padding: 0 10px;
+    padding: 0 var(--biory-padding-mobile);
+    max-width: var(--biory-width-mobile);
   }
   
   .main-content {
@@ -324,6 +317,11 @@
 
 /* 大画面対応 */
 @media (min-width: 1024px) {
+  .home-container {
+    max-width: var(--biory-width-desktop);
+    padding: 0 var(--biory-padding-desktop);
+  }
+  
   .main-content {
     grid-template-columns: 1fr 1fr 1fr;
   }
@@ -333,5 +331,13 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
+  }
+}
+
+/* 超大画面対応 */
+@media (min-width: 1440px) {
+  .home-container {
+    max-width: var(--biory-width-large);
+    padding: 0 var(--biory-padding-large);
   }
 }

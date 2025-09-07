@@ -219,7 +219,7 @@ export default function HomePage() {
       {/* 栄養情報セクション */}
       <section className="nutrition-section">
         <div className="nutrition-header">
-          <span className="nutrition-label">カロリー</span>
+          <span className="nutrition-label">▷カロリー</span>
           <span className="calories-value">{nutritionData.calories} kcal</span>
         </div>
         <div className="nutrition-details">

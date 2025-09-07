@@ -327,7 +327,7 @@ export default function SettingsPage() {
         <form id="user-profile-form" onSubmit={handleSubmit} className="profile-form">
           {/* 名前 */}
           <div className="form-group">
-            <label className="form-label">氏名：</label>
+            <label className="form-label">氏名</label>
             {isEditMode ? (
               <>
                 <input
@@ -347,7 +347,7 @@ export default function SettingsPage() {
 
           {/* 身長 */}
           <div className="form-group">
-            <label className="form-label">身長：</label>
+            <label className="form-label">身長</label>
             {isEditMode ? (
               <>
                 <div className="input-with-unit">
@@ -369,7 +369,7 @@ export default function SettingsPage() {
 
           {/* 体重 */}
           <div className="form-group">
-            <label className="form-label">体重：</label>
+            <label className="form-label">体重</label>
             {isEditMode ? (
               <>
                 <div className="input-with-unit">
@@ -391,7 +391,7 @@ export default function SettingsPage() {
 
           {/* 性別 */}
           <div className="form-group">
-            <label className="form-label">性別：</label>
+            <label className="form-label">性別</label>
             {isEditMode ? (
               <>
                 <select
@@ -415,7 +415,7 @@ export default function SettingsPage() {
 
           {/* 好きな食べ物 */}
           <div className="form-group">
-            <label className="form-label">好きなたべもの：</label>
+            <label className="form-label">好きなたべもの</label>
             {isEditMode ? (
               <input
                 type="text"
@@ -431,7 +431,7 @@ export default function SettingsPage() {
 
           {/* アレルギー */}
           <div className="form-group">
-            <label className="form-label">アレルギー：</label>
+            <label className="form-label">アレルギー</label>
             {isEditMode ? (
               <input
                 type="text"
@@ -447,7 +447,7 @@ export default function SettingsPage() {
 
           {/* 嫌いな食べ物 */}
           <div className="form-group">
-            <label className="form-label">嫌いな食べ物：</label>
+            <label className="form-label">嫌いな食べ物</label>
             {isEditMode ? (
               <input
                 type="text"
@@ -463,7 +463,7 @@ export default function SettingsPage() {
 
           {/* 運動頻度 */}
           <div className="form-group">
-            <label className="form-label">運動量：</label>
+            <label className="form-label">運動量</label>
             {isEditMode ? (
               <>
                 <select
@@ -493,7 +493,7 @@ export default function SettingsPage() {
           {/* その他運動頻度 */}
           {isEditMode && formData.exerciseFrequency === "そのほか" && (
             <div className="form-group">
-              <label className="form-label">運動量（詳細）：</label>
+              <label className="form-label">運動量（詳細）</label>
               <input
                 type="text"
                 value={formData.exerciseFrequencyOther}
