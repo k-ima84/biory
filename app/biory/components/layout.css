@@ -79,7 +79,7 @@
 }
 
 .nav-item.active {
-  background-color: #f0f8f0;
+  background-color: #a8e6cf;
   border-radius: 8px;
   /* 強制的な再描画のため */
   transform: translateZ(0);
@@ -110,7 +110,7 @@
 
 /* アクティブ状態のアイコン */
 .nav-item.active .nav-icon {
-  background-color: #93f8ae;
+  background-color: black;
 }
 
 .home-icon {
