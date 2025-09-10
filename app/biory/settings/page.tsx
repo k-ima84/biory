@@ -264,9 +264,6 @@ export default function SettingsPage() {
         <section className="user-info-section">
           <div className="section-header">
             <h3>＜ユーザ情報＞</h3>
-            <button className="change-button" onClick={() => setIsUserInfoEditMode(!isUserInfoEditMode)}>
-              {isUserInfoEditMode ? "キャンセル" : "編集"}
-            </button>
           </div>
           <div className="user-info-content">
             {isUserInfoEditMode ? (
