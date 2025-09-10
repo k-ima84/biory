@@ -260,7 +260,7 @@ const fetchUserProfile = async () => {
         <div className="health-row">
           <span className="health-label">体調：</span>
           <span className="health-value">{healthData.condition}</span>
-          <span className="health-emoji">😊</span>
+          <span className="health-emoji"></span>
         </div>
         <div className="health-row">
           <span className="health-label">気分：</span>
