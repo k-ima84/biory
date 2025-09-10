@@ -94,7 +94,7 @@ export default function SignUpPage() {
       });
       setError("アカウントが作成されました！ログイン画面に移動します。");
       setTimeout(() => {
-        window.location.href = "/";
+        window.location.href = "/biory/login/";
       }, 2000);
     } catch (err: any) {
       setError("認証コードが正しくありません。");
@@ -184,7 +184,7 @@ export default function SignUpPage() {
             </button>
 
             <div style={{ textAlign: "center", marginTop: "15px" }}>
-              <a href="/" style={{ color: "#20B2AA", fontSize: "14px" }}>
+              <a href="/biory/login/" style={{ color: "#20B2AA", fontSize: "14px" }}>
                 ログイン画面に戻る
               </a>
             </div>

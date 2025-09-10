@@ -1,204 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Amplify } from "aws-amplify";
-import { signIn, signOut } from "aws-amplify/auth";
-import outputs from "@/amplify_outputs.json";
-import "@aws-amplify/ui-react/styles.css";
+import { useRouter } from "next/navigation";
 import "./biory/login/login.css";
 
-Amplify.configure(outputs);
+export default function HomePage() {
+  const router = useRouter();
 
-export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [fieldErrors, setFieldErrors] = useState<{[key: string]: string}>({});
-
-  // ページ読み込み時に既存のセッションをクリア
-  useEffect(() => {
-    const clearSession = async () => {
-      try {
-        await signOut();
-      } catch (error) {
-        // サインアウトに失敗しても問題なし（ログインしていない場合など）
-        console.log("初期サインアウト:", error);
-      }
-    };
-    clearSession();
-  }, []);
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // エラーをクリア
-    setError("");
-    setFieldErrors({});
-    
-    // フォームの標準バリデーションをチェック
-    const form = e.target as HTMLFormElement;
-    if (!form.checkValidity()) {
-      // カスタムバリデーション
-      const newFieldErrors: {[key: string]: string} = {};
-      
-      if (!email) {
-        newFieldErrors.email = "メールアドレスを入力してください";
-      } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
-        newFieldErrors.email = "有効なメールアドレスを入力してください";
-      }
-      
-      if (!password) {
-        newFieldErrors.password = "パスワードを入力してください";
-      } else if (password.length < 8) {
-        newFieldErrors.password = "パスワードは8文字以上で入力してください";
-      }
-      
-      setFieldErrors(newFieldErrors);
-      return;
-    }
-    
-    setIsLoading(true);
-
-    try {
-      // まず既存のセッションをクリア
-      try {
-        await signOut();
-      } catch (signOutError) {
-        // サインアウトに失敗しても続行
-        console.log("サインアウト処理:", signOutError);
-      }
-
-      const result = await signIn({
-        username: email,
-        password: password,
-      });
-      console.log("ログイン結果:", result);
-      // ログイン成功時の処理（ホーム画面への遷移など）
-      window.location.href = "/biory/home";
-    } catch (err: any) {
-      console.error("ログインエラー:", err);
-      
-      // エラーメッセージを詳細に分類
-      let errorMessage = "";
-      
-      if (err.name === 'UserNotConfirmedException') {
-        errorMessage = "メールアドレスの認証が完了していません。受信したメールから認証を完了してください。";
-      } else if (err.name === 'NotAuthorizedException') {
-        errorMessage = "メールアドレスまたはパスワードが正しくありません。入力内容をご確認ください。";
-      } else if (err.name === 'UserNotFoundException') {
-        errorMessage = "このメールアドレスは登録されていません。新規登録画面からアカウントを作成してください。";
-      } else if (err.name === 'TooManyRequestsException') {
-        errorMessage = "ログイン試行回数が上限に達しました。しばらく時間をおいてから再度お試しください。";
-      } else if (err.name === 'PasswordResetRequiredException') {
-        errorMessage = "パスワードのリセットが必要です。";
-      } else {
-        errorMessage = `ログインに失敗しました: ${err.message || 'IDまたはパスワードが正しくありません'}`;
-      }
-      
-      // 自作のエラー表示を使用
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleClearSession = async () => {
-    try {
-      await signOut();
-      setError("セッションをクリアしました。再度ログインしてください。");
-    } catch (error) {
-      console.log("セッションクリアエラー:", error);
-      setError("セッションのクリアに失敗しました。");
-    }
+  const handleLoginClick = () => {
+    router.push("/biory/login/");
   };
 
   return (
     <main className="login-container">
       <div className="login-box">
-        {/* ロゴとアプリ名 */}
-        <div className="logo-section">
-          <img src="/logo.png" alt="Biory Logo" className="logo-image" />
-          <h1 className="app-name">biory</h1>
-          <p className="app-subtitle">バイオリー</p>
-          <p className="app-description">
-            ごはんとカラダ、今日もいい感じ。<br />
-            毎日の"ちょうどいい"をつくるアプリ
-          </p>
-        </div>
-
-        {/* ログインフォーム */}
-        <form onSubmit={handleLogin} className="login-form">
-          {/* 全体エラーメッセージ */}
-          {error && (
-            <div className={`error-message ${error ? 'show' : ''}`}>
-              {error}
-            </div>
-          )}
-
-          <div className="form-group">
-            <label htmlFor="email">ID（メールアドレス）</label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="form-input"
-              pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
-              title="有効なメールアドレスを入力してください（例: user@example.com）"
-              placeholder="例: user@example.com"
-            />
-            {fieldErrors.email && (
-              <div className="field-error">{fieldErrors.email}</div>
-            )}
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="password">パスワード</label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="form-input"
-              minLength={8}
-              title="パスワードは8文字以上で入力してください"
-              placeholder="8文字以上のパスワード"
-            />
-            {fieldErrors.password && (
-              <div className="field-error">{fieldErrors.password}</div>
-            )}
-          </div>
-
-          <button type="submit" disabled={isLoading} className="login-button">
-            {isLoading ? "ログイン中..." : "ログイン"}
+        {/* ログインボタン */}
+        <div className="login-form">
+          <button onClick={handleLoginClick} className="login-button">
+            ログイン
           </button>
-
-          <div style={{ textAlign: "center", marginTop: "15px" }}>
-            <a href="/biory/signup" style={{ color: "#20B2AA", fontSize: "14px" }}>
-              アカウントをお持ちでない方はこちら
-            </a>
-          </div>
-
-          <div style={{ textAlign: "center", marginTop: "10px" }}>
-            <button 
-              type="button" 
-              onClick={handleClearSession}
-              style={{ 
-                background: "none", 
-                border: "none", 
-                color: "#999", 
-                fontSize: "12px", 
-                cursor: "pointer",
-                textDecoration: "underline"
-              }}
-            >
-              セッションをクリア
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
     </main>
   );

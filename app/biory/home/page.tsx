@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { generateClient } from "aws-amplify/data";
-import type { Schema } from "@/amplify/data/resource";
-import { Amplify } from "aws-amplify";
-import outputs from "@/amplify_outputs.json";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { generateClient } from "aws-amplify/data";
+import { Amplify } from "aws-amplify";
+import outputs from "../../../amplify_outputs.json";
+import type { Schema } from "../../../amplify/data/resource";
 import BioryLayout from "../components/BioryLayout";
 import "./home.css";
 
@@ -34,166 +34,161 @@ interface HealthData {
 export default function HomePage() {
   const router = useRouter();
   const [currentDate, setCurrentDate] = useState("");
-  const [userName, setUserName] = useState("○○"); // 設定画面から取得するユーザー名
-  const [currentUserId] = useState("user2"); // 現在のユーザーID（実際の認証では動的に取得）
+  const [userName, setUserName] = useState("");
   const [nutritionData, setNutritionData] = useState<NutritionData>({
     calories: 0,
     protein: { value: 0, percentage: 0 },
     fat: { value: 0, percentage: 0 },
     carbs: { value: 0, percentage: 0 },
   });
-  const [mealData] = useState<MealData>({
-    breakfast: "食パン・コーヒー",
-    lunch: "ー",
-    dinner: "ー",
+
+  const [mealData, setMealData] = useState<MealData>({
+    breakfast: "—",
+    lunch: "—",
+    dinner: "—",
   });
-  const [healthData] = useState<HealthData>({
-    condition: "とても良い",
+
+  const [healthData, setHealthData] = useState<HealthData>({
+    condition: "とても良い 😊",
     mood: "ポジティブ",
     weight: 0,
   });
 
-  // ユーザープロフィールからユーザー名を取得する関数
-  async function fetchUserProfile() {
-    try {
-      const { data: profiles } = await client.models.UserProfile.list({
-        filter: { userId: { eq: currentUserId } }
-      });
+  // 日本語の曜日配列
+  const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
 
-      if (profiles && profiles.length > 0) {
-        const profile = profiles[0];
-        console.log('取得したユーザープロフィール:', profile);
-        
-        // ユーザー名を設定（名前が登録されている場合は使用、なければ「○○」のまま）
-        if (profile.name && profile.name.trim() !== "") {
-          setUserName(profile.name);
-        }
-      } else {
-        console.log('ユーザープロフィールが見つかりません');
-      }
-    } catch (error) {
-      console.error("ユーザープロフィールの取得エラー:", error);
+  // 現在の日付を取得して設定する関数
+  const updateCurrentDate = () => {
+    const now = new Date();
+    const month = now.getMonth() + 1; // 0-11 → 1-12
+    const date = now.getDate();
+    const dayOfWeek = dayNames[now.getDay()];
+    const formattedDate = `${month}/${date} (${dayOfWeek})`;
+    setCurrentDate(formattedDate);
+  };
+
+  // ユーザープロフィールを取得する関数
+  // ユーザープロフィールを取得する関数
+const fetchUserProfile = async () => {
+  try {
+    const { data: profiles } = await client.models.UserProfile.list();
+    if (profiles && profiles.length > 0) {
+      const profile = profiles[0];
+      setUserName(profile.name || "ゲスト");
+
+      // Null合体演算子を使用してデフォルト値を設定
+      setHealthData(prev => ({
+        ...prev,
+        weight: profile.weight ?? 0  // null または undefined の場合は 0
+      }));
     }
+  } catch (error) {
+    console.error("ユーザープロフィール取得エラー:", error);
+    setUserName("ゲスト");
   }
+};
+ 
 
-  // データベースから栄養情報を取得する関数
-  async function fetchNutritionData() {
+  // 栄養データを取得する関数
+  const fetchNutritionData = async (dateString: string) => {
     try {
-      // 9/3のデータを取得するように変更
-      const targetDate = '2025-09-03';
-      const { data: nutritions } = await client.models.Nutrition.list({
-        filter: {
-          date: { eq: targetDate },
-          userId: { eq: "user2" } // user2のデータを取得
-        }
-      });
+      const { data: nutritions } = await client.models.Nutrition.list();
+      const todayNutrition = nutritions?.find(n => n.date === dateString);
 
-      console.log('検索条件 - 日付:', targetDate, 'ユーザーID: user2');
-      console.log('取得したデータ件数:', nutritions?.length || 0);
-
-      if (nutritions && nutritions.length > 0) {
-        const nutrition = nutritions[0];
-        console.log('取得したデータ:', nutrition);
-        
-        // PFCバランスの計算（総カロリーベース）
-        const totalCalories = nutrition.calories || 0;
-        const proteinCal = (nutrition.protein || 0) * 4; // タンパク質 1g = 4kcal
-        const fatCal = (nutrition.fat || 0) * 9; // 脂質 1g = 9kcal
-        const carbsCal = (nutrition.carbs || 0) * 4; // 炭水化物 1g = 4kcal
-        
-        const proteinPercentage = totalCalories > 0 ? Math.round((proteinCal / totalCalories) * 100) : 0;
-        const fatPercentage = totalCalories > 0 ? Math.round((fatCal / totalCalories) * 100) : 0;
-        const carbsPercentage = totalCalories > 0 ? Math.round((carbsCal / totalCalories) * 100) : 0;
-
+      if (todayNutrition) {
         setNutritionData({
-          calories: totalCalories,
-          protein: { value: nutrition.protein || 0, percentage: proteinPercentage },
-          fat: { value: nutrition.fat || 0, percentage: fatPercentage },
-          carbs: { value: nutrition.carbs || 0, percentage: carbsPercentage },
-        });
-        
-        console.log('設定された栄養データ:', {
-          calories: totalCalories,
-          protein: { value: nutrition.protein || 0, percentage: proteinPercentage },
-          fat: { value: nutrition.fat || 0, percentage: fatPercentage },
-          carbs: { value: nutrition.carbs || 0, percentage: carbsPercentage },
-        });
-      } else {
-        console.log('該当するデータが見つかりません - user2の9/3データを確認してください');
-        // データがない場合でもuser2のサンプルデータを表示
-        setNutritionData({
-          calories: 1300,
-          protein: { value: 80, percentage: 25 }, // 80g * 4kcal = 320kcal / 1300kcal = 25%
-          fat: { value: 70, percentage: 48 },     // 70g * 9kcal = 630kcal / 1300kcal = 48%
-          carbs: { value: 160, percentage: 49 },  // 160g * 4kcal = 640kcal / 1300kcal = 49%
+          calories: todayNutrition.calories || 0,
+          protein: { 
+            value: todayNutrition.protein || 0, 
+            percentage: Math.round(((todayNutrition.protein || 0) * 4 / (todayNutrition.calories || 1)) * 100)
+          },
+          fat: { 
+            value: todayNutrition.fat || 0, 
+            percentage: Math.round(((todayNutrition.fat || 0) * 9 / (todayNutrition.calories || 1)) * 100)
+          },
+          carbs: { 
+            value: todayNutrition.carbs || 0, 
+            percentage: Math.round(((todayNutrition.carbs || 0) * 4 / (todayNutrition.calories || 1)) * 100)
+          },
         });
       }
     } catch (error) {
-      console.error("栄養データの取得エラー:", error);
-      // エラーの場合もuser2のデータを表示
-      setNutritionData({
-        calories: 1300,
-        protein: { value: 80, percentage: 25 },
-        fat: { value: 70, percentage: 48 },
-        carbs: { value: 160, percentage: 49 },
-      });
+      console.error("栄養データ取得エラー:", error);
     }
-  }
+  };
 
-  // サンプルデータを作成する関数
-  async function createSampleNutritionData(date: string) {
+  // 食事データを取得する関数
+  const fetchMealData = async (dateString: string) => {
     try {
-      await client.models.Nutrition.create({
-        userId: "user1",
-        date: date,
-        calories: 1200,
-        protein: 50.0,
-        fat: 30.0,
-        carbs: 150.0,
+      const { data: meals } = await client.models.Meal.list();
+      const todayMeals = meals?.filter(m => m.date === dateString);
+
+      const mealsByType = {
+        breakfast: "—",
+        lunch: "—",
+        dinner: "—",
+      };
+
+      todayMeals?.forEach(meal => {
+        if (meal.mealType === "breakfast") mealsByType.breakfast = meal.content || "—";
+        if (meal.mealType === "lunch") mealsByType.lunch = meal.content || "—";
+        if (meal.mealType === "dinner") mealsByType.dinner = meal.content || "—";
       });
-      // 作成後に再取得
-      setNutritionData({
-        calories: 1200,
-        protein: { value: 50.0, percentage: 20 },
-        fat: { value: 30.0, percentage: 25 },
-        carbs: { value: 150.0, percentage: 55 },
-      });
+
+      setMealData(mealsByType);
     } catch (error) {
-      console.error("サンプルデータの作成エラー:", error);
+      console.error("食事データ取得エラー:", error);
     }
-  }
+  };
+
+  // 挨拶メッセージを生成する関数
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "おはようございます";
+    if (hour < 17) return "こんにちは";
+    return "こんばんは";
+  };
+
+  // データベースから今日のデータを取得するヘルパー関数
+  const getCurrentDateString = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const date = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${date}`;
+  };
 
   useEffect(() => {
-    // 9/3の日付を固定で表示
-    setCurrentDate("9/3 (火)");
-
-    // ユーザープロフィールを取得
+    // 初期化処理
+    updateCurrentDate();
     fetchUserProfile();
 
-    // 栄養データを取得
-    fetchNutritionData();
-  }, []);
+    // 今日の日付文字列を取得してデータを取得
+    const dateString = getCurrentDateString();
+    fetchNutritionData(dateString);
+    fetchMealData(dateString);
 
-  // ページがフォーカスされた時にもユーザー情報を再取得
-  useEffect(() => {
-    const handleFocus = () => {
-      fetchUserProfile(); // ユーザー情報を再取得
-    };
+    // 1分ごとに日付を更新（日付が変わった場合のため）
+    const dateUpdateInterval = setInterval(() => {
+      const newDateString = getCurrentDateString();
+      updateCurrentDate();
 
-    window.addEventListener('focus', handleFocus);
-    
-    // Visibility API を使用してタブがアクティブになった時も検知
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        fetchUserProfile();
+      // 日付が変わった場合はデータも再取得
+      if (newDateString !== dateString) {
+        fetchNutritionData(newDateString);
+        fetchMealData(newDateString);
       }
+    }, 60000); // 1分間隔
+
+    // ページフォーカス時にユーザープロフィールを再取得
+    const handleFocus = () => {
+      fetchUserProfile();
     };
-    
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
+    window.addEventListener('focus', handleFocus);
+
     return () => {
+      clearInterval(dateUpdateInterval);
       window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
@@ -287,3 +282,4 @@ export default function HomePage() {
     </BioryLayout>
   );
 }
+ 
