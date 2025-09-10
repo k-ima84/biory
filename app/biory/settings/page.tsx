@@ -234,8 +234,12 @@ export default function SettingsPage() {
         await client.models.UserProfile.create(profileData);
       }
 
-      // 完了画面に遷移
-      router.push("/biory/settings/complete");
+      // 保存完了後は編集モードを終了して設定画面に留まる
+      setUserProfile(formData);
+      setIsEditMode(false);
+      // 成功メッセージをコンソールに出力
+      console.log("設定を保存しました。");
+      
     } catch (error) {
       console.error("ユーザー情報の保存エラー:", error);
       alert("保存中にエラーが発生しました。もう一度お試しください。");
@@ -297,13 +301,13 @@ export default function SettingsPage() {
               </form>
             ) : (
               <>
-                <div className="info-row">
-                  <span className="info-label">Mail：</span>
-                  <span className="info-value">{userEmail}</span>
+                <div className="user-info-row">
+                  <span className="user-info-label">ID（メールアドレス）：</span>
+                  <span className="user-info-value">{userEmail}</span>
                 </div>
-                <div className="info-row">
-                  <span className="info-label">PW：</span>
-                  <span className="info-value">******</span>
+                <div className="user-info-row">
+                  <span className="user-info-label">パスワード：</span>
+                  <span className="user-info-value">******</span>
                 </div>
               </>
             )}
@@ -314,26 +318,16 @@ export default function SettingsPage() {
       <section className="basic-info-section">
         <div className="section-header">
           <h3>＜基礎情報＞</h3>
-          <div className="button-group">
-            {isEditMode && (
-              <button 
-                className="cancel-button" 
-                onClick={handleEditModeToggle}
-                type="button"
-                disabled={isLoading}
-              >
-                キャンセル
-              </button>
-            )}
+          {!isEditMode && (
             <button 
               className="change-button" 
-              onClick={isEditMode ? handleSave : handleEditModeToggle}
+              onClick={handleEditModeToggle}
               type="button"
               disabled={isLoading}
             >
-              {isLoading ? "保存中..." : isEditMode ? "保存" : "編集"}
+              編集
             </button>
-          </div>
+          )}
         </div>
 
         <form id="user-profile-form" onSubmit={handleSubmit} className="profile-form">
@@ -341,7 +335,7 @@ export default function SettingsPage() {
           <div className="form-group">
             <label className="form-label">氏名</label>
             {isEditMode ? (
-              <>
+              <div className="form-input-container">
                 <input
                   type="text"
                   value={formData.name}
@@ -351,7 +345,7 @@ export default function SettingsPage() {
                   maxLength={64}
                 />
                 {errors.name && <span className="error-message">{errors.name}</span>}
-              </>
+              </div>
             ) : (
               <div className="info-value">{formData.name || "未設定"}</div>
             )}
@@ -516,6 +510,28 @@ export default function SettingsPage() {
             </div>
           )}
         </form>
+
+        {/* 編集モード時のボタン群 */}
+        {isEditMode && (
+          <div className="form-buttons">
+            <button 
+              className="cancel-button" 
+              onClick={handleEditModeToggle}
+              type="button"
+              disabled={isLoading}
+            >
+              キャンセル
+            </button>
+            <button 
+              className="save-button" 
+              onClick={handleSave}
+              type="button"
+              disabled={isLoading}
+            >
+              {isLoading ? "保存中..." : "保存"}
+            </button>
+          </div>
+        )}
       </section>
 
       </div>
