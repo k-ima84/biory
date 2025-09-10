@@ -1,19 +1,19 @@
 /*変更内容：背景の紫を白に変更（小澤）*/
 /*追加：画面幅統一設定（2025-09-07）*/
 
-:root {
-  /* アプリ共通：画面幅設定 */
+/*:root {
+  /* アプリ共通：画面幅設定 
   --biory-width-mobile: 100%;
   --biory-width-tablet: 400px;
   --biory-width-desktop: 450px;
   --biory-width-large: 500px;
   
-  /* アプリ共通：パディング設定 */
+  /* アプリ共通：パディング設定 
   --biory-padding-mobile: 10px;
   --biory-padding-tablet: 20px;
   --biory-padding-desktop: 30px;
   --biory-padding-large: 40px;
-}
+}*/
 
 body {
     margin: 0;
@@ -26,7 +26,7 @@ body {
     align-items: center;
   }
   
-  main {
+  /*main {
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -50,9 +50,9 @@ body {
   button:focus,
   button:focus-visible {
     outline: 4px auto -webkit-focus-ring-color;
-  }
+  }*/
   
-  ul {
+/*  ul {
     padding-inline-start: 0;
     margin-block-start: 0;
     margin-block-end: 0;
@@ -79,4 +79,4 @@ body {
   a {
     font-weight: 800;
     text-decoration: none;
-  }
+  }*/

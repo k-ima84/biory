@@ -1,3 +1,16 @@
+/* CSS変数定義 */
+:root {
+  --biory-width-mobile: 400px;
+  --biory-width-tablet: 600px;
+  --biory-width-desktop: 1300px;
+  --biory-width-large: 1000px;
+  
+  --biory-padding-mobile: 15px;
+  --biory-padding-tablet: 18px;
+  --biory-padding-desktop: 24px;
+  --biory-padding-large: 32px;
+}
+
 /* 共通レイアウトスタイル */
 .biory-layout {
   min-height: 100vh;
@@ -33,11 +46,11 @@
   flex: 1;
   margin-top: 70px; /* ヘッダーの高さ分 */
   margin-bottom: 80px; /* フッターの高さ分 */
-  padding: 20px;
+  padding: var(--biory-padding-mobile);
   overflow-y: auto;
-  /* 幅を固定して統一（2025-09-07） */
+  /* 幅を統一（CSS変数使用） */
   width: 100%;
-  max-width: 400px;
+  max-width: var(--biory-width-mobile);
   margin-left: auto;
   margin-right: auto;
   box-sizing: border-box;
@@ -179,7 +192,7 @@
   }
   
   .biory-main {
-    padding: 15px;
+    padding: var(--biory-padding-mobile);
     margin-top: 65px;
     margin-bottom: 75px;
   }
@@ -211,10 +224,10 @@
   }
   
   .biory-main {
-    padding: 18px;
+    padding: var(--biory-padding-tablet);
     margin-top: 75px;
     margin-bottom: 85px;
-    max-width: 600px; /* タブレットでは幅を制限 */
+    max-width: var(--biory-width-tablet); /* タブレット幅 */
     margin-left: auto;
     margin-right: auto;
   }
@@ -251,10 +264,10 @@
   }
   
   .biory-main {
-    padding: 24px;
+    padding: var(--biory-padding-desktop);
     margin-top: 80px;
     margin-bottom: 90px;
-    max-width: 800px; /* デスクトップでは幅を制限 */
+    max-width: var(--biory-width-desktop); /* デスクトップ幅 */
     margin-left: auto;
     margin-right: auto;
   }
@@ -289,8 +302,8 @@
 /* 大画面デスクトップ対応 (1440px以上) */
 @media (min-width: 1440px) {
   .biory-main {
-    max-width: 1000px;
-    padding: 32px;
+    max-width: var(--biory-width-large);
+    padding: var(--biory-padding-large);
   }
   
   .biory-logo {
