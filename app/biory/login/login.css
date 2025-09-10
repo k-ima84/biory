@@ -1,0 +1,217 @@
+/* ログイン画面のスタイル - 完成画面イメージに合わせて */
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f8f8f8;
+  padding: 20px;
+}
+
+.login-box {
+  background: white;
+  border: none;
+  border-radius: 0;
+  padding: 40px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: none;
+}
+
+/* ロゴセクション */
+.logo-section {
+  text-align: center;
+  margin-bottom: 40px;
+  background-color: #fff8e1;
+  padding: 30px 20px 25px 20px;
+  border-radius: 0;
+}
+
+.logo-image {
+  width: 300px;
+  height: auto;
+  margin-bottom: 20px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* アプリ名とサブタイトルは画像に含まれているので非表示 */
+.app-name,
+.app-subtitle,
+.app-description {
+  display: none;
+}
+
+/* フォーム */
+.login-form {
+  margin-top: 0;
+}
+
+.form-group {
+  margin-bottom: 25px;
+}
+
+.form-group label {
+  display: block;
+  color: #333;
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 15px;
+  border: 2px solid #000 !important;
+  border-radius: 8px;
+  font-size: 16px;
+  background-color: white;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #20B2AA !important;
+}
+
+.form-input:invalid {
+  border-color: #000 !important;
+}
+
+.form-input:invalid {
+  border-color: #ff4444 !important;
+}
+
+/* ログインボタン - 緑色 */
+.login-button {
+  width: 100%;
+  padding: 18px;
+  background-color: #20B2AA;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 15px;
+}
+
+.login-button:hover:not(:disabled) {
+  background-color: #1a9a94;
+}
+
+.login-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* リンク */
+a {
+  color: #20B2AA;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* セッションクリアボタン */
+button[type="button"] {
+  background: none !important;
+  border: none !important;
+  color: #999 !important;
+  font-size: 12px !important;
+  cursor: pointer !important;
+  text-decoration: underline !important;
+  padding: 0 !important;
+}
+
+button[type="button"]:hover {
+  color: #666 !important;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 480px) {
+  .login-container {
+    padding: 10px;
+  }
+  
+  .login-box {
+    padding: 30px 25px;
+  }
+  
+  .logo-image {
+    width: 250px;
+  }
+  
+  .form-input,
+  .login-button {
+    font-size: 16px;
+  }
+}
+
+/* エラー表示（error_sample.pngを参考にしたスタイル） */
+.error-message {
+  background-color: white;
+  border: 1px solid #ffeaa7;
+  border-left: 4px solid #f39c12;
+  color: #856404;
+  padding: 12px 16px;
+  margin: 10px 0;
+  border-radius: 4px;
+  font-size: 14px;
+  line-height: 1.4;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  position: relative;
+}
+
+.error-message::before {
+  content: "⚠";
+  color: #f39c12;
+  font-size: 16px;
+  font-weight: bold;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.error-message.show {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* フィールド別エラー表示 */
+.field-error {
+  background-color: white;
+  border: 1px solid #f5c6cb;
+  border-left: 4px solid #dc3545;
+  color: #721c24;
+  padding: 8px 12px;
+  margin-top: 5px;
+  border-radius: 4px;
+  font-size: 13px;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.field-error::before {
+  content: "!";
+  color: #dc3545;
+  font-size: 14px;
+  font-weight: bold;
+  flex-shrink: 0;
+}

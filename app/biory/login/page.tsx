@@ -5,7 +5,7 @@ import { Amplify } from "aws-amplify";
 import { signIn, signOut } from "aws-amplify/auth";
 import outputs from "@/amplify_outputs.json";
 import "@aws-amplify/ui-react/styles.css";
-import "./biory/login/login.css";
+import "./login.css";
 
 Amplify.configure(outputs);
 
@@ -13,8 +13,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [fieldErrors, setFieldErrors] = useState<{[key: string]: string}>({});
 
   // ページ読み込み時に既存のセッションをクリア
   useEffect(() => {
@@ -32,29 +30,10 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // エラーをクリア
-    setError("");
-    setFieldErrors({});
-    
     // フォームの標準バリデーションをチェック
     const form = e.target as HTMLFormElement;
     if (!form.checkValidity()) {
-      // カスタムバリデーション
-      const newFieldErrors: {[key: string]: string} = {};
-      
-      if (!email) {
-        newFieldErrors.email = "メールアドレスを入力してください";
-      } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
-        newFieldErrors.email = "有効なメールアドレスを入力してください";
-      }
-      
-      if (!password) {
-        newFieldErrors.password = "パスワードを入力してください";
-      } else if (password.length < 8) {
-        newFieldErrors.password = "パスワードは8文字以上で入力してください";
-      }
-      
-      setFieldErrors(newFieldErrors);
+      form.reportValidity();
       return;
     }
     
@@ -78,26 +57,16 @@ export default function LoginPage() {
       window.location.href = "/biory/home";
     } catch (err: any) {
       console.error("ログインエラー:", err);
-      
-      // エラーメッセージを詳細に分類
-      let errorMessage = "";
-      
+      // ブラウザ標準のアラートを使用
       if (err.name === 'UserNotConfirmedException') {
-        errorMessage = "メールアドレスの認証が完了していません。受信したメールから認証を完了してください。";
+        alert("メールアドレスの認証が完了していません。メールを確認してください。");
       } else if (err.name === 'NotAuthorizedException') {
-        errorMessage = "メールアドレスまたはパスワードが正しくありません。入力内容をご確認ください。";
+        alert("メールアドレスまたはパスワードが正しくありません。");
       } else if (err.name === 'UserNotFoundException') {
-        errorMessage = "このメールアドレスは登録されていません。新規登録画面からアカウントを作成してください。";
-      } else if (err.name === 'TooManyRequestsException') {
-        errorMessage = "ログイン試行回数が上限に達しました。しばらく時間をおいてから再度お試しください。";
-      } else if (err.name === 'PasswordResetRequiredException') {
-        errorMessage = "パスワードのリセットが必要です。";
+        alert("このメールアドレスは登録されていません。");
       } else {
-        errorMessage = `ログインに失敗しました: ${err.message || 'IDまたはパスワードが正しくありません'}`;
+        alert(`ログインエラー: ${err.message || 'IDまたはパスワードが正しくありません'}`);
       }
-      
-      // 自作のエラー表示を使用
-      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -106,10 +75,10 @@ export default function LoginPage() {
   const handleClearSession = async () => {
     try {
       await signOut();
-      setError("セッションをクリアしました。再度ログインしてください。");
+      alert("セッションをクリアしました。再度ログインしてください。");
     } catch (error) {
       console.log("セッションクリアエラー:", error);
-      setError("セッションのクリアに失敗しました。");
+      alert("セッションクリア完了");
     }
   };
 
@@ -129,13 +98,6 @@ export default function LoginPage() {
 
         {/* ログインフォーム */}
         <form onSubmit={handleLogin} className="login-form">
-          {/* 全体エラーメッセージ */}
-          {error && (
-            <div className={`error-message ${error ? 'show' : ''}`}>
-              {error}
-            </div>
-          )}
-
           <div className="form-group">
             <label htmlFor="email">ID（メールアドレス）</label>
             <input
@@ -145,13 +107,9 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               className="form-input"
-              pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
-              title="有効なメールアドレスを入力してください（例: user@example.com）"
+              title="有効なメールアドレスを入力してください"
               placeholder="例: user@example.com"
             />
-            {fieldErrors.email && (
-              <div className="field-error">{fieldErrors.email}</div>
-            )}
           </div>
 
           <div className="form-group">
@@ -167,9 +125,6 @@ export default function LoginPage() {
               title="パスワードは8文字以上で入力してください"
               placeholder="8文字以上のパスワード"
             />
-            {fieldErrors.password && (
-              <div className="field-error">{fieldErrors.password}</div>
-            )}
           </div>
 
           <button type="submit" disabled={isLoading} className="login-button">
