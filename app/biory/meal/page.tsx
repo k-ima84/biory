@@ -26,7 +26,7 @@ export default function MealPage() {
       dishes: [
         "納豆ごはん",
         "わかめと豆腐の味噌汁",
-        "ぬて卵",
+        "ゆで卵",
         "バナナ"
       ],
       color: "#FF8C42",
@@ -36,7 +36,7 @@ export default function MealPage() {
       mealType: "昼食",
       calories: 600,
       dishes: [
-        "ブロッコリーと",
+        "ブロッコリー",
         "あさりのパスタ",
         "ほたてと野菜のサラダ",
         "カフェオレ（無糖）"
@@ -49,10 +49,8 @@ export default function MealPage() {
       calories: 800,
       dishes: [
         "照り焼きチキン",
-        "マッシュルームの",
-        "ハンバーグ",
-        "クレソンとにんじんの",
-        "玉子炒め",
+        "マッシュルームのハンバーグ",
+        "クレソンとにんじんの玉子炒め",
         "キャベツときゅうりのサラダ"
       ],
       color: "#2196F3",
@@ -70,14 +68,13 @@ export default function MealPage() {
       setUser(currentUser);
     } catch (error) {
       // ユーザーがログインしていない場合はログイン画面にリダイレクト
-      window.location.href = "/login";
+      window.location.href = "/biory/login";
     }
   }
  
-  const getTomorrowDate = () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow.toLocaleDateString('ja-JP', {
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toLocaleDateString('ja-JP', {
       month: 'long',
       day: 'numeric'
     });
@@ -87,8 +84,8 @@ export default function MealPage() {
     <BioryLayout>
       <div className={styles.container}>
         <header className={styles.header}>
-          <h1 className={styles.title}>明日の献立</h1>
-          <p className={styles.date}>{getTomorrowDate()}</p>
+          <h1 className={styles.title}>今日の献立</h1>
+          <p className={styles.date}>{getTodayDate()}</p>
         </header>
  
         <div className={styles.mealsContainer}>
@@ -142,3 +139,4 @@ export default function MealPage() {
     </BioryLayout>
   );
 }
+ 

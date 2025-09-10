@@ -1,13 +1,15 @@
-meal.module.css
-/* 献立画面のスタイル */
+
+ 
+ meal.module.css
+/* 献立画面のスタイル - PC画面最適化 */
  
 .container {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 20px 20px 20px 20px;
+  padding: 20px 40px;
   background: #FEF9F4;
-  /* min-height: 100vh; を削除 */
-  /* ヘッダー・フッターに重ならないよう調整 */
+  margin-top: 100px
+  /* PC画面でゆったりとした表示 */
 }
  
 .header {
@@ -34,10 +36,10 @@ meal.module.css
 }
  
 .mealsContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  margin-bottom: 30px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 40px;
 }
  
 .mealCard {
@@ -46,6 +48,9 @@ meal.module.css
   overflow: hidden;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: 350px;
+  display: flex;
+  flex-direction: column;
 }
  
 .mealCard:hover {
@@ -82,15 +87,19 @@ meal.module.css
  
 .mealContent {
   display: flex;
+  flex-direction: column;
   padding: 20px;
-  gap: 20px;
-  align-items: flex-start;
+  gap: 16px;
+  align-items: center;
+  flex: 1;
+  text-align: center;
 }
  
 .dishImage {
   flex-shrink: 0;
-  width: 120px;
-  height: 120px;
+  width: 100px;
+  height: 100px;
+  margin-bottom: 12px;
 }
  
 .imagePlaceholder {
@@ -107,15 +116,17 @@ meal.module.css
  
 .dishList {
   flex: 1;
-  line-height: 1.8;
+  line-height: 1.6;
+  width: 100%;
 }
  
 .dishItem {
   color: #8B4513;
-  font-size: 1rem;
-  margin-bottom: 4px;
+  font-size: 0.9rem;
+  margin-bottom: 6px;
   position: relative;
   padding-left: 16px;
+  text-align: left;
 }
  
 .dishItem::before {
@@ -132,10 +143,11 @@ meal.module.css
   align-items: center;
   background: linear-gradient(135deg, #FF8C42 0%, #FF6B35 100%);
   color: white;
-  padding: 20px 24px;
+  padding: 24px 32px;
   border-radius: 16px;
-  margin-bottom: 24px;
+  margin: 40px auto 30px auto;
   box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
+  max-width: 600px;
 }
  
 .totalLabel {
@@ -151,16 +163,17 @@ meal.module.css
  
 .actionButtons {
   display: flex;
-  gap: 16px;
+  gap: 20px;
   justify-content: center;
-  margin-bottom: 40px; /* ボトムナビゲーションとの余白をさらに確保 */
+  margin: 0 auto 40px auto;
+  max-width: 500px;
 }
  
 .regenerateButton,
 .saveButton {
   flex: 1;
-  max-width: 200px;
-  padding: 16px 24px;
+  max-width: 220px;
+  padding: 18px 28px;
   border: none;
   border-radius: 12px;
   font-size: 1.1rem;
@@ -191,58 +204,31 @@ meal.module.css
   box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
 }
  
-/* レスポンシブ対応 */
+/* PC画面専用設定 - レスポンシブ削除 */
+/* 全ての画面サイズでPC表示を適用 */
+ 
+/* 小画面でもPC表示を維持（必要に応じて微調整のみ） */
 @media (max-width: 768px) {
   .container {
-    padding: 16px;
+    max-width: 100%;
+    padding: 20px;
   }
  
-  .title {
-    font-size: 2rem;
+  .mealsContainer {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
   }
  
-  .mealContent {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+  .mealCard {
+    height: 400px;
   }
  
   .dishImage {
-    width: 100px;
-    height: 100px;
-    margin-bottom: 16px;
+    width: 80px;
+    height: 80px;
   }
  
-  .actionButtons {
-    flex-direction: column;
-  }
- 
-  .regenerateButton,
-  .saveButton {
-    max-width: none;
+  .dishItem {
+    font-size: 0.8rem;
   }
 }
- 
-@media (max-width: 480px) {
-  .mealHeader {
-    padding: 12px 16px;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
- 
-  .mealType {
-    font-size: 1.1rem;
-  }
- 
-  .calories {
-    font-size: 1rem;
-  }
- 
-  .totalCalories {
-    flex-direction: column;
-    gap: 8px;
-    text-align: center;
-  }
-}
- 
- 
