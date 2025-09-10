@@ -182,12 +182,16 @@ export default function SettingsPage() {
     setIsEditMode(!isEditMode);
   };
 
-  // 保存処理
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // 保存処理（ボタンクリック用）
+  const handleSave = async () => {
     if (validateForm()) {
-      await handleSubmit(e);
-      setIsEditMode(false);
+      // フォーム送信イベントを作成
+      const form = document.getElementById("user-profile-form") as HTMLFormElement;
+      if (form) {
+        const event = new Event('submit', { bubbles: true, cancelable: true });
+        await handleSubmit(event as any);
+        setIsEditMode(false);
+      }
     }
   };
   const handleSubmit = async (e: React.FormEvent) => {
@@ -310,15 +314,26 @@ export default function SettingsPage() {
       <section className="basic-info-section">
         <div className="section-header">
           <h3>＜基礎情報＞</h3>
-          <button 
-            className="change-button" 
-            onClick={isEditMode ? undefined : handleEditModeToggle}
-            type={isEditMode ? "submit" : "button"}
-            form={isEditMode ? "user-profile-form" : undefined}
-            disabled={isLoading}
-          >
-            {isLoading ? "保存中..." : isEditMode ? "保存" : "編集"}
-          </button>
+          <div className="button-group">
+            {isEditMode && (
+              <button 
+                className="cancel-button" 
+                onClick={handleEditModeToggle}
+                type="button"
+                disabled={isLoading}
+              >
+                キャンセル
+              </button>
+            )}
+            <button 
+              className="change-button" 
+              onClick={isEditMode ? handleSave : handleEditModeToggle}
+              type="button"
+              disabled={isLoading}
+            >
+              {isLoading ? "保存中..." : isEditMode ? "保存" : "編集"}
+            </button>
+          </div>
         </div>
 
         <form id="user-profile-form" onSubmit={handleSubmit} className="profile-form">
