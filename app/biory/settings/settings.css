@@ -2,7 +2,7 @@
 
 /* BioryLayoutが幅を制御するため、コンテナは幅制御を削除 */
 .settings-container {
-  background-color: #f5f5f5;
+ background-color: #FEFBE8;
   min-height: 70vh;
   padding-bottom: 0px;
   padding-top: 10px; /* 上部パディングを0に */
@@ -27,14 +27,14 @@
 .date {
   font-size: 2.5rem;
   font-weight: 700;
-  color: #FF6B35;
+  color: #6f6b68;
   margin: 0 0 8px 0;
   text-shadow: 2px 2px 4px rgba(255, 107, 53, 0.1);
 }
 
 .greeting {
   font-size: 18px;
-  color: #333;
+  color: #8B4513;
 }
 
 /* セクション共通 */
@@ -76,18 +76,18 @@
 }
 
 .change-button {
-  background-color: #20B2AA;
+  background-color: #a8e6cf;
   border-radius: 4px;
   padding: 5px 15px;
   font-size: 12px;
   border: none; /* 枠線を削除 */
-  color: white;
+  color: #070707;
   cursor: pointer;
   transition: background-color 0.2s;
 }
 
 .change-button:hover {
-  background-color: #1a9a94;
+  background-color: #8ec1ae;
 }
 
 .change-button:disabled {
@@ -395,13 +395,13 @@
 }
 
 .save-button {
-  background-color: #20B2AA;
-  color: white;
-  border: 1px solid#20B2AA;
+  background-color: #a8e6cf;
+  border: none; /* 枠線を削除 */
+  color: #070707;
 }
 
 .save-button:hover {
-  background-color: #1a9a94;
+ background-color: #8ec1ae;
 }
 
 .save-button:disabled {
@@ -424,7 +424,7 @@
   justify-content: center;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  color: #333;
+  color: #070707;
   outline: none;
 }
 

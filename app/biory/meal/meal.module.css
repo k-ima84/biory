@@ -6,7 +6,7 @@
 .container {
   /* 幅設定は共通レイアウト（BioryLayout）に委譲 */
   padding: 0; /* パディングも共通レイアウトに委譲 */
-  background: #F5F0E8;
+ background-color: #FEFBE8;
   position: relative;
 }
  

@@ -4,7 +4,7 @@
 /* ヘッダー */
 .container {
   /* 幅設定・パディング設定は共通レイアウト（BioryLayout）に委譲 */
-  background: White;
+ background-color: #FEFBE8;
 }
 
 /* 日付・挨拶セクション */
@@ -21,14 +21,14 @@
 .date {
   font-size: 2.5rem;
   font-weight: 700;
-  color: #FF6B35;
+  color: #6f6b68;
   margin: 0 0 8px 0;
   text-shadow: 2px 2px 4px rgba(255, 107, 53, 0.1);
 }
 
 .greeting {
   font-size: 18px;
-  color: #333;
+  color: #8B4513;
 }
 
 /* メインコンテンツエリア */
