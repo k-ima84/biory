@@ -14,7 +14,7 @@ interface MealData {
   calories: number;
   dishes: string[];
   color: string;
-  icon: string;
+  imageUrl?: string; // 画像URLを追加（オプション）
 }
  
 export default function MealPage() {
@@ -30,7 +30,7 @@ export default function MealPage() {
         "バナナ"
       ],
       color: "#FF8C42",
-      icon: "🌅"
+      imageUrl: "https://example.com/breakfast.jpg" // サンプル画像URL
     },
     {
       mealType: "昼食",
@@ -41,8 +41,8 @@ export default function MealPage() {
         "ほたてと野菜のサラダ",
         "カフェオレ（無糖）"
       ],
-      color: "#4CAF50",
-      icon: "☀️"
+      color: "#FF8C42",
+      imageUrl: "https://example.com/lunch.jpg" // サンプル画像URL
     },
     {
       mealType: "夕食",
@@ -53,10 +53,15 @@ export default function MealPage() {
         "クレソンとにんじんの玉子炒め",
         "キャベツときゅうりのサラダ"
       ],
-      color: "#2196F3",
-      icon: "🌙"
+      color: "#FF8C42",
+      imageUrl: "https://example.com/dinner.jpg" // サンプル画像URL
     }
   ]);
+
+  // カロリー計算
+  const currentCalories = meals.reduce((total, meal) => total + meal.calories, 0);
+  const maxCalories = 2500; // 一日の推奨摂取カロリー
+  const percentage = Math.min((currentCalories / maxCalories) * 100, 100);
  
   useEffect(() => {
     checkUser();
@@ -84,7 +89,7 @@ export default function MealPage() {
     <BioryLayout>
       <div className={styles.container}>
         <header className={styles.header}>
-          <h1 className={styles.title}>今日の献立</h1>
+          <h1 className={styles.title}>今日のあなたにぴったりの献立</h1>
           <p className={styles.date}>{getTodayDate()}</p>
         </header>
  
@@ -95,15 +100,32 @@ export default function MealPage() {
                 className={styles.mealHeader}
                 style={{ backgroundColor: meal.color }}
               >
-                <span className={styles.mealIcon}>{meal.icon}</span>
                 <span className={styles.mealType}>{meal.mealType}</span>
                 <span className={styles.calories}>{meal.calories} kcal</span>
               </div>
              
               <div className={styles.mealContent}>
                 <div className={styles.dishImage}>
-                  {/* 料理画像のプレースホルダー */}
-                  <div className={styles.imagePlaceholder}>
+                  {/* 料理画像の表示 */}
+                  {meal.imageUrl ? (
+                    <img 
+                      src={meal.imageUrl} 
+                      alt={`${meal.mealType}の料理`}
+                      className={styles.actualImage}
+                      onError={(e) => {
+                        // 画像読み込みエラー時はプレースホルダーを表示
+                        e.currentTarget.style.display = 'none';
+                        const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                        if (nextElement) {
+                          nextElement.style.display = 'flex';
+                        }
+                      }}
+                    />
+                  ) : null}
+                  <div 
+                    className={styles.imagePlaceholder}
+                    style={{ display: meal.imageUrl ? 'none' : 'flex' }}
+                  >
                     <span>🍽️</span>
                   </div>
                 </div>
@@ -120,20 +142,50 @@ export default function MealPage() {
           ))}
         </div>
  
-        <div className={styles.totalCalories}>
-          <span className={styles.totalLabel}>合計カロリー</span>
-          <span className={styles.totalValue}>
-            {meals.reduce((total, meal) => total + meal.calories, 0)} kcal
-          </span>
-        </div>
- 
-        <div className={styles.actionButtons}>
-          <button className={styles.regenerateButton}>
-            🔄 献立を再生成
-          </button>
-          <button className={styles.saveButton}>
-            💾 献立を保存
-          </button>
+        <div className={styles.bottomSection}>
+          <div className={styles.caloriesMeter}>
+            <div className={styles.circularProgress}>
+              <svg className={styles.progressRing} width="150" height="150">
+                {/* 背景の円 */}
+                <circle
+                  className={styles.progressRingBg}
+                  stroke="#E5E5E5"
+                  strokeWidth="10"
+                  fill="transparent"
+                  r="65"
+                  cx="75"
+                  cy="75"
+                />
+                {/* 進捗の円 */}
+                <circle
+                  className={styles.progressRingProgress}
+                  stroke="#FF6B35"
+                  strokeWidth="10"
+                  fill="transparent"
+                  r="65"
+                  cx="75"
+                  cy="75"
+                  strokeDasharray={`${2 * Math.PI * 65}`}
+                  strokeDashoffset={`${2 * Math.PI * 65 * (1 - percentage / 100)}`}
+                  transform="rotate(0 75 75)"
+                />
+              </svg>
+              <div className={styles.progressText}>
+                <div className={styles.currentCalories}>{currentCalories}</div>
+                <div className={styles.caloriesUnit}>kcal</div>
+                <div className={styles.maxCalories}>/ {maxCalories} kcal</div>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.actionButtons}>
+            <button className={styles.regenerateButton}>
+              <span className={styles.buttonIcon}>↻</span>献立を生成！
+            </button>
+            <button className={styles.saveButton}>
+              💾 献立を保存
+            </button>
+          </div>
         </div>
       </div>
     </BioryLayout>
