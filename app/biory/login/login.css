@@ -28,7 +28,7 @@
 .logo-section {
   text-align: center;
   margin-bottom: 40px;
-  background-color: #fff8e1;
+  background-color: #FEFBE8;
   padding: var(--auth-logo-section-padding);  /* CSS変数を使用 */
   border-radius: 0;
 }

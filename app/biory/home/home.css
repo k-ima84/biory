@@ -4,7 +4,7 @@
 /* ヘッダー */
 .container {
   /* 幅設定・パディング設定は共通レイアウト（BioryLayout）に委譲 */
-  background: #FEF9F4;
+  background: White;
 }
 
 /*.header {

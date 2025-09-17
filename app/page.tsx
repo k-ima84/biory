@@ -16,7 +16,7 @@ export default function HomePage() {
         {/* ログインボタン */}
         <div className="login-form">
           <button onClick={handleLoginClick} className="login-button">
-            ログイン
+            こちらからアクセスしてください
           </button>
         </div>
       </div>
