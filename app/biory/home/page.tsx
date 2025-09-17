@@ -213,8 +213,9 @@ const fetchUserProfile = async () => {
 
       {/* 栄養情報セクション */}
       <section className="nutrition-section">
+        <h3 className="section-title-highlight">食事バランス</h3>
         <div className="nutrition-header">
-          <span className="nutrition-label">▷カロリー</span>
+          <span className="nutrition-label">カロリー</span>
           <span className="calories-value">{nutritionData.calories} kcal</span>
         </div>
         <div className="nutrition-details">
@@ -235,7 +236,7 @@ const fetchUserProfile = async () => {
 
       {/* 食事記録セクション */}
       <section className="meal-section">
-        <h3 className="section-title">▷本日の食事</h3>
+        <h3 className="section-title-highlight">本日の食事</h3>
         <div className="meal-list">
           <div className="meal-row">
             <span className="meal-time">朝</span>
@@ -257,18 +258,21 @@ const fetchUserProfile = async () => {
 
       {/* 体調管理セクション */}
       <section className="health-section">
-        <div className="health-row">
-          <span className="health-label">体調：</span>
-          <span className="health-value">{healthData.condition}</span>
-          <span className="health-emoji"></span>
-        </div>
-        <div className="health-row">
-          <span className="health-label">気分：</span>
-          <span className="health-value">{healthData.mood}</span>
-        </div>
-        <div className="health-row">
-          <span className="health-label">体重：</span>
-          <span className="health-value">―.―kg</span>
+        <h3 className="section-title-highlight">本日の調子</h3>
+        <div className="health-content">
+          <div className="health-row">
+            <span className="health-label">体調：</span>
+            <span className="health-value">{healthData.condition}</span>
+            <span className="health-emoji"></span>
+          </div>
+          <div className="health-row">
+            <span className="health-label">気分：</span>
+            <span className="health-value">{healthData.mood}</span>
+          </div>
+          <div className="health-row">
+            <span className="health-label">体重：</span>
+            <span className="health-value">―.―kg</span>
+          </div>
         </div>
       </section>
 

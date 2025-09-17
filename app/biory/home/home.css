@@ -125,11 +125,34 @@
   flex-direction: column;
 }
 
+/* 基本のセクションタイトル（背景なし） */
 .section-title {
   font-size: 16px;
   font-weight: bold;
   color: #333;
   margin: 0 0 15px 0;
+}
+
+/* 強調セクションタイトル（緑背景） */
+.section-title-highlight {
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  margin: 0 0 15px 0;
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+
+/* 食事記録セクション専用のタイトルスタイル（互換性のため残す） */
+.meal-section-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  margin: 0 0 15px 0;
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  padding: 8px 12px;
+  border-radius: 4px;
 }
 
 .meal-list {
@@ -174,7 +197,13 @@
   min-height: 60px; /* 50px→80pxに調整 */
   display: flex;
   flex-direction: column;
+}
+
+.health-content {
+  display: flex;
+  flex-direction: column;
   justify-content: space-around;
+  flex: 1;
 }
 
 .health-row {
@@ -262,9 +291,12 @@
   
   .health-section {
     grid-column: 1 / -1;
+    min-height: 100px; /* 140px→100pxに削減 */
+  }
+  
+  .health-content {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
-    min-height: 100px; /* 140px→100pxに削減 */
   }
 }
