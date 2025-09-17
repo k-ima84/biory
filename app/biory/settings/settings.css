@@ -1,0 +1,381 @@
+/*修正内容：BioryLayoutで幅制御統一（2025-09-10）*/
+
+/* BioryLayoutが幅を制御するため、コンテナは幅制御を削除 */
+.settings-container {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  padding-bottom: 20px;
+  /* ヘッダーの高さ分上部マージンを追加（2025-09-10） */
+  padding-top: 180px;
+  /* BioryLayoutに幅制御を委譲（パディング削除） */
+}
+
+/* ページタイトル */
+.page-title {
+  padding: 20px 0 10px 0;
+  text-align: center;
+}
+
+.settings-title {
+  font-size: 20px;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+  border-bottom: 2px solid #ddd;
+  padding-bottom: 10px;
+}
+
+/* セクション共通 */
+.user-info-section,
+.basic-info-section {
+  background-color: white;
+  margin: 15px 0; /* 上下のみ */
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  /* 幅をコンテナいっぱいに（2025-09-07） */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.section-header h3 {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+}
+
+.change-button {
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 5px 15px;
+  font-size: 12px;
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.change-button:hover {
+  background-color: #e0e0e0;
+}
+
+.change-button:disabled {
+  background-color: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
+/* ユーザー情報セクション */
+.user-info-content {
+  margin-top: 10px;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.info-label {
+  font-weight: bold;
+  color: #333;
+  min-width: 50px;
+}
+
+.info-value {
+  color: #0066cc;
+  margin-left: 10px;
+}
+
+/* フォーム */
+.profile-form {
+  margin-top: 10px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+  /* 表示モードと編集モード共通の横並びレイアウト（2025-09-10） */
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.form-label {
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+  /* ラベル幅を固定してコロン位置を揃える */
+  width: 120px;
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* 表示モード用：ラベルテキストのコロン位置を統一 */
+.form-label::after {
+  content: "：";
+}
+
+/* 表示モード用：ラベルテキストのコロン位置を統一 */
+.form-label::after {
+  content: "：";
+}
+
+.info-value {
+  flex: 1;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.4;
+}
+
+/* フォーム入力要素のコンテナ */
+.form-input-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-input,
+.form-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: white;
+  box-sizing: border-box;
+}
+
+.form-input:focus,
+.form-select:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
+
+.form-input.error,
+.form-select.error {
+  border-color: #ff6b6b;
+}
+
+.input-with-unit {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.input-with-unit .form-input {
+  flex: 1;
+}
+
+.unit {
+  font-size: 14px;
+  color: #666;
+  font-weight: bold;
+}
+
+.error-message {
+  color: #ff6b6b;
+  font-size: 12px;
+  margin-top: 5px;
+  display: block;
+}
+
+/* レスポンシブ対応 - BioryLayoutの幅制御に合わせて調整 */
+
+/* モバイル対応 */
+@media (max-width: 767px) {
+  .user-info-section,
+  .basic-info-section {
+    margin: 10px 0;
+    padding: 12px;
+  }
+  
+  .page-title {
+    padding: 15px 0 5px 0;
+  }
+  
+  .settings-title {
+    font-size: 18px;
+  }
+  
+  .form-input,
+  .form-select {
+    padding: 12px;
+    font-size: 16px;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .section-header h3 {
+    font-size: 16px;
+  }
+  
+  .change-button {
+    align-self: flex-end;
+    padding: 6px 15px;
+    font-size: 12px;
+  }
+  
+  .info-row {
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 12px;
+  }
+  
+  .info-label {
+    margin-bottom: 4px;
+    min-width: auto;
+  }
+  
+  .info-value {
+    margin-left: 0;
+  }
+}
+/* タブレット・PC対応 */
+@media (min-width: 768px) {
+  .user-info-section,
+  .basic-info-section {
+    margin: 20px 0;
+    padding: 20px;
+  }
+  
+  .page-title {
+    padding: 25px 0 15px 0;
+  }
+  
+  .form-input,
+  .form-select {
+    padding: 12px;
+    font-size: 14px;
+  }
+  
+  .section-header h3 {
+    font-size: 18px;
+  }
+  
+  .change-button {
+    padding: 8px 20px;
+    font-size: 14px;
+  }
+}
+
+/* 大画面対応 */
+@media (min-width: 1024px) {
+  .page-title {
+    padding: 30px 0 20px 0;
+  }
+  
+  .user-info-section,
+  .basic-info-section {
+    margin: 20px 0;
+    padding: 25px;
+  }
+  
+  .section-header h3 {
+    font-size: 20px;
+  }
+  
+  .change-button {
+    padding: 10px 25px;
+    font-size: 16px;
+  }
+}
+
+/* 超大画面対応 */
+@media (min-width: 1440px) {
+  .page-title {
+    padding: 35px 0 25px 0;
+  }
+}
+  
+  .settings-title {
+    font-size: 24px
+ }
+
+/* ユーザー情報セクション専用スタイル（コロンを縦に揃えない） */
+.user-info-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 10px;
+}
+
+.user-info-label {
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+  white-space: nowrap;
+}
+
+.user-info-value {
+  flex: 1;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.4;
+}
+
+/* フォーム下部のボタン群（右下配置） */
+.form-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #ddd;
+}
+
+.cancel-button {
+  background-color: #f5f5f5;
+  color: #666;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cancel-button:hover {
+  background-color: #e9e9e9;
+}
+
+.cancel-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.save-button {
+  background-color: #007bff;
+  color: white;
+  border: 1px solid #007bff;
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.save-button:hover {
+  background-color: #0056b3;
+}
+
+.save-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

@@ -1,5 +1,6 @@
 import { Amplify } from 'aws-amplify';
-import { generateClient } from 'aws-amplify/api';
+import { generateClient } from 'aws-amplify/data';
+import type { Schema } from '../data/resource';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -10,7 +11,7 @@ const outputs = JSON.parse(fs.readFileSync(outputsPath, 'utf8'));
 // Amplify設定を初期化
 Amplify.configure(outputs);
 
-const client = generateClient();
+const client = generateClient<Schema>();
 
 export const seedData = async () => {
   try {
@@ -18,38 +19,21 @@ export const seedData = async () => {
     const nutritionDataList = [
       {
         calories: 1200,
-        carbs: 150,
+        carbs: 150.0,
         date: '2025-08-27',
-        fat: 30,
-        protein: 50,
+        fat: 30.0,
+        protein: 50.0,
         userId: 'user1'
       },
       {
         calories: 1300,
-        carbs: 160,
+        carbs: 160.0,
         date: '2025-09-03',
-        fat: 70,
-        protein: 80,
+        fat: 70.0,
+        protein: 80.0,
         userId: 'user2'
       }
     ];
-
-    // Mutationを実行してデータを作成
-    const mutation = `
-      mutation CreateNutrition($input: CreateNutritionInput!) {
-        createNutrition(input: $input) {
-          id
-          calories
-          carbs
-          createdAt
-          date
-          fat
-          protein
-          updatedAt
-          userId
-        }
-      }
-    `;
 
     console.log(`投入するデータ数: ${nutritionDataList.length}件`);
 
@@ -59,14 +43,9 @@ export const seedData = async () => {
       console.log(`データ ${i + 1}/${nutritionDataList.length} を投入中...`);
       console.log('投入データ:', nutritionData);
 
-      const result = await client.graphql({
-        query: mutation,
-        variables: {
-          input: nutritionData
-        }
-      });
+      const result = await client.models.Nutrition.create(nutritionData);
 
-      console.log(`✅ データ ${i + 1} の投入完了:`, result.data.createNutrition);
+      console.log(`✅ データ ${i + 1} の投入完了:`, result.data);
     }
 
     console.log('🎉 全データの投入が完了しました！');

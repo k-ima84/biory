@@ -1,0 +1,234 @@
+
+ 
+ meal.module.css
+/* 献立画面のスタイル - PC画面最適化 */
+ 
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 40px;
+  background: #FEF9F4;
+  margin-top: 100px
+  /* PC画面でゆったりとした表示 */
+}
+ 
+.header {
+  text-align: center;
+  margin: 0 0 30px 0;
+  padding: 20px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+ 
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #FF6B35;
+  margin: 0 0 8px 0;
+  text-shadow: 2px 2px 4px rgba(255, 107, 53, 0.1);
+}
+ 
+.date {
+  font-size: 1.1rem;
+  color: #8B4513;
+  margin: 0;
+}
+ 
+.mealsContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 40px;
+}
+ 
+.mealCard {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: 350px;
+  display: flex;
+  flex-direction: column;
+}
+ 
+.mealCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+ 
+.mealHeader {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  color: white;
+  font-weight: 600;
+  gap: 12px;
+}
+ 
+.mealIcon {
+  font-size: 1.5rem;
+}
+ 
+.mealType {
+  font-size: 1.3rem;
+  font-weight: 700;
+  flex: 1;
+}
+ 
+.calories {
+  font-size: 1.1rem;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+ 
+.mealContent {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  gap: 16px;
+  align-items: center;
+  flex: 1;
+  text-align: center;
+}
+ 
+.dishImage {
+  flex-shrink: 0;
+  width: 100px;
+  height: 100px;
+  margin-bottom: 12px;
+}
+ 
+.imagePlaceholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #FFE4B5 0%, #F4A261 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  border: 3px solid #E8D5C4;
+}
+ 
+.dishList {
+  flex: 1;
+  line-height: 1.6;
+  width: 100%;
+}
+ 
+.dishItem {
+  color: #8B4513;
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+  position: relative;
+  padding-left: 16px;
+  text-align: left;
+}
+ 
+.dishItem::before {
+  content: "•";
+  color: #FF8C42;
+  font-weight: bold;
+  position: absolute;
+  left: 0;
+}
+ 
+.totalCalories {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, #FF8C42 0%, #FF6B35 100%);
+  color: white;
+  padding: 24px 32px;
+  border-radius: 16px;
+  margin: 40px auto 30px auto;
+  box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
+  max-width: 600px;
+}
+ 
+.totalLabel {
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+ 
+.totalValue {
+  font-size: 1.8rem;
+  font-weight: 800;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+ 
+.actionButtons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin: 0 auto 40px auto;
+  max-width: 500px;
+}
+ 
+.regenerateButton,
+.saveButton {
+  flex: 1;
+  max-width: 220px;
+  padding: 18px 28px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+ 
+.regenerateButton {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+}
+ 
+.regenerateButton:hover {
+  background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+ 
+.saveButton {
+  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+  color: white;
+}
+ 
+.saveButton:hover {
+  background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+ 
+/* PC画面専用設定 - レスポンシブ削除 */
+/* 全ての画面サイズでPC表示を適用 */
+ 
+/* 小画面でもPC表示を維持（必要に応じて微調整のみ） */
+@media (max-width: 768px) {
+  .container {
+    max-width: 100%;
+    padding: 20px;
+  }
+ 
+  .mealsContainer {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+  }
+ 
+  .mealCard {
+    height: 400px;
+  }
+ 
+  .dishImage {
+    width: 80px;
+    height: 80px;
+  }
+ 
+  .dishItem {
+    font-size: 0.8rem;
+  }
+}
