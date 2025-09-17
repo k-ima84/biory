@@ -30,10 +30,16 @@
 }
 
 .date {
-  font-size: 28px;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #FF6B35;
+  margin: 0 0 8px 0;
+  text-shadow: 2px 2px 4px rgba(255, 107, 53, 0.1);
+
+/*  font-size: 28px;
   font-weight: bold;
   color: #333;
-  margin-bottom: 8px;
+  margin-bottom: 8px; */
 }
 
 .greeting {
@@ -47,6 +53,9 @@
   grid-template-columns: 1fr 1fr;
   gap: 20px;
   padding: 20px 0;
+  /* スクロールバーが出ない程度に高さを調整 */
+  min-height: calc(100vh - 320px); /* より余裕を持った計算 */
+  /* heightは削除してmin-heightのみ使用 */
 }
 
 /* 栄養情報セクション */
@@ -56,6 +65,10 @@
   border: 1px solid #ddd;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  /* 高さを控えめに設定 */
+  min-height: 160px; /* 200px→160pxに削減 */
+  display: flex;
+  flex-direction: column;
 }
 
 .nutrition-header {
@@ -94,6 +107,10 @@
 
 .nutrition-details {
   margin-left: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
 }
 
 .nutrition-row {
@@ -118,6 +135,10 @@
   border: 1px solid #ddd;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  /* 高さを控えめに設定 */
+  min-height: 160px; /* 150px→160pxに微調整 */
+  display: flex;
+  flex-direction: column;
 }
 
 .section-title {
@@ -129,6 +150,10 @@
 
 .meal-list {
   margin-left: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
 }
 
 .meal-row {
@@ -160,7 +185,12 @@
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   grid-column: 1 / -1;
-  margin-bottom: 80px;
+  margin-bottom: 10px; /* 10px→20pxに戻す */
+  /* 高さを適切に設定 */
+  min-height: 60px; /* 50px→80pxに調整 */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
 }
 
 .health-row {
@@ -271,15 +301,20 @@
   .main-content {
     grid-template-columns: 1fr;
     gap: 15px;
+    /* モバイルでの高さ調整 - スクロールバー回避 */
+    min-height: calc(100vh - 280px); /* 250px→280pxに調整 */
+    /* heightプロパティを削除 */
   }
   
   .nutrition-section,
   .meal-section {
     margin-bottom: 15px;
+    min-height: 140px; /* 180px→140pxに削減 */
   }
   
   .health-section {
     grid-column: 1;
+    min-height: 80px; /* 100px→80pxに削減 */
   }
 }
 
@@ -287,6 +322,9 @@
 @media (min-width: 1024px) {
   .main-content {
     grid-template-columns: 1fr 1fr 1fr;
+    /* 大画面での高さ調整 - スクロールバー回避 */
+    min-height: calc(100vh - 350px); /* 300px→350pxに調整 */
+    /* heightプロパティを削除 */
   }
   
   .health-section {
@@ -294,5 +332,6 @@
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
+    min-height: 100px; /* 140px→100pxに削減 */
   }
 }
