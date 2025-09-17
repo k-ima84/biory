@@ -276,7 +276,7 @@ export default function SettingsPage() {
         {/* ユーザー情報セクション */}
         <section className="user-info-section">
           <div className="section-header">
-            <h3>＜ユーザ情報＞</h3>
+            <h3>👤ユーザ情報</h3>
           </div>
           <div className="user-info-content">
             <div className="user-info-row">
@@ -289,7 +289,7 @@ export default function SettingsPage() {
       {/* 基礎情報セクション */}
       <section className="basic-info-section">
         <div className="section-header">
-          <h3>＜基礎情報＞</h3>
+          <h3>📝基礎情報</h3>
           {!isEditMode && (
             <button 
               className="change-button" 
@@ -505,7 +505,6 @@ export default function SettingsPage() {
           </div>
         )}
       </section>
-
       </div>
     </BioryLayout>
   );
