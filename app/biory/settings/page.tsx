@@ -37,8 +37,10 @@ export default function SettingsPage() {
   const [currentUserId] = useState("user2"); // 現在のユーザーID（実際の認証では動的に取得）
   const [userEmail] = useState("xxxx@outlook.com"); // 現在のユーザーEmail
   const [isEditMode, setIsEditMode] = useState(false); // 編集モードフラグ
-  const [isUserInfoEditMode, setIsUserInfoEditMode] = useState(false); // ユーザー情報編集モードフラグ
-  const [userProfile, setUserProfile] = useState<UserProfileForm | null>(null); // 保存されたプロフィール
+  {/* 基礎情報編集の変数削除
+    const [isUserInfoEditMode, setIsUserInfoEditMode] = useState(false); // ユーザー情報編集モードフラグ
+  */}
+    const [userProfile, setUserProfile] = useState<UserProfileForm | null>(null); // 保存されたプロフィール
   
   const [formData, setFormData] = useState<UserProfileForm>({
     name: "",
@@ -256,9 +258,11 @@ export default function SettingsPage() {
     }
   };
 
+{/*
   const handleBackToHome = () => {
     router.push("/biory/home");
   };
+*/}
 
   return (
     <BioryLayout>
@@ -274,6 +278,8 @@ export default function SettingsPage() {
             <h3>＜ユーザ情報＞</h3>
           </div>
           <div className="user-info-content">
+
+{/*　基礎情報編集削除
             {isUserInfoEditMode ? (
               <form className="profile-form">
                 <div className="form-group">
@@ -299,18 +305,22 @@ export default function SettingsPage() {
                   <small style={{color: '#666', fontSize: '12px'}}>※パスワードの変更は準備中です</small>
                 </div>
               </form>
-            ) : (
+            ) : (        
               <>
+*/} 
+
                 <div className="user-info-row">
                   <span className="user-info-label">ID（メールアドレス）：</span>
                   <span className="user-info-value">{userEmail}</span>
                 </div>
+{/* パスワード表示削除
                 <div className="user-info-row">
                   <span className="user-info-label">パスワード：</span>
                   <span className="user-info-value">******</span>
                 </div>
               </>
             )}
+*/}
           </div>
         </section>
 
