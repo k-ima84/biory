@@ -7,7 +7,7 @@
   background-color: white;
   padding: 20px;
   /* 拡大縮小時の挙動改善 */
-  overflow-x: hidden;
+  overflow-x: auto;
   overflow-y: auto;
   scroll-padding-top: var(--zoom-scroll-padding, 100px);
   transform-origin: top center;

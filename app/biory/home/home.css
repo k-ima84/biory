@@ -7,20 +7,6 @@
   background: White;
 }
 
-/*.header {
-  background-color: white;
-  padding: 15px 20px;
-  border-bottom: 1px solid #ddd;
-  text-align: center;
-}
-
-.logo {
-  font-size: 24px;
-  font-weight: bold;
-  color: #f4d03f;
-  margin: 0;
-}*/
-
 /* 日付・挨拶セクション */
 .date-greeting {
   background-color: white;
@@ -35,11 +21,6 @@
   color: #FF6B35;
   margin: 0 0 8px 0;
   text-shadow: 2px 2px 4px rgba(255, 107, 53, 0.1);
-
-/*  font-size: 28px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 8px; */
 }
 
 .greeting {
@@ -236,58 +217,7 @@
   background-color: #90d4aa;
 }
 
-/* ボトムナビゲーション 
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 400px;
-  background-color: white;
-  border-top: 1px solid #ddd;
-  display: flex;
-  justify-content: space-around;
-  padding: 15px 0;
-}
-
-.nav-item {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.3s ease;
-}
-
-.nav-item:hover {
-  background-color: #e8f5e8;
-}
-/*
-.nav-item.active {
-  background-color: #a8e6cf;
-}
-
-
-.nav-icon {
-  width: 24px;
-  height: 24px;
-  background-color: #333;
-  mask-size: contain;
-  mask-repeat: no-repeat;
-  mask-position: center;
-  transition: background-color 0.3s ease;
-}
-
-.nav-item:hover .nav-icon {
-  background-color: #555;
-}
-*/
-
 /* レスポンシブ対応 - BioryLayoutの幅制御に合わせて調整 */
-
 /* タブレット・PC対応 */
 @media (min-width: 768px) {
   .main-content {

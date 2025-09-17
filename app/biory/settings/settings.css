@@ -8,38 +8,29 @@
   padding-top: 0; /* 上部パディングを0に */
   /* BioryLayoutに幅制御を委譲（パディング削除） */
   position: relative;
+  /* スクロール防止のため高さを制限 */
+  max-height: calc(100vh - 80px); /* フッター分を除く */
+  overflow-y: auto; /* 必要に応じてスクロール */
 }
 
-/* ページタイトル
-.page-title {
-  padding: 0 0 5px 0; /* 下部パディングを10px→5pxに削減
-  text-align: center;
-}*/
 .settings-title {
-  font-size: 2.5rem;
+  font-size: 2rem; /* 2.5rem→2remに削減 */
   font-weight: 400;
   color: #FF6B35;
-  margin: 0 0 8px 0;
+  margin: 0 0 5px 0; /* 8px→5pxに削減 */
   text-shadow: 2px 2px 4px rgba(255, 107, 53, 0.1);  
   text-align: center;
-/*  font-size: 20px;
-  font-weight: bold;
-  color: #333;
-  margin: 0;
-  border-bottom: 2px solid #ddd;
-  padding-bottom: 5px; /* パディングを10px→5pxに削減 */
 }
 
 /* セクション共通 */
 .user-info-section,
 .basic-info-section {
   background-color: white;
-  margin: 8px 0; /* 上下マージンを15px→8pxに削減 */
+  margin: 5px 0; /* 8px→5pxに削減 */
   border: 1px solid #ddd;
   border-radius: 8px;
-  padding: 12px; /* パディングを15px→12pxに削減 */
+  padding: 10px; /* 12px→10pxに削減 */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  /* 幅をコンテナいっぱいに（2025-09-07） */
   width: 100%;
   box-sizing: border-box;
 }
@@ -48,36 +39,36 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px; /* マージンを15px→10pxに削減 */
+  margin-bottom: 8px; /* 10px→8pxに削減 */
 }
 
 .section-header h3 {
- background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
   color: white;
-   /* font-size: 16px;
-  font-weight: bold;
-  color: #333;
-  margin: 0;*/
+  font-size: 14px; /* フォントサイズを削減 */
+  padding: 6px 12px; /* パディングを削減 */
+  border-radius: 4px;
+  margin: 0;
 }
 
 .change-button {
   background-color: #20B2AA;
-  border: 1px solid #ccc;
   border-radius: 4px;
   padding: 5px 15px;
   font-size: 12px;
-  color: #e0e0e0;
+  border: none; /* 枠線を削除 */
+  color: white;
   cursor: pointer;
   transition: background-color 0.2s;
 }
 
 .change-button:hover {
-  background-color: #e0e0e0;
+  background-color: #1a9a94;
 }
 
 .change-button:disabled {
   background-color: #f5f5f5;
-  color: #999;
+  color: White;
   cursor: not-allowed;
 }
 
@@ -110,29 +101,22 @@
 }
 
 .form-group {
-  margin-bottom: 15px;
-  /* 表示モードと編集モード共通の横並びレイアウト（2025-09-10） */
+  margin-bottom: 10px; /* 15px→10pxに削減 */
   display: flex;
   align-items: flex-start;
-  gap: 15px;
+  gap: 10px; /* 15px→10pxに削減 */
 }
 
 .form-label {
-  font-size: 14px;
+  font-size: 13px; /* 14px→13pxに削減 */
   font-weight: bold;
   color: #333;
-  margin-bottom: 5px;
-  /* ラベル幅を固定してコロン位置を揃える */
-  width: 120px;
+  margin-bottom: 3px; /* 5px→3pxに削減 */
+  width: 100px; /* 120px→100pxに削減 */
   flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-/* 表示モード用：ラベルテキストのコロン位置を統一 */
-.form-label::after {
-  content: "：";
 }
 
 /* 表示モード用：ラベルテキストのコロン位置を統一 */
@@ -157,10 +141,10 @@
 .form-input,
 .form-select {
   width: 100%;
-  padding: 8px 12px;
+  padding: 6px 10px; /* 8px 12px→6px 10pxに削減 */
   border: 1px solid #ddd;
   border-radius: 4px;
-  font-size: 14px;
+  font-size: 13px; /* 14px→13pxに削減 */
   background-color: white;
   box-sizing: border-box;
 }
@@ -199,86 +183,52 @@
   display: block;
 }
 
-/* レスポンシブ対応 - BioryLayoutの幅制御に合わせて調整 */
-
-/* モバイル対応 */
+/* レスポンシブ対応 - より余白を削減 */
 @media (max-width: 767px) {
-  .user-info-section,
-  .basic-info-section {
-    margin: 10px 0;
-    padding: 12px;
+  .settings-container {
+    max-height: calc(100vh - 80px);
+    padding-bottom: 10px; /* 20px→10pxに削減 */
   }
   
-  .page-title {
-    padding: 15px 0 5px 0;
+  .user-info-section,
+  .basic-info-section {
+    margin: 3px 0; /* 10px→3pxに削減 */
+    padding: 8px; /* 12px→8pxに削減 */
   }
   
   .settings-title {
-    font-size: 18px;
+    font-size: 1.8rem; /* 18px→1.8remに調整 */
+    margin-bottom: 3px;
   }
   
   .form-input,
   .form-select {
-    padding: 12px;
-    font-size: 16px;
+    padding: 8px; /* 12px→8pxに削減 */
+    font-size: 14px; /* 16px→14pxに削減 */
   }
   
   .section-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+    margin-bottom: 6px;
   }
   
-  .section-header h3 {
-    font-size: 16px;
-  }
-  
-  .change-button {
-    align-self: flex-end;
-    padding: 6px 15px;
-    font-size: 12px;
-  }
-  
-  .info-row {
-    flex-direction: column;
-    align-items: flex-start;
-    margin-bottom: 12px;
-  }
-  
-  .info-label {
-    margin-bottom: 4px;
-    min-width: auto;
-  }
-  
-  .info-value {
-    margin-left: 0;
+  .form-group {
+    margin-bottom: 8px;
   }
 }
-/* タブレット・PC対応 */
+
 @media (min-width: 768px) {
   .user-info-section,
   .basic-info-section {
-    margin: 20px 0;
-    padding: 20px;
+    margin: 10px 0; /* 20px→8pxに削減 */
+    padding: 20px; /* 20px→15pxに削減 */
   }
-  
-  .page-title {
-    padding: 25px 0 15px 0;
-  }
-  
-  .form-input,
-  .form-select {
-    padding: 12px;
-    font-size: 14px;
-  }
-  
-  .section-header h3 {
-    font-size: 18px;
-  }
-  
-  .change-button {
-    padding: 8px 20px;
-    font-size: 14px;
+}
+
+@media (min-width: 1024px) {
+  .user-info-section,
+  .basic-info-section {
+    margin: 20px 0; /* 20px→10pxに削減 */
+    padding: 18px; /* 25px→18pxに削減 */
   }
 }
 
@@ -345,22 +295,26 @@
 /* フォーム下部のボタン群（右下配置） */
 .form-buttons {
   display: flex;
-  gap: 15px;
+  gap: 10px; /* 15px→10pxに削減 */
   justify-content: flex-end;
-  margin-top: 20px;
-  padding-top: 15px;
+  margin-top: 15px; /* 20px→15pxに削減 */
+  padding-top: 10px; /* 15px→10pxに削減 */
   border-top: 1px solid #ddd;
+}
+
+.cancel-button,
+.save-button {
+  border-radius: 4px;
+  padding: 8px 16px; /* 10px 20px→8px 16pxに削減 */
+  font-size: 13px; /* 14px→13pxに削減 */
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
 .cancel-button {
   background-color: #f5f5f5;
   color: #666;
   border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 10px 20px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.2s;
 }
 
 .cancel-button:hover {
@@ -376,11 +330,6 @@
   background-color: #20B2AA;
   color: white;
   border: 1px solid#20B2AA;
-  border-radius: 4px;
-  padding: 10px 20px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: background-color 0.2s;
 }
 
 .save-button:hover {
