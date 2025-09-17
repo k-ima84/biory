@@ -4,29 +4,27 @@
 /* 献立画面のスタイル - PC画面最適化 */
  
 .container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px 40px;
-  background: #FEF9F4;
-  margin-top: 100px
-  /* PC画面でゆったりとした表示 */
+  /* 幅設定は共通レイアウト（BioryLayout）に委譲 */
+  padding: 0; /* パディングも共通レイアウトに委譲 */
+  background: #F5F0E8;
+  position: relative;
 }
  
 .header {
   text-align: center;
-  margin: 0 0 30px 0;
-  padding: 20px;
-  background: white;
+  margin: 15px 0 20px 0; /* 下部マージンを30px→20pxに削減 */
+  padding: 15px; /* パディングを20px→15pxに削減 */
+  background: #ffffff;
   border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
  
 .title {
   font-size: 2.5rem;
   font-weight: 700;
-  color: #FF6B35;
+  color: #6f6b68;
   margin: 0 0 8px 0;
-  text-shadow: 2px 2px 4px rgba(255, 107, 53, 0.1);
+  text-shadow: 1px 1px 2px rgba(255, 107, 53, 0.1);
 }
  
 .date {
@@ -43,10 +41,10 @@
 }
  
 .mealCard {
-  background: white;
+  background: #FEFAF5;
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   height: 350px;
   display: flex;
@@ -55,7 +53,7 @@
  
 .mealCard:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
 }
  
 .mealHeader {
@@ -97,21 +95,30 @@
  
 .dishImage {
   flex-shrink: 0;
-  width: 100px;
-  height: 100px;
+  width: 100%;
+  height: 120px;
   margin-bottom: 12px;
+  position: relative;
+}
+
+.actualImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #E8D5C4;
 }
  
 .imagePlaceholder {
   width: 100%;
   height: 100%;
   background: linear-gradient(135deg, #FFE4B5 0%, #F4A261 100%);
-  border-radius: 12px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 3rem;
-  border: 3px solid #E8D5C4;
+  border: 2px solid #E8D5C4;
 }
  
 .dishList {
@@ -121,90 +128,148 @@
 }
  
 .dishItem {
-  color: #8B4513;
+  color: #6f6b68;
   font-size: 0.9rem;
+  font-weight: 550; 
   margin-bottom: 6px;
+  font-family: 'Rounded M+ 1m', sans-serif;
   position: relative;
   padding-left: 16px;
   text-align: left;
 }
  
 .dishItem::before {
-  content: "•";
-  color: #FF8C42;
+  content: "■";
+  color: #b2aeac;
   font-weight: bold;
   position: absolute;
   left: 0;
 }
  
-.totalCalories {
+/* ボトムセクション（円形メーター + ボタン） */
+.bottomSection {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  background: linear-gradient(135deg, #FF8C42 0%, #FF6B35 100%);
-  color: white;
-  padding: 24px 32px;
-  border-radius: 16px;
-  margin: 40px auto 30px auto;
-  box-shadow: 0 4px 12px rgba(255, 140, 66, 0.3);
-  max-width: 600px;
+  justify-content: space-between;
+  margin: 40px 40px 30px 40px;
+  padding: 20px 0;
 }
- 
-.totalLabel {
-  font-size: 1.3rem;
-  font-weight: 600;
-}
- 
-.totalValue {
-  font-size: 1.8rem;
-  font-weight: 800;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-}
- 
-.actionButtons {
+
+/* 円形カロリーメーター */
+.caloriesMeter {
   display: flex;
-  gap: 20px;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.circularProgress {
+  position: relative;
+  display: flex;
+  align-items: center;
   justify-content: center;
-  margin: 0 auto 40px auto;
+}
+
+.progressRing {
+  transform: rotate(0deg);
+}
+
+.progressRingBg {
+  stroke: #E5E5E5;
+  stroke-width: 10;
+}
+
+.progressRingProgress {
+  stroke: #FFB399;
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.5s ease-in-out;
+}
+
+.progressText {
+  position: absolute;
+  text-align: center;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.currentCalories {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #FF6B35;
+  line-height: 1;
+}
+
+.caloriesUnit {
+  font-size: 0.8rem;
+  color: #8B4513;
+  margin-top: -3px;
+}
+
+.maxCalories {
+  font-size: 0.7rem;
+  color: #999;
+  margin-top: 3px;
+}.actionButtons {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
   max-width: 500px;
 }
  
 .regenerateButton,
 .saveButton {
-  flex: 1;
-  max-width: 220px;
-  padding: 18px 28px;
-  border: none;
+  min-width: 180px;
+  padding: 20px 32px;
+  border: 2px solid transparent; /* デフォルトでは透明なボーダー */
   border-radius: 12px;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  display: flex; /* フレックスボックスで中央揃え */
+  align-items: center; /* 垂直方向の中央揃え */
+  justify-content: center; /* 水平方向の中央揃え */
+}
+
+.buttonIcon {
+  font-size: 1.8rem; /* アイコンのサイズを倍に */
+  margin-right: 6px; /* アイコンとテキストの間隔を少し狭く */
+  display: flex; /* Flexbox で完全な中央揃え */
+  align-items: center; /* 縦方向中央揃え */
+  justify-content: center; /* 横方向中央揃え */
+  line-height: 1; /* ラインハイトを1に設定 */
+  height: 1em; /* 高さを文字サイズに合わせる */
 }
  
+
 .regenerateButton {
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-  color: white;
+  background: white; /* 背景を白に */
+  color: #666666; /* 文字色を灰色に */
+  border: 12px solid #FFD700; /* 縁を黄色に（太さを倍の12pxに） */
 }
- 
+
 .regenerateButton:hover {
-  background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+  background: #FFF8DC; /* ホバー時は背景を薄い黄色に */
+  color: #666666; /* 文字色は灰色のまま */
+  border: 12px solid #FFD700; /* ホバー時も縁は同じ黄色に（太さ12px） */
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3); /* 黄色の影 */
 }
- 
+
 .saveButton {
-  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
-  color: white;
+  background: white; /* 背景を白に */
+  color: #666666; /* 文字色を灰色に */
+  border: 12px solid #FFD700; /* 縁を黄色に（太さを倍の12pxに） */
 }
- 
+
 .saveButton:hover {
-  background: linear-gradient(135deg, #1976D2 0%, #1565C0 100%);
+  background: #FFF8DC; /* ホバー時は背景を薄い黄色に */
+  color: #666666; /* 文字色は灰色のまま */
+  border: 12px solid #FFD700; /* ホバー時も縁は同じ黄色に（太さ12px） */
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
-}
- 
-/* PC画面専用設定 - レスポンシブ削除 */
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3); /* 黄色の影 */
+}/* PC画面専用設定 - レスポンシブ削除 */
 /* 全ての画面サイズでPC表示を適用 */
  
 /* 小画面でもPC表示を維持（必要に応じて微調整のみ） */
