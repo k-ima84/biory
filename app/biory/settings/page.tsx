@@ -267,10 +267,11 @@ export default function SettingsPage() {
   return (
     <BioryLayout>
       <div className="settings-container">
-        {/* 設定画面のタイトル */}
-        <div className="page-title">
-          <h2 className="settings-title">設定</h2>
-        </div>
+        {/* 設定画面のタイトル - ホーム画面と統一 */}
+        <section className="date-greeting">
+          <div className="date">設定</div>
+          <div className="greeting">あなたの情報</div>
+        </section>
 
         {/* ユーザー情報セクション */}
         <section className="user-info-section">
