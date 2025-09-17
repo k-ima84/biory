@@ -1,29 +1,46 @@
 /*変更内容：背景の紫を白に変更（小澤）*/
 /*追加：画面幅統一設定（2025-09-07）*/
 
-/*:root {
-  /* アプリ共通：画面幅設定 
+:root {
+  /* アプリ共通：画面幅設定 */
   --biory-width-mobile: 100%;
   --biory-width-tablet: 400px;
   --biory-width-desktop: 450px;
   --biory-width-large: 500px;
   
-  /* アプリ共通：パディング設定 
+  /* アプリ共通：パディング設定 */
   --biory-padding-mobile: 10px;
   --biory-padding-tablet: 20px;
   --biory-padding-desktop: 30px;
   --biory-padding-large: 40px;
-}*/
+
+  /* ログイン・サインアップ画面用のサイズ変数 */
+  --auth-box-max-width: 500px;      /* ログインボックスの最大幅（420px→500px） */
+  --auth-box-padding: 50px;         /* ログインボックスの内側余白（40px→50px） */
+  --auth-logo-width: 350px;         /* ロゴ画像の幅（300px→350px） */
+  --auth-logo-section-padding: 35px 25px 30px 25px; /* ロゴセクションの余白 */
+  --auth-input-padding: 18px;       /* 入力フィールドの内側余白（15px→18px） */
+  --auth-input-font-size: 18px;     /* 入力フィールドのフォントサイズ（16px→18px） */
+  --auth-button-padding: 22px;      /* ボタンの内側余白（18px→22px） */
+  --auth-button-font-size: 20px;    /* ボタンのフォントサイズ（18px→20px） */
+  --auth-label-font-size: 18px;     /* ラベルのフォントサイズ（16px→18px） */
+  
+  /* 拡大縮小時の共通設定 */
+  --zoom-scroll-padding: 100px;     /* ズーム時のスクロールパディング */
+  --zoom-min-height: 100vh;         /* ズーム時の最小高さ */
+}
 
 body {
     margin: 0;
     background: white;
-    display: flex;
     font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-    height: 100vh;
+    height: var(--zoom-min-height);
     width: 100vw;
-    justify-content: center;
-    align-items: center;
+    /* 拡大縮小時の挙動改善 */
+    overflow-x: hidden;
+    overflow-y: auto;
+    scroll-padding-top: var(--zoom-scroll-padding);
+    /* レイアウトのフレックス設定を削除 */
   }
   
   /*main {
@@ -79,4 +96,39 @@ body {
   a {
     font-weight: 800;
     text-decoration: none;
-  }*/
+  }
+
+  /* 全ページ共通：拡大縮小時の挙動改善 */
+  .zoom-safe-container {
+    position: relative;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scroll-padding-top: var(--zoom-scroll-padding);
+    transform-origin: top center;
+    min-height: var(--zoom-min-height);
+  }
+
+  .zoom-safe-content {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    scroll-margin-top: var(--zoom-scroll-padding);
+  }
+
+  /* ズーム時のスクロール改善 */
+  @media screen and (min-width: 768px) {
+    .zoom-safe-container {
+      scroll-snap-type: y proximity;
+    }
+    
+    .zoom-safe-content {
+      scroll-snap-align: start;
+    }
+  }
+
+  /* 高倍率ズーム時の対応 */
+  @media screen and (min-resolution: 2dppx), (-webkit-min-device-pixel-ratio: 2) {
+    .zoom-safe-container {
+      scroll-padding-top: calc(var(--zoom-scroll-padding) * 1.5);
+    }
+  }

@@ -3,11 +3,8 @@
 
 /* ヘッダー */
 .container {
-  /* BioryLayoutが幅制御するため、独自の幅制御を削除 */
+  /* 幅設定・パディング設定は共通レイアウト（BioryLayout）に委譲 */
   background: #FEF9F4;
-  /* ヘッダーの高さ分上部マージンを追加 */
-  padding-top: 80px;
-  padding-bottom: 20px;
 }
 
 /*.header {
@@ -27,7 +24,7 @@
 /* 日付・挨拶セクション */
 .date-greeting {
   background-color: white;
-  padding: 20px;
+  padding: 15px; /* パディングを20px→15pxに削減 */
   border-bottom: 1px solid #ddd;
   text-align: center;
 }

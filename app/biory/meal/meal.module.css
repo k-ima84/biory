@@ -4,18 +4,16 @@
 /* 献立画面のスタイル - PC画面最適化 */
  
 .container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px 40px;
+  /* 幅設定は共通レイアウト（BioryLayout）に委譲 */
+  padding: 0; /* パディングも共通レイアウトに委譲 */
   background: #FEF9F4;
-  margin-top: 100px
-  /* PC画面でゆったりとした表示 */
+  position: relative;
 }
  
 .header {
   text-align: center;
-  margin: 0 0 30px 0;
-  padding: 20px;
+  margin: 0 0 20px 0; /* 下部マージンを30px→20pxに削減 */
+  padding: 15px; /* パディングを20px→15pxに削減 */
   background: white;
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);

@@ -62,14 +62,14 @@ export default function BioryLayout({ children }: LayoutProps) {
   };
  
   return (
-    <div className="biory-layout">
+    <div className="biory-layout zoom-safe-container">
       {/* ヘッダー */}
       <header className="biory-header">
         <h1 className="biory-logo">biory</h1>
       </header>
  
       {/* メインコンテンツ */}
-      <main className="biory-main">
+      <main className="biory-main zoom-safe-content">
         {children}
       </main>
  
