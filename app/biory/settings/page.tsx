@@ -276,7 +276,7 @@ export default function SettingsPage() {
         {/* ユーザー情報セクション */}
         <section className="user-info-section">
           <div className="section-header">
-            <h3>👤ユーザ情報</h3>
+            <h3 className="section-title-highlight">🙍 ユーザ情報</h3>
           </div>
           <div className="user-info-content">
             <div className="user-info-row">
@@ -289,15 +289,14 @@ export default function SettingsPage() {
       {/* 基礎情報セクション */}
       <section className="basic-info-section">
         <div className="section-header">
-          <h3>📝基礎情報</h3>
+          <h3 className="section-title-highlight">📄 基礎情報</h3>
           {!isEditMode && (
             <button 
-              className="change-button" 
-              onClick={handleEditModeToggle}
-              type="button"
+              className="change-button"
+              onClick={() => setIsEditMode(true)}
               disabled={isLoading}
             >
-              編集
+              変更
             </button>
           )}
         </div>
