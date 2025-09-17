@@ -24,9 +24,12 @@
 /* 日付・挨拶セクション */
 .date-greeting {
   background-color: white;
+  margin: 15px 0 20px 0;
   padding: 15px; /* パディングを20px→15pxに削減 */
   border-bottom: 1px solid #ddd;
+  border-radius: 8px; /* 角を丸く */
   text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .date {
