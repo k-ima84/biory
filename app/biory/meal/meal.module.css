@@ -12,7 +12,7 @@
  
 .header {
   text-align: center;
-  margin: 0 0 20px 0; /* 下部マージンを30px→20pxに削減 */
+  margin: 10px 0 20px 0; /* 下部マージンを30px→20pxに削減 */
   padding: 15px; /* パディングを20px→15pxに削減 */
   background: white;
   border-radius: 16px;

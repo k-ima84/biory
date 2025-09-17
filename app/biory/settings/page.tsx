@@ -278,49 +278,10 @@ export default function SettingsPage() {
             <h3>＜ユーザ情報＞</h3>
           </div>
           <div className="user-info-content">
-
-{/*　基礎情報編集削除
-            {isUserInfoEditMode ? (
-              <form className="profile-form">
-                <div className="form-group">
-                  <label className="form-label">Mail：</label>
-                  <input
-                    type="email"
-                    value={userEmail}
-                    className="form-input"
-                    placeholder="メールアドレスを入力"
-                    readOnly
-                  />
-                  <small style={{color: '#666', fontSize: '12px'}}>※メールアドレスの変更はサポートまでお問い合わせください</small>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">PW：</label>
-                  <input
-                    type="password"
-                    value="******"
-                    className="form-input"
-                    placeholder="新しいパスワード"
-                    readOnly
-                  />
-                  <small style={{color: '#666', fontSize: '12px'}}>※パスワードの変更は準備中です</small>
-                </div>
-              </form>
-            ) : (        
-              <>
-*/} 
-
-                <div className="user-info-row">
-                  <span className="user-info-label">ID（メールアドレス）：</span>
-                  <span className="user-info-value">{userEmail}</span>
-                </div>
-{/* パスワード表示削除
-                <div className="user-info-row">
-                  <span className="user-info-label">パスワード：</span>
-                  <span className="user-info-value">******</span>
-                </div>
-              </>
-            )}
-*/}
+            <div className="user-info-row">
+              <span className="user-info-label">ID（メールアドレス）：</span>
+              <span className="user-info-value">{userEmail}</span>
+            </div>
           </div>
         </section>
 

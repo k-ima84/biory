@@ -3,9 +3,9 @@
 /* BioryLayoutが幅を制御するため、コンテナは幅制御を削除 */
 .settings-container {
   background-color: #f5f5f5;
-  min-height: 100vh;
-  padding-bottom: 20px;
-  padding-top: 0; /* 上部パディングを0に */
+  min-height: 80vh;
+  padding-bottom: 0px;
+  padding-top: 10px; /* 上部パディングを0に */
   /* BioryLayoutに幅制御を委譲（パディング削除） */
   position: relative;
   /* スクロール防止のため高さを制限 */
@@ -13,6 +13,7 @@
   overflow-y: auto; /* 必要に応じてスクロール */
 }
 
+/* ページタイトル*/
 .settings-title {
   font-size: 2rem; /* 2.5rem→2remに削減 */
   font-weight: 400;
@@ -195,6 +196,10 @@
     margin: 3px 0; /* 10px→3pxに削減 */
     padding: 8px; /* 12px→8pxに削減 */
   }
+  /*.page-title {
+    padding: 5px 0 5px 0;
+  }*/
+
   
   .settings-title {
     font-size: 1.8rem; /* 18px→1.8remに調整 */
@@ -229,13 +234,31 @@
   .basic-info-section {
     margin: 20px 0; /* 20px→10pxに削減 */
     padding: 18px; /* 25px→18pxに削減 */
+  
+  .page-title {
+    padding: 5px 0 5px 0;
+  }
+  
+  .form-input,
+  .form-select {
+    padding: 12px;
+    font-size: 14px;
+  }
+  
+  .section-header h3 {
+    font-size: 18px;
+  }
+  
+  .change-button {
+    padding: 8px 20px;
+    font-size: 14px;
   }
 }
 
 /* 大画面対応 */
 @media (min-width: 1024px) {
   .page-title {
-    padding: 30px 0 20px 0;
+    padding: 5px 0 5px 0;
   }
   
   .user-info-section,
@@ -257,7 +280,7 @@
 /* 超大画面対応 */
 @media (min-width: 1440px) {
   .page-title {
-    padding: 35px 0 25px 0;
+    padding: 5px 0 5px 0;
   }
 }
   
@@ -339,4 +362,5 @@
 .save-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
 }
