@@ -23,7 +23,7 @@ const nutritionDataList: NutritionInput[] = [
   {
     calories: 1300,
     carbs: 160,
-    date: '2025-09-03',
+    date: '2025-09-17',
     fat: 70,
     protein: 80,
     userId: 'user2'
@@ -31,7 +31,7 @@ const nutritionDataList: NutritionInput[] = [
   {
     calories: 1250,
     carbs: 155,
-    date: '2025-09-02',
+    date: '2025-09-17',
     fat: 35,
     protein: 60,
     userId: 'user1'

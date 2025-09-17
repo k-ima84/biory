@@ -58,12 +58,13 @@
 }
 
 .section-header h3 {
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  font-size: 16px;
+  font-weight: bold;
   color: white;
-  font-size: 14px; /* フォントサイズを削減 */
-  padding: 6px 12px; /* パディングを削減 */
+  margin: 0 0 15px 0;
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  padding: 8px 12px;
   border-radius: 4px;
-  margin: 0;
 }
 
 .settings-subtitle {
@@ -204,6 +205,28 @@
   font-size: 12px;
   margin-top: 5px;
   display: block;
+}
+
+/* 強調セクションタイトル（緑背景）- ホーム画面と統一 */
+.section-title-highlight {
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  margin: 0 0 15px 0;
+  background: linear-gradient(135deg,#70472B 0%,#70472B 100%);
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+
+/* 既存の.section-header h3スタイルはそのまま維持（互換性のため） */
+.section-header h3 {
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  margin: 0 0 15px 0;
+  background: linear-gradient(135deg,#70472B 0%,#70472B 100%);
+  padding: 8px 12px;
+  border-radius: 4px;
 }
 
 /* レスポンシブ対応 - より余白を削減 */
