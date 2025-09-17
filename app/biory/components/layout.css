@@ -1,14 +1,17 @@
 /* CSS変数定義 */
 :root {
-  --biory-width-mobile: 400px;
-  --biory-width-tablet: 600px;
-  --biory-width-desktop: 1300px;
-  --biory-width-large: 1000px;
+  --biory-width-mobile: 100vw;    /* 画面幅最大に変更 */
+  --biory-width-tablet: 100vw;    /* 画面幅最大に変更 */
+  --biory-width-desktop: 100vw;   /* 画面幅最大に変更 */
+  --biory-width-large: 100vw;     /* 画面幅最大に変更 */
   
-  --biory-padding-mobile: 15px;
-  --biory-padding-tablet: 18px;
-  --biory-padding-desktop: 24px;
-  --biory-padding-large: 32px;
+  --biory-padding-mobile: 10px; /* 15px→10pxに削減 */
+  --biory-padding-tablet: 15px; /* 18px→15pxに削減 */
+  --biory-padding-desktop: 20px; /* 24px→20pxに削減 */
+  --biory-padding-large: 25px; /* 32px→25pxに削減 */
+  
+  /* コンテンツ表示幅を70%に制限 */
+  --biory-content-width: 70%;
 }
 
 /* 共通レイアウトスタイル */
@@ -16,26 +19,37 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #f5f5f5;
+  background-color: #FEFBE8;
+  /* 拡大縮小対応：共通設定を適用 */
+  height: 100vh;
+  overflow: hidden;
 }
 
 /* ヘッダー */
 .biory-header {
-  background-color: #f5f5f5;
+  background-color: rgba(245, 245, 245, 0.95); /* 背景を半透明のグレーに変更 */
   color: white;
-  padding: 15px 20px;
+  padding: 4px 0; /* 左右のパディングを0にして完全に中央配置 */
   text-align: center;
-  position: fixed;
+  position: sticky; /* fixedからstickyに変更 */
   top: 0;
-  left: 0;
-  right: 0;
   z-index: 1000;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); /* 下向きの影を追加 */
+  min-height: auto; /* 最小高さ制限を削除 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* ヘッダーも画面幅最大に設定 */
+  width: 100vw;
+  max-width: 100vw;
+  margin: 0; /* マージンを明示的に0に設定 */
+  left: 0; /* 左端から配置 */
+  backdrop-filter: blur(10px); /* ぼかし効果を追加 */
 }
 
 .biory-logo {
   margin: 0;
-  font-size: 24px;
+  font-size: 28px; /* フォントサイズを大きく 20px→28px */
   font-weight: bold;
   color: #ffd700;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
@@ -44,15 +58,27 @@
 /* メインコンテンツ */
 .biory-main {
   flex: 1;
-  margin-top: 70px; /* ヘッダーの高さ分 */
+  margin-top: 0; /* stickyヘッダーなのでマージン不要 */
   margin-bottom: 80px; /* フッターの高さ分 */
-  padding: var(--biory-padding-mobile);
+  padding: 0 var(--biory-padding-mobile) var(--biory-padding-mobile) var(--biory-padding-mobile); /* 統一されたパディング */
   overflow-y: auto;
-  /* 幅を統一（CSS変数使用） */
+  /* スクロール改善 */
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
+  /* 幅を画面最大に設定 - スクロールバーを右端に配置 */
+  width: 100vw;
+  max-width: 100vw;
+  margin-left: 0;
+  margin-right: 0;
+  box-sizing: border-box;
+  /* 共通レイアウトとして各画面の幅・パディング設定を統一管理 */
+}
+
+/* コンテンツ表示幅制限コンテナ */
+.biory-content-container {
+  max-width: var(--biory-content-width);
+  margin: 0 auto;
   width: 100%;
-  max-width: var(--biory-width-mobile);
-  margin-left: auto;
-  margin-right: auto;
   box-sizing: border-box;
 }
 
@@ -140,7 +166,7 @@
 }
 
 .settings-icon {
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M19.14 12.94c0.04-0.3 0.06-0.61 0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14 0.23-0.41 0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39 0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4 2.81c-0.04-0.24-0.24-0.41-0.48-0.41h-3.84c-0.24 0-0.43 0.17-0.47 0.41L9.25 5.35C8.66 5.59 8.12 5.92 7.63 6.29L5.24 5.33c-0.22-0.08-0.47 0-0.59 0.22L2.74 8.87C2.62 9.08 2.66 9.34 2.86 9.48l2.03 1.58C4.84 11.36 4.8 11.69 4.8 12s0.02 0.64 0.07 0.94l-2.03 1.58c-0.18 0.14-0.23 0.41-0.12 0.61l1.92 3.32c0.12 0.22 0.37 0.29 0.59 0.22l2.39-0.96c0.5 0.38 1.03 0.7 1.62 0.94l0.36 2.54c0.05 0.24 0.24 0.41 0.48 0.41h3.84c0.24 0 0.44-0.17 0.47-0.41l0.36-2.54c0.59-0.24 1.13-0.56 1.62-0.94l2.39 0.96c0.22 0.08 0.47 0 0.59-0.22l1.92-3.32c0.12-0.22 0.07-0.47-0.12-0.61L19.14 12.94zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6s3.6 1.62 3.6 3.6S13.98 15.6 12 15.6z'/%3E%3C/svg%3E");
 }
 
 /* レスポンシブ対応 */
@@ -184,17 +210,22 @@
   }
   
   .biory-header {
-    padding: 12px 16px;
+    padding: 12px 0; /* 左右のパディングを0にして中央配置 */
   }
   
   .biory-logo {
-    font-size: 22px;
+    font-size: 26px; /* 22px→26pxに拡大 */
   }
   
   .biory-main {
     padding: var(--biory-padding-mobile);
     margin-top: 65px;
     margin-bottom: 75px;
+  }
+  
+  /* モバイルではコンテンツ幅を90%に拡大 */
+  .biory-content-container {
+    max-width: 90%;
   }
   
   .nav-icon {
@@ -216,20 +247,22 @@
   }
   
   .biory-header {
-    padding: 15px 24px;
+    padding: 5px 0; /* 左右のパディングを0にして中央配置 */
   }
   
   .biory-logo {
-    font-size: 26px;
+    font-size: 26px; /* 22px→26pxに拡大 */
   }
   
   .biory-main {
-    padding: var(--biory-padding-tablet);
-    margin-top: 75px;
+    padding: 0 var(--biory-padding-tablet) var(--biory-padding-tablet) var(--biory-padding-tablet); /* 上部パディング0で統一 */
     margin-bottom: 85px;
-    max-width: var(--biory-width-tablet); /* タブレット幅 */
-    margin-left: auto;
-    margin-right: auto;
+    /* 幅設定は画面最大のままで上書きしない */
+  }
+  
+  /* タブレットではコンテンツ幅を80%に調整 */
+  .biory-content-container {
+    max-width: 80%;
   }
   
   .biory-bottom-nav {
@@ -256,20 +289,22 @@
   }
   
   .biory-header {
-    padding: 20px 32px;
+    padding: 6px 0; /* 左右のパディングを0にして中央配置 */
   }
   
   .biory-logo {
-    font-size: 28px;
+    font-size: 36px; /* 24px→30pxに拡大 */
   }
   
   .biory-main {
-    padding: var(--biory-padding-desktop);
-    margin-top: 80px;
+    padding: 0 var(--biory-padding-desktop) var(--biory-padding-desktop) var(--biory-padding-desktop); /* 上部パディング0で統一 */
     margin-bottom: 90px;
-    max-width: var(--biory-width-desktop); /* デスクトップ幅 */
-    margin-left: auto;
-    margin-right: auto;
+    /* 幅設定は画面最大のままで上書きしない */
+  }
+  
+  /* デスクトップではコンテンツ幅を70%に設定（デフォルト値） */
+  .biory-content-container {
+    max-width: var(--biory-content-width);
   }
   
   .biory-bottom-nav {
@@ -302,11 +337,16 @@
 /* 大画面デスクトップ対応 (1440px以上) */
 @media (min-width: 1440px) {
   .biory-main {
-    max-width: var(--biory-width-large);
-    padding: var(--biory-padding-large);
+    padding: 0 var(--biory-padding-large) var(--biory-padding-large) var(--biory-padding-large); /* 上部パディング0で統一 */
+    /* 幅設定は画面最大のままで上書きしない */
+  }
+  
+  /* 大画面ではコンテンツ幅を60%に縮小 */
+  .biory-content-container {
+    max-width: 60%;
   }
   
   .biory-logo {
-    font-size: 32px;
+    font-size: 40px; /* 統一されたフォントサイズ */
   }
 }

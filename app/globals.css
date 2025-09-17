@@ -41,11 +41,33 @@ body {
   max-width: 100vw;
   overflow-x: hidden;
   background-color: white;
+  /* 拡大縮小時の挙動改善 */
+  scroll-behavior: smooth;
+  transform-origin: top left; /* 変形の基準点を左上に設定 */
+}
+
+html {
+  /* ズーム時のスクロール位置保持 */
+  scroll-padding-top: 100px;
+  /* 横スクロールを完全に防止 */
+  overflow-x: hidden !important;
+  /* モバイルでのズーム調整 */
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
 }
 
 body {
   color: rgb(var(--foreground-rgb));
   background: white;
+  /* 縦スクロールは常に可能にし、横スクロールは禁止 */
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* 拡大時の基準点を上部に設定 */
+  transform-origin: top center;
+  /* 最小高さを設定してコンテンツが見切れることを防ぐ */
+  min-height: 100vh;
+  /* ズーム時のレイアウト崩れを防ぐ */
+  position: relative;
 }
 
 a {

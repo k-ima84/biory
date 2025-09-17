@@ -3,18 +3,24 @@
   min-height: 100vh;
   display: flex;
   justify-content: center;
-  align-items: center;
-  background-color: #f8f8f8;
+  align-items: flex-start; /* centerからflex-startに変更 */
+  background-color: white;
   padding: 20px;
+  /* 拡大縮小時の挙動改善 */
+  overflow-x: auto;
+  overflow-y: auto;
+  scroll-padding-top: var(--zoom-scroll-padding, 100px);
+  transform-origin: top center;
+  padding-top: 50px; /* 上部に余白を追加 */
 }
 
 .login-box {
   background: white;
-  border: 3px solid #333;
+  /*border: 3px solid white;*/
   border-radius: 0;
-  padding: 40px;
+  padding: var(--auth-box-padding);  /* CSS変数を使用 */
   width: 100%;
-  max-width: 420px;
+  max-width: var(--auth-box-max-width);  /* CSS変数を使用 */
   box-shadow: none;
 }
 
@@ -22,13 +28,13 @@
 .logo-section {
   text-align: center;
   margin-bottom: 40px;
-  background-color: #fff8e1;
-  padding: 30px 20px 25px 20px;
+  background-color: #FEFBE8;
+  padding: var(--auth-logo-section-padding);  /* CSS変数を使用 */
   border-radius: 0;
 }
 
 .logo-image {
-  width: 300px;
+  width: var(--auth-logo-width);  /* CSS変数を使用 */
   height: auto;
   margin-bottom: 20px;
   display: block;
@@ -55,17 +61,17 @@
 .form-group label {
   display: block;
   color: #333;
-  font-size: 16px;
+  font-size: var(--auth-label-font-size);  /* CSS変数を使用 */
   font-weight: 500;
   margin-bottom: 8px;
 }
 
 .form-input {
   width: 100%;
-  padding: 15px;
+  padding: var(--auth-input-padding);  /* CSS変数を使用 */
   border: 2px solid #ccc;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: var(--auth-input-font-size);  /* CSS変数を使用 */
   background-color: white;
   box-sizing: border-box;
 }
@@ -86,12 +92,12 @@
 /* ログインボタン - 緑色 */
 .login-button {
   width: 100%;
-  padding: 18px;
+  padding: var(--auth-button-padding);  /* CSS変数を使用 */
   background-color: #20B2AA;
   color: white;
   border: none;
   border-radius: 8px;
-  font-size: 18px;
+  font-size: var(--auth-button-font-size);  /* CSS変数を使用 */
   font-weight: 500;
   cursor: pointer;
   margin-top: 15px;
@@ -139,16 +145,16 @@ button[type="button"]:hover {
   }
   
   .login-box {
-    padding: 30px 25px;
+    padding: calc(var(--auth-box-padding) * 0.75);  /* モバイルでは75%に縮小 */
   }
   
   .logo-image {
-    width: 250px;
+    width: calc(var(--auth-logo-width) * 0.83);  /* モバイルでは83%に縮小 */
   }
   
   .form-input,
   .login-button {
-    font-size: 16px;
+    font-size: var(--auth-input-font-size);  /* CSS変数を使用 */
   }
 }
 

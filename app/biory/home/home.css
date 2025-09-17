@@ -3,45 +3,32 @@
 
 /* ヘッダー */
 .container {
-  /* BioryLayoutが幅制御するため、独自の幅制御を削除 */
-  background: #FEF9F4;
-  /* ヘッダーの高さ分上部マージンを追加 */
-  padding-top: 80px;
-  padding-bottom: 20px;
+  /* 幅設定・パディング設定は共通レイアウト（BioryLayout）に委譲 */
+ background-color: #FEFBE8;
 }
-
-/*.header {
-  background-color: white;
-  padding: 15px 20px;
-  border-bottom: 1px solid #ddd;
-  text-align: center;
-}
-
-.logo {
-  font-size: 24px;
-  font-weight: bold;
-  color: #f4d03f;
-  margin: 0;
-}*/
 
 /* 日付・挨拶セクション */
 .date-greeting {
   background-color: white;
-  padding: 20px;
+  margin: 15px 0 20px 0;
+  padding: 15px; /* パディングを20px→15pxに削減 */
   border-bottom: 1px solid #ddd;
+  border-radius: 8px; /* 角を丸く */
   text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .date {
-  font-size: 28px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 8px;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #6f6b68;
+  margin: 0 0 8px 0;
+  text-shadow: 2px 2px 4px rgba(255, 107, 53, 0.1);
 }
 
 .greeting {
   font-size: 18px;
-  color: #333;
+  color: #8B4513;
 }
 
 /* メインコンテンツエリア */
@@ -50,6 +37,9 @@
   grid-template-columns: 1fr 1fr;
   gap: 20px;
   padding: 20px 0;
+  /* スクロールバーが出ない程度に高さを調整 */
+  min-height: calc(100vh - 320px); /* より余裕を持った計算 */
+  /* heightは削除してmin-heightのみ使用 */
 }
 
 /* 栄養情報セクション */
@@ -59,6 +49,10 @@
   border: 1px solid #ddd;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  /* 高さを控えめに設定 */
+  min-height: 160px; /* 200px→160pxに削減 */
+  display: flex;
+  flex-direction: column;
 }
 
 .nutrition-header {
@@ -97,6 +91,10 @@
 
 .nutrition-details {
   margin-left: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
 }
 
 .nutrition-row {
@@ -121,8 +119,13 @@
   border: 1px solid #ddd;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  /* 高さを控えめに設定 */
+  min-height: 160px; /* 150px→160pxに微調整 */
+  display: flex;
+  flex-direction: column;
 }
 
+/* 基本のセクションタイトル（背景なし） */
 .section-title {
   font-size: 16px;
   font-weight: bold;
@@ -130,8 +133,34 @@
   margin: 0 0 15px 0;
 }
 
+/* 強調セクションタイトル（緑背景） */
+.section-title-highlight {
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  margin: 0 0 15px 0;
+  background: linear-gradient(135deg,#70472B 0%,#70472B 100%);
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+
+/* 食事記録セクション専用のタイトルスタイル（互換性のため残す） */
+.meal-section-title {
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+  margin: 0 0 15px 0;
+  background: linear-gradient(135deg,#70472B 0%,#70472B 100%);
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+
 .meal-list {
   margin-left: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
 }
 
 .meal-row {
@@ -163,7 +192,18 @@
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   grid-column: 1 / -1;
-  margin-bottom: 80px;
+  margin-bottom: 10px; /* 10px→20pxに戻す */
+  /* 高さを適切に設定 */
+  min-height: 60px; /* 50px→80pxに調整 */
+  display: flex;
+  flex-direction: column;
+}
+
+.health-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  flex: 1;
 }
 
 .health-row {
@@ -209,58 +249,7 @@
   background-color: #90d4aa;
 }
 
-/* ボトムナビゲーション 
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 400px;
-  background-color: white;
-  border-top: 1px solid #ddd;
-  display: flex;
-  justify-content: space-around;
-  padding: 15px 0;
-}
-
-.nav-item {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.3s ease;
-}
-
-.nav-item:hover {
-  background-color: #e8f5e8;
-}
-/*
-.nav-item.active {
-  background-color: #a8e6cf;
-}
-
-
-.nav-icon {
-  width: 24px;
-  height: 24px;
-  background-color: #333;
-  mask-size: contain;
-  mask-repeat: no-repeat;
-  mask-position: center;
-  transition: background-color 0.3s ease;
-}
-
-.nav-item:hover .nav-icon {
-  background-color: #555;
-}
-*/
-
 /* レスポンシブ対応 - BioryLayoutの幅制御に合わせて調整 */
-
 /* タブレット・PC対応 */
 @media (min-width: 768px) {
   .main-content {
@@ -274,15 +263,20 @@
   .main-content {
     grid-template-columns: 1fr;
     gap: 15px;
+    /* モバイルでの高さ調整 - スクロールバー回避 */
+    min-height: calc(100vh - 280px); /* 250px→280pxに調整 */
+    /* heightプロパティを削除 */
   }
   
   .nutrition-section,
   .meal-section {
     margin-bottom: 15px;
+    min-height: 140px; /* 180px→140pxに削減 */
   }
   
   .health-section {
     grid-column: 1;
+    min-height: 80px; /* 100px→80pxに削減 */
   }
 }
 
@@ -290,10 +284,17 @@
 @media (min-width: 1024px) {
   .main-content {
     grid-template-columns: 1fr 1fr 1fr;
+    /* 大画面での高さ調整 - スクロールバー回避 */
+    min-height: calc(100vh - 350px); /* 300px→350pxに調整 */
+    /* heightプロパティを削除 */
   }
   
   .health-section {
     grid-column: 1 / -1;
+    min-height: 100px; /* 140px→100pxに削減 */
+  }
+  
+  .health-content {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;

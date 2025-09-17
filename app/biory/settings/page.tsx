@@ -37,8 +37,10 @@ export default function SettingsPage() {
   const [currentUserId] = useState("user2"); // 現在のユーザーID（実際の認証では動的に取得）
   const [userEmail] = useState("xxxx@outlook.com"); // 現在のユーザーEmail
   const [isEditMode, setIsEditMode] = useState(false); // 編集モードフラグ
-  const [isUserInfoEditMode, setIsUserInfoEditMode] = useState(false); // ユーザー情報編集モードフラグ
-  const [userProfile, setUserProfile] = useState<UserProfileForm | null>(null); // 保存されたプロフィール
+  {/* 基礎情報編集の変数削除
+    const [isUserInfoEditMode, setIsUserInfoEditMode] = useState(false); // ユーザー情報編集モードフラグ
+  */}
+    const [userProfile, setUserProfile] = useState<UserProfileForm | null>(null); // 保存されたプロフィール
   
   const [formData, setFormData] = useState<UserProfileForm>({
     name: "",
@@ -256,76 +258,45 @@ export default function SettingsPage() {
     }
   };
 
+{/*
   const handleBackToHome = () => {
     router.push("/biory/home");
   };
+*/}
 
   return (
     <BioryLayout>
       <div className="settings-container">
-        {/* 設定画面のタイトル */}
-        <div className="page-title">
-          <h2 className="settings-title">設定</h2>
-        </div>
+        {/* 設定画面のタイトル - ホーム画面と統一 */}
+        <section className="date-greeting">
+          <div className="date">設定</div>
+          <div className="greeting">あなたの情報</div>
+        </section>
 
         {/* ユーザー情報セクション */}
         <section className="user-info-section">
           <div className="section-header">
-            <h3>＜ユーザ情報＞</h3>
+            <h3 className="section-title-highlight">🙍 ユーザ情報</h3>
           </div>
           <div className="user-info-content">
-            {isUserInfoEditMode ? (
-              <form className="profile-form">
-                <div className="form-group">
-                  <label className="form-label">Mail：</label>
-                  <input
-                    type="email"
-                    value={userEmail}
-                    className="form-input"
-                    placeholder="メールアドレスを入力"
-                    readOnly
-                  />
-                  <small style={{color: '#666', fontSize: '12px'}}>※メールアドレスの変更はサポートまでお問い合わせください</small>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">PW：</label>
-                  <input
-                    type="password"
-                    value="******"
-                    className="form-input"
-                    placeholder="新しいパスワード"
-                    readOnly
-                  />
-                  <small style={{color: '#666', fontSize: '12px'}}>※パスワードの変更は準備中です</small>
-                </div>
-              </form>
-            ) : (
-              <>
-                <div className="user-info-row">
-                  <span className="user-info-label">ID（メールアドレス）：</span>
-                  <span className="user-info-value">{userEmail}</span>
-                </div>
-                <div className="user-info-row">
-                  <span className="user-info-label">パスワード：</span>
-                  <span className="user-info-value">******</span>
-                </div>
-              </>
-            )}
+            <div className="user-info-row">
+              <span className="user-info-label">ID（メールアドレス）：</span>
+              <span className="user-info-value">{userEmail}</span>
+            </div>
           </div>
         </section>
 
       {/* 基礎情報セクション */}
       <section className="basic-info-section">
         <div className="section-header">
-          <h3>＜基礎情報＞</h3>
+          <h3 className="section-title-highlight">📄 基礎情報</h3>
           {!isEditMode && (
             <button 
-              className="change-button" 
-              onClick={handleEditModeToggle}
-              type="button"
+              className="change-button"
+              onClick={() => setIsEditMode(true)}
               disabled={isLoading}
             >
-              編集
+              変更
             </button>
           )}
         </div>
@@ -533,7 +504,6 @@ export default function SettingsPage() {
           </div>
         )}
       </section>
-
       </div>
     </BioryLayout>
   );
