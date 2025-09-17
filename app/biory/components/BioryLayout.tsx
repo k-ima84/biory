@@ -70,7 +70,9 @@ export default function BioryLayout({ children }: LayoutProps) {
  
       {/* メインコンテンツ */}
       <main className="biory-main zoom-safe-content">
-        {children}
+        <div className="biory-content-container">
+          {children}
+        </div>
       </main>
  
       {/* ボトムナビゲーション */}
