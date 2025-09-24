@@ -25,7 +25,7 @@ const userProfileDataList: UserProfileInput[] = [
     favoriteFoods: '魚料理、野菜炒め、パスタ',
     allergies: '卵、乳製品',
     dislikedFoods: 'セロリ',
-    exerciseFrequency: 'weekly_3-4',
+    exerciseFrequency: '週に1回程度運動する',
     exerciseFrequencyOther: ''
   },
   {
@@ -37,7 +37,7 @@ const userProfileDataList: UserProfileInput[] = [
     favoriteFoods: 'サラダ、スープ、グリルチキン',
     allergies: 'そば',
     dislikedFoods: '辛い食べ物',
-    exerciseFrequency: 'daily',
+    exerciseFrequency: '週に1回以上運動する',
     exerciseFrequencyOther: ''
   },
   {
@@ -49,7 +49,7 @@ const userProfileDataList: UserProfileInput[] = [
     favoriteFoods: '和食、煮物、刺身',
     allergies: '',
     dislikedFoods: '洋食',
-    exerciseFrequency: 'weekly_1-2',
+    exerciseFrequency: '運動しない',
     exerciseFrequencyOther: ''
   },
   {
@@ -61,7 +61,7 @@ const userProfileDataList: UserProfileInput[] = [
     favoriteFoods: 'イタリアン、パスタ、ピザ',
     allergies: 'ナッツ類',
     dislikedFoods: '魚料理',
-    exerciseFrequency: 'weekly_3-4',
+    exerciseFrequency: '運動しない',
     exerciseFrequencyOther: ''
   },
   {
@@ -73,7 +73,7 @@ const userProfileDataList: UserProfileInput[] = [
     favoriteFoods: '肉料理、ラーメン、中華料理',
     allergies: '',
     dislikedFoods: '野菜料理',
-    exerciseFrequency: 'other',
+    exerciseFrequency: 'そのほか',
     exerciseFrequencyOther: 'ジムで筋トレ毎日'
   }
 ];

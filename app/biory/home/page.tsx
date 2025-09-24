@@ -8,7 +8,7 @@ import outputs from "../../../amplify_outputs.json";
 import type { Schema } from "../../../amplify/data/resource";
 import BioryLayout from "../components/BioryLayout";
 import "./home.css";
-import { getCognitoUserId } from '../components/function';
+import { getCognitoUserId, fetchCognitoUserInfo } from '../components/function';
 
 
 Amplify.configure(outputs);
@@ -70,37 +70,39 @@ export default function HomePage() {
     setCurrentDate(formattedDate);
   };
 
-  // Cognitoユーザー情報を取得する関数（共通関数を使用）
-  const fetchCognitoUserInfo = async () => {
+  // Cognitoユーザー情報を取得する関数
+  const fetchCognitoUserData = async () => {
     try {
-      const userId = await getCognitoUserId();
-      setCognitoUserId(userId);
+      const userInfo = await fetchCognitoUserInfo();
+      setCognitoUserId(userInfo.userId);
       
-      console.log('Cognito User ID:', userId);
-
-      return "ユーザー"; // シンプルにユーザーとして返す
-
+      console.log('Home - Cognito User Info:', {
+        userId: userInfo.userId,
+        email: userInfo.email
+      });
     } catch (error) {
-      console.error('Cognitoユーザー情報取得エラー:', error);
-      // 認証されていない場合はログイン画面へ
+      console.error('ホーム画面でのCognitoユーザー情報取得エラー:', error);
+      // 認証エラーの場合はログイン画面へリダイレクト
       router.push("/biory/login");
-      return "ゲスト";
     }
   };
 
   // ユーザープロフィールを取得する関数
-  // ユーザープロフィールを取得する関数
   const fetchUserProfile = async () => {
+    if (!cognitoUserId) {
+      console.log('User ID not available yet');
+      return;
+    }
+
     try {
-      // まずCognitoユーザー情報を取得
-      const cognitoDisplayName = await fetchCognitoUserInfo();
-      
-      // 次にプロファイルデータベースから情報を取得
-      const { data: profiles } = await client.models.UserProfile.list();
+      const { data: profiles } = await client.models.UserProfile.list({
+        filter: { userId: { eq: cognitoUserId } }
+      });
+
       if (profiles && profiles.length > 0) {
         const profile = profiles[0];
-        // データベースに名前があればそれを使用、なければCognitoの表示名を使用
-        setUserName(profile.name || cognitoDisplayName);
+        // データベースに名前があればそれを使用
+        setUserName(profile.name || "ユーザー");
 
         // Null合体演算子を使用してデフォルト値を設定
         setHealthData(prev => ({
@@ -108,8 +110,8 @@ export default function HomePage() {
           weight: profile.weight ?? 0  // null または undefined の場合は 0
         }));
       } else {
-        // プロファイルがない場合はCognitoの表示名を使用
-        setUserName(cognitoDisplayName);
+        // 該当するUserProfileがない場合はデフォルト名を使用
+        setUserName("ユーザー");
       }
     } catch (error) {
       console.error("ユーザープロフィール取得エラー:", error);
@@ -190,8 +192,17 @@ export default function HomePage() {
   useEffect(() => {
     // 初期化処理
     updateCurrentDate();
-    fetchUserProfile();
+    fetchCognitoUserData();
+  }, []);
 
+  // cognitoUserIdが取得できた後にプロフィールを取得
+  useEffect(() => {
+    if (cognitoUserId) {
+      fetchUserProfile();
+    }
+  }, [cognitoUserId]);
+
+  useEffect(() => {
     // 今日の日付文字列を取得してデータを取得
     const dateString = getCurrentDateString();
     fetchNutritionData(dateString);
@@ -209,15 +220,8 @@ export default function HomePage() {
       }
     }, 60000); // 1分間隔
 
-    // ページフォーカス時にユーザープロフィールを再取得
-    const handleFocus = () => {
-      fetchUserProfile();
-    };
-    window.addEventListener('focus', handleFocus);
-
     return () => {
       clearInterval(dateUpdateInterval);
-      window.removeEventListener('focus', handleFocus);
     };
   }, []);
 
