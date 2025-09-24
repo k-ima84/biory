@@ -1,5 +1,5 @@
 # UserProfile自動作成機能実装 - 作業履歴メモ
-**日付**: 2025年1月7日  
+**日付**: 2025年9月24日  
 **タスク**: SCRUM150_cognit - API Gateway + Lambda による UserProfile 自動作成機能
 
 ## 📋 **実装概要**
