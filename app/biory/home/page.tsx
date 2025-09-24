@@ -173,9 +173,9 @@ export default function HomePage() {
   // 挨拶メッセージを生成する関数
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return "おはようございます";
-    if (hour < 17) return "こんにちは";
-    return "こんばんは";
+    if (hour < 10) return "おはようございます！";
+    if (hour < 17) return "こんにちは！";
+    return "こんばんは！";
   };
 
   // データベースから今日のデータを取得するヘルパー関数
@@ -237,7 +237,7 @@ export default function HomePage() {
       {/* 日付・挨拶セクション */}
       <section className="date-greeting">
         <div className="date">{currentDate}</div>
-        <div className="greeting">こんにちは！{userName}さん</div>
+        <div className="greeting">{getGreeting()} {userName}さん</div>
         {cognitoUserId && (
           <div className="cognito-info">
             <div className="cognito-id">CognitoID: {cognitoUserId}</div>
