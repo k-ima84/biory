@@ -285,7 +285,7 @@
 @media (min-width: 1024px) {
   .main-content {
     grid-template-columns: 1fr 1fr 1fr;
-    /* 大画面での高さ調整 - スクロールバー回避 */
+    /* 大画面での高さ調整 - スクロールバー回避 
     min-height: calc(100vh - 350px); /* 300px→350pxに調整 */
     /* heightプロパティを削除
   }
