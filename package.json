@@ -11,6 +11,9 @@
     "seed:all": "tsx amplify/seed/seed-all.ts",
     "seed:nutrition": "tsx amplify/seed/seed-nutrition.ts",
     "seed:meal": "tsx amplify/seed/seed-meal.ts",
+    "seed:userprofile": "tsx amplify/seed/seed-userprofile.ts seed",
+    "show:userprofile": "tsx amplify/seed/seed-userprofile.ts show",
+    "clear:userprofile": "tsx amplify/seed/seed-userprofile.ts clear",
     "test:db": "tsx amplify/seed/test-db-connection.ts",
     "clear:db": "tsx amplify/seed/clear-db.ts",
     "check:env": "tsx amplify/seed/check-env.ts"

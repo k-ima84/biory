@@ -31,7 +31,7 @@ const schema = a.schema({
   UserProfile: a
     .model({
       userId: a.string().required(),
-      email: a.string(),
+      // email: a.string(),
       name: a.string(),
       height: a.float(), // xxx.xx cm
       weight: a.float(), // xx.xx kg

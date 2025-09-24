@@ -1,11 +1,15 @@
 import { log } from './common';
 import { seedNutritionData } from './seed-nutrition';
 import { seedMealData } from './seed-meal';
+import { seedUserProfileData } from './seed-userprofile';
 
 // 全てのシードデータを投入する関数
 export const seedAllData = async (): Promise<void> => {
   try {
     log.info('🌱 全シードデータの投入を開始します...');
+    
+    // ユーザープロファイルデータを投入（最初に実行）
+    await seedUserProfileData();
     
     // 栄養データを投入
     await seedNutritionData();

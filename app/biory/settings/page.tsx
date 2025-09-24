@@ -35,7 +35,8 @@ interface ValidationErrors {
 export default function SettingsPage() {
   const router = useRouter();
   const [currentUserId] = useState("user2"); // 現在のユーザーID（実際の認証では動的に取得）
-  const [userEmail] = useState("xxxx@outlook.com"); // 現在のユーザーEmail
+  const [userEmail] = useState();
+  //= useState("xxxx@outlook.com"); // 現在のユーザーEmail
   const [isEditMode, setIsEditMode] = useState(false); // 編集モードフラグ
   {/* 基礎情報編集の変数削除
     const [isUserInfoEditMode, setIsUserInfoEditMode] = useState(false); // ユーザー情報編集モードフラグ
@@ -213,7 +214,7 @@ export default function SettingsPage() {
 
       const profileData = {
         userId: currentUserId,
-        email: userEmail,
+        // email: userEmail,
         name: formData.name,
         height: parseFloat(formData.height),
         weight: parseFloat(formData.weight),

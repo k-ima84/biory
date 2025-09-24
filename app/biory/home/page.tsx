@@ -8,6 +8,8 @@ import outputs from "../../../amplify_outputs.json";
 import type { Schema } from "../../../amplify/data/resource";
 import BioryLayout from "../components/BioryLayout";
 import "./home.css";
+import { getCognitoUserId } from '../components/function';
+
 
 Amplify.configure(outputs);
 const client = generateClient<Schema>();
@@ -35,6 +37,7 @@ export default function HomePage() {
   const router = useRouter();
   const [currentDate, setCurrentDate] = useState("");
   const [userName, setUserName] = useState("");
+  const [cognitoUserId, setCognitoUserId] = useState("");
   const [nutritionData, setNutritionData] = useState<NutritionData>({
     calories: 0,
     protein: { value: 0, percentage: 0 },
@@ -67,26 +70,52 @@ export default function HomePage() {
     setCurrentDate(formattedDate);
   };
 
-  // ユーザープロフィールを取得する関数
-  // ユーザープロフィールを取得する関数
-const fetchUserProfile = async () => {
-  try {
-    const { data: profiles } = await client.models.UserProfile.list();
-    if (profiles && profiles.length > 0) {
-      const profile = profiles[0];
-      setUserName(profile.name || "ゲスト");
+  // Cognitoユーザー情報を取得する関数（共通関数を使用）
+  const fetchCognitoUserInfo = async () => {
+    try {
+      const userId = await getCognitoUserId();
+      setCognitoUserId(userId);
+      
+      console.log('Cognito User ID:', userId);
 
-      // Null合体演算子を使用してデフォルト値を設定
-      setHealthData(prev => ({
-        ...prev,
-        weight: profile.weight ?? 0  // null または undefined の場合は 0
-      }));
+      return "ユーザー"; // シンプルにユーザーとして返す
+
+    } catch (error) {
+      console.error('Cognitoユーザー情報取得エラー:', error);
+      // 認証されていない場合はログイン画面へ
+      router.push("/biory/login");
+      return "ゲスト";
     }
-  } catch (error) {
-    console.error("ユーザープロフィール取得エラー:", error);
-    setUserName("ゲスト");
-  }
-};
+  };
+
+  // ユーザープロフィールを取得する関数
+  // ユーザープロフィールを取得する関数
+  const fetchUserProfile = async () => {
+    try {
+      // まずCognitoユーザー情報を取得
+      const cognitoDisplayName = await fetchCognitoUserInfo();
+      
+      // 次にプロファイルデータベースから情報を取得
+      const { data: profiles } = await client.models.UserProfile.list();
+      if (profiles && profiles.length > 0) {
+        const profile = profiles[0];
+        // データベースに名前があればそれを使用、なければCognitoの表示名を使用
+        setUserName(profile.name || cognitoDisplayName);
+
+        // Null合体演算子を使用してデフォルト値を設定
+        setHealthData(prev => ({
+          ...prev,
+          weight: profile.weight ?? 0  // null または undefined の場合は 0
+        }));
+      } else {
+        // プロファイルがない場合はCognitoの表示名を使用
+        setUserName(cognitoDisplayName);
+      }
+    } catch (error) {
+      console.error("ユーザープロフィール取得エラー:", error);
+      setUserName("ゲスト");
+    }
+  };
  
 
   // 栄養データを取得する関数
@@ -209,6 +238,11 @@ const fetchUserProfile = async () => {
       <section className="date-greeting">
         <div className="date">{currentDate}</div>
         <div className="greeting">こんにちは！{userName}さん</div>
+        {cognitoUserId && (
+          <div className="cognito-info">
+            <div className="cognito-id">CognitoID: {cognitoUserId}</div>
+          </div>
+        )}
       </section>
 
       {/* 栄養情報セクション */}

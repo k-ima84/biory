@@ -25,14 +25,16 @@ function getAmplifyEnvironmentInfo(): { region: string; profile: string } {
 }
 
 // Amplifyクライアントが実際に使用するテーブルを特定する関数
-async function getAmplifyConnectedTables(): Promise<{ nutrition: string; meal: string; nutritionCount: number; mealCount: number } | null> {
+async function getAmplifyConnectedTables(): Promise<{ nutrition: string; meal: string; userProfile: string; nutritionCount: number; mealCount: number; userProfileCount: number } | null> {
   try {
     // Amplifyクライアントでデータを取得して実際のテーブルを特定
     const { data: nutritions } = await client.models.Nutrition.list();
     const { data: meals } = await client.models.Meal.list();
+    const { data: userProfiles } = await client.models.UserProfile.list();
     
     const nutritionCount = nutritions?.length || 0;
     const mealCount = meals?.length || 0;
+    const userProfileCount = userProfiles?.length || 0;
     
     // 環境設定を取得
     const { region, profile } = getAmplifyEnvironmentInfo();
@@ -46,12 +48,14 @@ async function getAmplifyConnectedTables(): Promise<{ nutrition: string; meal: s
     const tablesData = JSON.parse(output);
     const allTables = tablesData.TableNames || [];
     
-    // Nutrition/Mealテーブルを抽出
+    // Nutrition/Meal/UserProfileテーブルを抽出
     const nutritionTables = allTables.filter((name: string) => name.includes('Nutrition'));
     const mealTables = allTables.filter((name: string) => name.includes('Meal'));
+    const userProfileTables = allTables.filter((name: string) => name.includes('UserProfile'));
     
     let actualNutritionTable = '';
     let actualMealTable = '';
+    let actualUserProfileTable = '';
     
     // 各テーブルのデータ件数を確認して、Amplifyクライアントの結果と一致するものを特定
     for (const table of nutritionTables) {
@@ -84,11 +88,28 @@ async function getAmplifyConnectedTables(): Promise<{ nutrition: string; meal: s
       }
     }
     
+    for (const table of userProfileTables) {
+      try {
+        const result = execSync(`aws dynamodb scan --table-name ${table} --select COUNT --profile ${profile} --region ${region}`, { 
+          encoding: 'utf8' 
+        });
+        const count = JSON.parse(result).Count;
+        if (count === userProfileCount) {
+          actualUserProfileTable = table;
+          break;
+        }
+      } catch (error) {
+        // アクセスできないテーブルはスキップ
+      }
+    }
+    
     return {
       nutrition: actualNutritionTable || 'Nutrition（特定失敗）',
       meal: actualMealTable || 'Meal（特定失敗）',
+      userProfile: actualUserProfileTable || 'UserProfile（特定失敗）',
       nutritionCount,
-      mealCount
+      mealCount,
+      userProfileCount
     };
   } catch (error) {
     log.error(`Amplifyテーブル特定エラー: ${error}`);
@@ -106,6 +127,7 @@ async function testDatabase(): Promise<void> {
       log.info('📊 Amplifyが接続中のDynamoDBテーブル情報:');
       console.log(`  🥗 Nutritionテーブル: ${tableInfo.nutrition}`);
       console.log(`  🍽️ Mealテーブル: ${tableInfo.meal}`);
+      console.log(`  👥 UserProfileテーブル: ${tableInfo.userProfile}`);
       console.log(''); // 空行
     }
     
@@ -135,6 +157,24 @@ async function testDatabase(): Promise<void> {
       });
     } else {
       log.error('Mealテーブルにデータが存在しません');
+    }
+
+    console.log(''); // 空行
+
+    // UserProfileテーブルの全データを取得
+    const { data: userProfiles } = await client.models.UserProfile.list();
+    log.data(`👥 UserProfileテーブル（${tableInfo?.userProfile || 'UserProfile'}）のデータ件数`, userProfiles?.length || 0);
+    
+    if (userProfiles && userProfiles.length > 0) {
+      log.success('取得したUserProfileデータ:');
+      userProfiles.forEach((profile, index) => {
+        console.log(`  ${index + 1}. UserID: ${profile.userId}, Name: ${profile.name}, Gender: ${profile.gender}`);
+        console.log(`      Height: ${profile.height}cm, Weight: ${profile.weight}kg`);
+        console.log(`      Exercise: ${profile.exerciseFrequency}, Allergies: ${profile.allergies || 'なし'}`);
+        console.log(`      Favorite Foods: ${profile.favoriteFoods || 'なし'}`);
+      });
+    } else {
+      log.error('UserProfileテーブルにデータが存在しません');
     }
 
     log.success('データベーステスト完了');
