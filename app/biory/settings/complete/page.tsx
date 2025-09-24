@@ -1,4 +1,6 @@
-"use client";
+/*20250924_こちらは不要なので、Feature004へマージする際に削除予定*/
+
+/*"use client";
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -26,7 +28,7 @@ export default function SettingsCompletePage() {
 
   return (
     <BioryLayout>
-      {/* 完了メッセージ */}
+      {/* 完了メッセージ }
       <div className="complete-content">
         <div className="success-icon">✓</div>
         <h2 className="complete-title">ユーザー情報登録完了</h2>
@@ -39,7 +41,7 @@ export default function SettingsCompletePage() {
         </p>
       </div>
 
-      {/* ボタン */}
+      {/* ボタン }
       <div className="complete-buttons">
         <button className="complete-button primary" onClick={handleBackToHome}>
           ホーム画面に戻る
@@ -147,4 +149,5 @@ export default function SettingsCompletePage() {
       `}</style>
     </BioryLayout>
   );
-}
+}*/
+

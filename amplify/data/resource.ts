@@ -19,12 +19,15 @@ const schema = a.schema({
     })
     .authorization((allow) => [allow.publicApiKey()]),
 
-  Meal: a
+  DailyRecord: a
     .model({
       userId: a.string(),
       date: a.string(),
       mealType: a.string(), // breakfast, lunch, dinner
       content: a.string(),
+      condition: a.string(), // 体調
+      mood: a.string(), // 気分
+      weight: a.float(), // 体重 (kg)
     })
     .authorization((allow) => [allow.publicApiKey()]),
 

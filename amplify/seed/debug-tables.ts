@@ -93,10 +93,10 @@ async function debugAllTables(): Promise<void> {
     log.info('🔗 Amplifyクライアントでのデータ取得:');
     
     const { data: nutritions } = await client.models.Nutrition.list();
-    const { data: meals } = await client.models.Meal.list();
+    const { data: meals } = await client.models.DailyRecord.list();
     
     console.log(`  🥗 Amplify Nutritionデータ件数: ${nutritions?.length || 0}件`);
-    console.log(`  🍽️ Amplify Mealデータ件数: ${meals?.length || 0}件`);
+    console.log(`  📝 Amplify DailyRecordデータ件数: ${meals?.length || 0}件`);
     
     // amplify_outputs.jsonの設定を確認
     log.info('⚙️ 現在のAmplify設定:');

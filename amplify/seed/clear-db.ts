@@ -14,14 +14,14 @@ async function clearDatabase(): Promise<void> {
       log.success('Nutritionデータの削除完了');
     }
 
-    // 既存のMealデータを削除
-    const { data: meals } = await client.models.Meal.list();
+    // 既存のDailyRecordデータを削除
+    const { data: meals } = await client.models.DailyRecord.list();
     if (meals && meals.length > 0) {
-      log.info(`${meals.length}件のMealデータを削除中...`);
+      log.info(`${meals.length}件のDailyRecordデータを削除中...`);
       for (const meal of meals) {
-        await client.models.Meal.delete({ id: meal.id });
+        await client.models.DailyRecord.delete({ id: meal.id });
       }
-      log.success('Mealデータの削除完了');
+      log.success('DailyRecordデータの削除完了');
     }
 
     log.success('🧹 データベースのクリア完了');
