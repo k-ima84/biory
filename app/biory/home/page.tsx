@@ -54,6 +54,22 @@ export default function HomePage() {
     weight: 0,
   });
 
+  // 「本日の調子」編集機能用のstate
+  const [isHealthEditMode, setIsHealthEditMode] = useState(false);
+  const [healthEditData, setHealthEditData] = useState<HealthData>({
+    condition: "とても良い 😊",
+    mood: "ポジティブ",
+    weight: 0,
+  });
+
+  // 「本日の食事」編集機能用のstate
+  const [isMealEditMode, setIsMealEditMode] = useState(false);
+  const [mealEditData, setMealEditData] = useState<MealData>({
+    breakfast: "—",
+    lunch: "—",
+    dinner: "—",
+  });
+
   // 日本語の曜日配列
   const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
 
@@ -192,8 +208,78 @@ const fetchUserProfile = async () => {
     };
   }, []);
 
+  // healthDataが変更された時に編集データも同期
+  useEffect(() => {
+    setHealthEditData(healthData);
+  }, [healthData]);
+
+  // mealDataが変更された時に編集データも同期
+  useEffect(() => {
+    setMealEditData(mealData);
+  }, [mealData]);
+
   const handleEditClick = () => {
     console.log("編集ボタンがクリックされました");
+  };
+
+  // 「本日の調子」編集機能
+  const handleHealthEditToggle = () => {
+    if (isHealthEditMode) {
+      // 編集をキャンセルして元のデータに戻す
+      setHealthEditData(healthData);
+    } else {
+      // 編集モードに入る時は現在のデータをコピー
+      setHealthEditData(healthData);
+    }
+    setIsHealthEditMode(!isHealthEditMode);
+  };
+
+  const handleHealthInputChange = (field: keyof HealthData, value: string | number) => {
+    setHealthEditData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleHealthSave = async () => {
+    try {
+      // ここで実際のデータ保存処理を行う
+      setHealthData(healthEditData);
+      setIsHealthEditMode(false);
+      console.log("「本日の調子」が保存されました:", healthEditData);
+    } catch (error) {
+      console.error("保存エラー:", error);
+    }
+  };
+
+  // 「本日の食事」編集機能
+  const handleMealEditToggle = () => {
+    if (isMealEditMode) {
+      // 編集をキャンセルして元のデータに戻す
+      setMealEditData(mealData);
+    } else {
+      // 編集モードに入る時は現在のデータをコピー
+      setMealEditData(mealData);
+    }
+    setIsMealEditMode(!isMealEditMode);
+  };
+
+  const handleMealInputChange = (field: keyof MealData, value: string) => {
+    setMealEditData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleMealSave = async () => {
+    try {
+      // ここで実際のデータ保存処理を行う
+      setMealData(mealEditData);
+      setIsMealEditMode(false);
+      console.log("「本日の食事」が保存されました:", mealEditData);
+    } catch (error) {
+      console.error("保存エラー:", error);
+    }
   };
 
   const handleNavClick = (section: string) => {
@@ -236,44 +322,346 @@ const fetchUserProfile = async () => {
 
       {/* 食事記録セクション */}
       <section className="meal-section">
-        <h3 className="section-title-highlight">本日の食事</h3>
-        <div className="meal-list">
-          <div className="meal-row">
-            <span className="meal-time">朝</span>
-            <span className="meal-separator">：</span>
-            <span className="meal-content">{mealData.breakfast}</span>
-          </div>
-          <div className="meal-row">
-            <span className="meal-time">昼</span>
-            <span className="meal-separator">：</span>
-            <span className="meal-content">{mealData.lunch}</span>
-          </div>
-          <div className="meal-row">
-            <span className="meal-time">夜</span>
-            <span className="meal-separator">：</span>
-            <span className="meal-content">{mealData.dinner}</span>
-          </div>
+        <div 
+          className="section-title-highlight" 
+          style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            marginBottom: '15px',
+            margin: '0 0 15px 0',
+            padding: '8px 12px',
+            borderRadius: '4px'
+          }}
+        >
+          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold', color: 'white' }}>本日の食事</h3>
+          {!isMealEditMode && (
+            <button 
+              className="change-button"
+              onClick={handleMealEditToggle}
+              style={{ 
+                background: '#a8e6cf', 
+                color: '#070707', 
+                border: 'none', 
+                borderRadius: '4px', 
+                padding: '5px 15px', 
+                fontSize: '12px',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#8ec1ae';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#a8e6cf';
+              }}
+            >
+              変更
+            </button>
+          )}
         </div>
+        
+        {isMealEditMode ? (
+          <div className="meal-list">
+            <div className="meal-row">
+              <span className="meal-time">朝</span>
+              <span className="meal-separator">：</span>
+              <input 
+                type="text"
+                value={mealEditData.breakfast}
+                onChange={(e) => handleMealInputChange('breakfast', e.target.value)}
+                placeholder="朝食を入力"
+                style={{
+                  flex: 1,
+                  padding: '4px 8px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px'
+                }}
+              />
+            </div>
+            <div className="meal-row">
+              <span className="meal-time">昼</span>
+              <span className="meal-separator">：</span>
+              <input 
+                type="text"
+                value={mealEditData.lunch}
+                onChange={(e) => handleMealInputChange('lunch', e.target.value)}
+                placeholder="昼食を入力"
+                style={{
+                  flex: 1,
+                  padding: '4px 8px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px'
+                }}
+              />
+            </div>
+            <div className="meal-row">
+              <span className="meal-time">夜</span>
+              <span className="meal-separator">：</span>
+              <input 
+                type="text"
+                value={mealEditData.dinner}
+                onChange={(e) => handleMealInputChange('dinner', e.target.value)}
+                placeholder="夕食を入力"
+                style={{
+                  flex: 1,
+                  padding: '4px 8px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px'
+                }}
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="meal-list">
+            <div className="meal-row">
+              <span className="meal-time">朝</span>
+              <span className="meal-separator">：</span>
+              <span className="meal-content">{mealData.breakfast}</span>
+            </div>
+            <div className="meal-row">
+              <span className="meal-time">昼</span>
+              <span className="meal-separator">：</span>
+              <span className="meal-content">{mealData.lunch}</span>
+            </div>
+            <div className="meal-row">
+              <span className="meal-time">夜</span>
+              <span className="meal-separator">：</span>
+              <span className="meal-content">{mealData.dinner}</span>
+            </div>
+          </div>
+        )}
+        
+        {/* 編集モード時のボタン（右下配置） */}
+        {isMealEditMode && (
+          <div style={{ 
+            display: 'flex', 
+            gap: '8px', 
+            marginTop: '15px', 
+            justifyContent: 'flex-end',
+            padding: '10px 0'
+          }}>
+            <button 
+              onClick={handleMealEditToggle}
+              style={{
+                background: '#f5f5f5',
+                color: '#666',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                padding: '8px 16px',
+                fontSize: '13px',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#e9e9e9';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#f5f5f5';
+              }}
+            >
+              キャンセル
+            </button>
+            <button 
+              onClick={handleMealSave}
+              style={{
+                background: '#a8e6cf',
+                color: '#070707',
+                border: 'none',
+                borderRadius: '4px',
+                padding: '8px 16px',
+                fontSize: '13px',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#8ec1ae';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#a8e6cf';
+              }}
+            >
+              保存
+            </button>
+          </div>
+        )}
       </section>
 
       {/* 体調管理セクション */}
       <section className="health-section">
-        <h3 className="section-title-highlight">本日の調子</h3>
-        <div className="health-content">
-          <div className="health-row">
-            <span className="health-label">体調：</span>
-            <span className="health-value">{healthData.condition}</span>
-            <span className="health-emoji"></span>
-          </div>
-          <div className="health-row">
-            <span className="health-label">気分：</span>
-            <span className="health-value">{healthData.mood}</span>
-          </div>
-          <div className="health-row">
-            <span className="health-label">体重：</span>
-            <span className="health-value">―.―kg</span>
-          </div>
+        <div 
+          className="section-title-highlight" 
+          style={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center', 
+            marginBottom: '15px',
+            margin: '0 0 15px 0',
+            padding: '8px 12px',
+            borderRadius: '4px'
+          }}
+        >
+          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold', color: 'white' }}>本日の調子</h3>
+          {!isHealthEditMode && (
+            <button 
+              className="change-button"
+              onClick={handleHealthEditToggle}
+              style={{ 
+                background: '#a8e6cf', 
+                color: '#070707', 
+                border: 'none', 
+                borderRadius: '4px', 
+                padding: '5px 15px', 
+                fontSize: '12px',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#8ec1ae';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#a8e6cf';
+              }}
+            >
+              変更
+            </button>
+          )}
         </div>
+        
+        {isHealthEditMode ? (
+          <div className="health-content">
+            <div className="health-row">
+              <span className="health-label">体調：</span>
+              <select 
+                value={healthEditData.condition}
+                onChange={(e) => handleHealthInputChange('condition', e.target.value)}
+                style={{
+                  padding: '4px 8px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px'
+                }}
+              >
+                <option value="とても良い 😊">とても良い 😊</option>
+                <option value="良い 😌">良い 😌</option>
+                <option value="普通 😐">普通 😐</option>
+                <option value="少し悪い 😟">少し悪い 😟</option>
+                <option value="悪い 😵">悪い 😵</option>
+              </select>
+            </div>
+            <div className="health-row">
+              <span className="health-label">気分：</span>
+              <select 
+                value={healthEditData.mood}
+                onChange={(e) => handleHealthInputChange('mood', e.target.value)}
+                style={{
+                  padding: '4px 8px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px'
+                }}
+              >
+                <option value="ポジティブ">ポジティブ</option>
+                <option value="普通">普通</option>
+                <option value="ネガティブ">ネガティブ</option>
+                <option value="リラックス">リラックス</option>
+                <option value="やる気満々">やる気満々</option>
+                <option value="疲れ気味">疲れ気味</option>
+              </select>
+            </div>
+            <div className="health-row">
+              <span className="health-label">体重：</span>
+              <input 
+                type="number"
+                step="0.1"
+                value={healthEditData.weight || ''}
+                onChange={(e) => handleHealthInputChange('weight', parseFloat(e.target.value) || 0)}
+                placeholder="体重を入力"
+                style={{
+                  padding: '4px 8px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  width: '80px'
+                }}
+              />
+              <span style={{ marginLeft: '4px' }}>kg</span>
+            </div>
+          </div>
+        ) : (
+          <div className="health-content">
+            <div className="health-row">
+              <span className="health-label">体調：</span>
+              <span className="health-value">{healthData.condition}</span>
+              <span className="health-emoji"></span>
+            </div>
+            <div className="health-row">
+              <span className="health-label">気分：</span>
+              <span className="health-value">{healthData.mood}</span>
+            </div>
+            <div className="health-row">
+              <span className="health-label">体重：</span>
+              <span className="health-value">{healthData.weight > 0 ? `${healthData.weight}kg` : '―.―kg'}</span>
+            </div>
+          </div>
+        )}
+        
+        {/* 編集モード時のボタン（右下配置） */}
+        {isHealthEditMode && (
+          <div style={{ 
+            display: 'flex', 
+            gap: '8px', 
+            marginTop: '15px', 
+            justifyContent: 'flex-end',
+            padding: '10px 0'
+          }}>
+            <button 
+              onClick={handleHealthEditToggle}
+              style={{
+                background: '#f5f5f5',
+                color: '#666',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                padding: '8px 16px',
+                fontSize: '13px',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#e9e9e9';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#f5f5f5';
+              }}
+            >
+              キャンセル
+            </button>
+            <button 
+              onClick={handleHealthSave}
+              style={{
+                background: '#a8e6cf',
+                color: '#070707',
+                border: 'none',
+                borderRadius: '4px',
+                padding: '8px 16px',
+                fontSize: '13px',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#8ec1ae';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#a8e6cf';
+              }}
+            >
+              保存
+            </button>
+          </div>
+        )}
       </section>
 
       {/* 編集ボタン */}
