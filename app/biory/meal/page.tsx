@@ -3,10 +3,14 @@
 import { useState, useEffect } from "react";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "@/amplify/data/resource";
-import { getCurrentUser } from "aws-amplify/auth";
+import { Amplify } from "aws-amplify";
+import outputs from "../../../amplify_outputs.json";
 import BioryLayout from "../components/BioryLayout";
 import styles from "./meal.module.css";
+import { fetchCognitoUserInfo } from '../components/function';
+import { useRouter } from "next/navigation";
  
+Amplify.configure(outputs);
 
 const client = generateClient<Schema>();
 
@@ -21,6 +25,7 @@ interface MealData {
 }
  
 export default function MealPage() {
+
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [meals, setMeals] = useState<MealData[]>([]); // 初期値は空
@@ -31,18 +36,35 @@ export default function MealPage() {
   const percentage = Math.min((currentCalories / maxCalories) * 100, 100);
  
   useEffect(() => {
-    checkUser();
+    loadUserInfo();
+
+    // ページフォーカス時にユーザー情報を再取得（セッション維持のため）
+    const handleFocus = () => {
+      loadUserInfo();
+    };
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
  
-  async function checkUser() {
+
+
+  // Cognitoユーザー情報を取得する関数（共通関数を使用）
+  const loadUserInfo = async () => {
     try {
-      const currentUser = await getCurrentUser();
-      setUser(currentUser);
+      const userInfo = await fetchCognitoUserInfo();
+      setCognitoUserId(userInfo.userId);
+      
+      console.log('Meal Page - Cognito User ID:', userInfo.userId);
+
     } catch (error) {
-      // ユーザーがログインしていない場合はログイン画面にリダイレクト
-      window.location.href = "/biory/login";
-    }
-  }
+      console.error('Meal画面でのCognitoユーザー情報取得エラー:', error);
+      // 認証されていない場合はログイン画面へ
+      router.push("/biory/login");
+    } 
+  };
  
   const getTodayDate = () => {
     const today = new Date();
@@ -116,6 +138,13 @@ export default function MealPage() {
         <header className={styles.header}>
           <h1 className={styles.title}>今日のあなたにぴったりの献立</h1>
           <p className={styles.date}>{getTodayDate()}</p>
+          {/* ↓削除予定-------------------------------- */}
+          {cognitoUserId && (
+            <div className={styles.cognitoInfo}>
+              <div className={styles.cognitoId}>CognitoID: {cognitoUserId}</div>
+            </div>
+          )}
+          {/* ↑削除予定-------------------------------- */}
         </header>
  
         <div className={styles.mealsContainer}>
