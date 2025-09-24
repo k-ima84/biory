@@ -10,7 +10,7 @@ import styles from "./meal.module.css";
 import { fetchCognitoUserInfo } from '../components/function';
 import { useRouter } from "next/navigation";
  
-Amplify.configure(outputs);
+//Amplify.configure(outputs);
 
 const client = generateClient<Schema>();
 
@@ -25,10 +25,12 @@ interface MealData {
 }
  
 export default function MealPage() {
-
+  const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [meals, setMeals] = useState<MealData[]>([]); // 初期値は空
+  const [cognitoUserId, setCognitoUserId] = useState("");
+  
 
   // カロリー計算
   const currentCalories = meals.reduce((total, meal) => total + meal.calories, 0);
