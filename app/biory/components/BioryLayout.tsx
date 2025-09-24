@@ -32,6 +32,7 @@ export default function BioryLayout({ children }: LayoutProps) {
         break;
       case "calendar":
         console.log("カレンダー画面へ遷移"); // 今後実装
+         router.push("/biory/test-userprofile"); // 仮の遷移先
         break;
       case "settings":
         router.push("/biory/settings");

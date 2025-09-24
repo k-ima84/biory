@@ -1,0 +1,10 @@
+{
+  "name": "create-user-profile",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {},
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.131",
+    "typescript": "^5.3.0"
+  }
+}
