@@ -3,12 +3,13 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { generateClient } from "aws-amplify/data";
-import { getCurrentUser, fetchUserAttributes } from "aws-amplify/auth";
 import { Amplify } from "aws-amplify";
 import outputs from "../../../amplify_outputs.json";
 import type { Schema } from "../../../amplify/data/resource";
 import BioryLayout from "../components/BioryLayout";
 import "./home.css";
+import { getCognitoUserId } from '../components/function';
+
 
 Amplify.configure(outputs);
 const client = generateClient<Schema>();
@@ -37,7 +38,6 @@ export default function HomePage() {
   const [currentDate, setCurrentDate] = useState("");
   const [userName, setUserName] = useState("");
   const [cognitoUserId, setCognitoUserId] = useState("");
-  const [userEmail, setUserEmail] = useState("");
   const [nutritionData, setNutritionData] = useState<NutritionData>({
     calories: 0,
     protein: { value: 0, percentage: 0 },
@@ -70,30 +70,15 @@ export default function HomePage() {
     setCurrentDate(formattedDate);
   };
 
-  // Cognitoユーザー情報を取得する関数
+  // Cognitoユーザー情報を取得する関数（共通関数を使用）
   const fetchCognitoUserInfo = async () => {
     try {
-      // 現在のユーザー情報を取得
-      const currentUser = await getCurrentUser();
-      setCognitoUserId(currentUser.userId); // ユニークID取得
+      const userId = await getCognitoUserId();
+      setCognitoUserId(userId);
       
-      // ユーザー属性を取得（名前、メールなど）
-      const attributes = await fetchUserAttributes();
-      setUserEmail(attributes.email || "");
-      
-      // 表示名を設定（名前があれば名前、なければメールアドレスの@より前）
-      const displayName = attributes.name || 
-                          attributes.given_name || 
-                          attributes.email?.split('@')[0] || 
-                          "ユーザー";
-      
-      console.log('Cognito User Info:', {
-        userId: currentUser.userId,
-        username: currentUser.username,
-        attributes: attributes
-      });
+      console.log('Cognito User ID:', userId);
 
-      return displayName;
+      return "ユーザー"; // シンプルにユーザーとして返す
 
     } catch (error) {
       console.error('Cognitoユーザー情報取得エラー:', error);
@@ -256,7 +241,6 @@ export default function HomePage() {
         {cognitoUserId && (
           <div className="cognito-info">
             <div className="cognito-id">CognitoID: {cognitoUserId}</div>
-            {userEmail && <div className="user-email">Email: {userEmail}</div>}
           </div>
         )}
       </section>
