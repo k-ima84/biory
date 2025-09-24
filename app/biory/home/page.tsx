@@ -8,6 +8,8 @@ import outputs from "../../../amplify_outputs.json";
 import type { Schema } from "../../../amplify/data/resource";
 import BioryLayout from "../components/BioryLayout";
 import "./home.css";
+import { getCognitoUserId, fetchCognitoUserInfo } from '../components/function';
+
 
 Amplify.configure(outputs);
 const client = generateClient<Schema>();
@@ -35,6 +37,7 @@ export default function HomePage() {
   const router = useRouter();
   const [currentDate, setCurrentDate] = useState("");
   const [userName, setUserName] = useState("");
+  const [cognitoUserId, setCognitoUserId] = useState("");
   const [nutritionData, setNutritionData] = useState<NutritionData>({
     calories: 0,
     protein: { value: 0, percentage: 0 },
@@ -83,13 +86,48 @@ export default function HomePage() {
     setCurrentDate(formattedDate);
   };
 
+  // Cognitoユーザー情報を取得する関数
+  const fetchCognitoUserData = async () => {
+    try {
+      const userInfo = await fetchCognitoUserInfo();
+      setCognitoUserId(userInfo.userId);
+      
+      console.log('Home - Cognito User Info:', {
+        userId: userInfo.userId,
+        email: userInfo.email
+      });
+    } catch (error) {
+      console.error('ホーム画面でのCognitoユーザー情報取得エラー:', error);
+      // 認証エラーの場合はログイン画面へリダイレクト
+      router.push("/biory/login");
+    }
+  };
+
   // ユーザープロフィールを取得する関数
   const fetchUserProfile = async () => {
+    if (!cognitoUserId) {
+      console.log('User ID not available yet');
+      return;
+    }
+
     try {
-      const { data: profiles } = await client.models.UserProfile.list();
+      const { data: profiles } = await client.models.UserProfile.list({
+        filter: { userId: { eq: cognitoUserId } }
+      });
+
       if (profiles && profiles.length > 0) {
         const profile = profiles[0];
-        setUserName(profile.name || "ゲスト");
+        // データベースに名前があればそれを使用
+        setUserName(profile.name || "ユーザー");
+
+        // Null合体演算子を使用してデフォルト値を設定
+        setHealthData(prev => ({
+          ...prev,
+          weight: profile.weight ?? 0  // null または undefined の場合は 0
+        }));
+      } else {
+        // 該当するUserProfileがない場合はデフォルト名を使用
+        setUserName("ユーザー");
       }
     } catch (error) {
       console.error("ユーザープロフィール取得エラー:", error);
@@ -190,9 +228,9 @@ export default function HomePage() {
   // 挨拶メッセージを生成する関数
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return "おはようございます";
-    if (hour < 17) return "こんにちは";
-    return "こんばんは";
+    if (hour < 10) return "おはようございます！";
+    if (hour < 17) return "こんにちは！";
+    return "こんばんは！";
   };
 
   // データベースから今日のデータを取得するヘルパー関数
@@ -207,8 +245,17 @@ export default function HomePage() {
   useEffect(() => {
     // 初期化処理
     updateCurrentDate();
-    fetchUserProfile();
+    fetchCognitoUserData();
+  }, []);
 
+  // cognitoUserIdが取得できた後にプロフィールを取得
+  useEffect(() => {
+    if (cognitoUserId) {
+      fetchUserProfile();
+    }
+  }, [cognitoUserId]);
+
+  useEffect(() => {
     // 今日の日付文字列を取得してデータを取得
     const dateString = getCurrentDateString();
     fetchNutritionData(dateString);
@@ -238,7 +285,6 @@ export default function HomePage() {
 
     return () => {
       clearInterval(dateUpdateInterval);
-      window.removeEventListener('focus', handleFocus);
     };
   }, []);
 
@@ -403,7 +449,12 @@ export default function HomePage() {
       {/* 日付・挨拶セクション */}
       <section className="date-greeting">
         <div className="date">{currentDate}</div>
-        <div className="greeting">こんにちは！{userName}さん</div>
+        <div className="greeting">{getGreeting()} {userName}さん</div>
+        {cognitoUserId && (
+          <div className="cognito-info">
+            <div className="cognito-id">CognitoID: {cognitoUserId}</div>
+          </div>
+        )}
       </section>
 
       {/* 栄養情報セクション */}

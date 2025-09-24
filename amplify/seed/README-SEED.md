@@ -97,6 +97,52 @@ tsx amplify/seed/debug-tables.ts
 
 ---
 
+## 📊 データ管理コマンド
+
+### 全データ一括操作
+```bash
+# 全テーブルにデータ投入
+npm run seed:all
+
+# 全データクリア
+npm run clear:db
+
+# 全データ確認
+npm run test:db
+```
+
+### 個別テーブル操作
+
+#### 👥 UserProfile（ユーザープロファイル）
+```bash
+# UserProfileデータを投入
+tsx amplify/seed/seed-userprofile.ts seed
+
+# UserProfileデータを確認
+tsx amplify/seed/seed-userprofile.ts show
+
+# UserProfileデータをクリア
+tsx amplify/seed/seed-userprofile.ts clear
+```
+
+#### 🍽️ Meal（食事データ）
+```bash
+# 食事データを投入
+tsx amplify/seed/seed-meal.ts
+
+# 食事データを確認（test:dbコマンドで確認可能）
+npm run test:db
+```
+
+#### 🥗 Nutrition（栄養データ）
+```bash
+# 栄養データを投入
+tsx amplify/seed/seed-nutrition.ts
+
+# 栄養データを確認（test:dbコマンドで確認可能）
+npm run test:db
+```
+
 ## セットアップ手順
 
 ### 1. 初回セットアップ
@@ -228,7 +274,30 @@ tsx amplify/seed/debug-tables.ts
 
 ---
 
-## 🚀 推奨ワークフロー
+## � サンプルデータ内容
+
+### 👥 UserProfile データ
+投入される5人のサンプルユーザー：
+
+| ユーザーID | 名前 | 性別 | 身長 | 体重 | 運動頻度 | アレルギー |
+|------------|------|------|------|------|----------|------------|
+| user1 | 田中太郎 | 男性 | 175cm | 70kg | 週3-4回 | 卵、乳製品 |
+| user2 | 佐藤花子 | 女性 | 160cm | 55kg | 毎日 | そば |
+| user3 | 山田次郎 | 男性 | 168cm | 65kg | 週1-2回 | なし |
+| user4 | 鈴木明子 | 女性 | 155cm | 50kg | 週3-4回 | ナッツ類 |
+| user5 | 高橋健二 | 男性 | 180cm | 85kg | その他 | なし |
+
+### 🍽️ Meal データ
+- 複数ユーザーの朝食・昼食・夕食データ
+- 日付別の食事内容
+- 多様な料理のサンプル
+
+### 🥗 Nutrition データ  
+- 各日付のカロリー情報
+- タンパク質・脂質・炭水化物の詳細データ
+- PFCバランスの計算用データ
+
+## �🚀 推奨ワークフロー
 
 ### 🆕 初回セットアップ時
 ```bash

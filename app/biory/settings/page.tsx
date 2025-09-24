@@ -1,5 +1,5 @@
 "use client";
-
+ 
 import { useState, useEffect } from "react";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "@/amplify/data/resource";
@@ -8,10 +8,11 @@ import outputs from "@/amplify_outputs.json";
 import { useRouter } from "next/navigation";
 import BioryLayout from "../components/BioryLayout";
 import "./settings.css";
-
+import { fetchCognitoUserInfo } from '../components/function';
+ 
 Amplify.configure(outputs);
 const client = generateClient<Schema>();
-
+ 
 interface UserProfileForm {
   name: string;
   height: string;
@@ -23,7 +24,7 @@ interface UserProfileForm {
   exerciseFrequency: string;
   exerciseFrequencyOther: string;
 }
-
+ 
 interface ValidationErrors {
   name?: string;
   height?: string;
@@ -31,17 +32,17 @@ interface ValidationErrors {
   gender?: string;
   exerciseFrequency?: string;
 }
-
+ 
 export default function SettingsPage() {
   const router = useRouter();
-  const [currentUserId] = useState("user2"); // 現在のユーザーID（実際の認証では動的に取得）
-  const [userEmail] = useState("xxxx@outlook.com"); // 現在のユーザーEmail
+  const [currentUserId, setCurrentUserId] = useState(""); // 現在のユーザーID
+  const [userEmail, setUserEmail] = useState(""); // 現在のユーザーEmail
   const [isEditMode, setIsEditMode] = useState(false); // 編集モードフラグ
   {/* 基礎情報編集の変数削除
     const [isUserInfoEditMode, setIsUserInfoEditMode] = useState(false); // ユーザー情報編集モードフラグ
   */}
     const [userProfile, setUserProfile] = useState<UserProfileForm | null>(null); // 保存されたプロフィール
-  
+ 
   const [formData, setFormData] = useState<UserProfileForm>({
     name: "",
     height: "",
@@ -53,10 +54,10 @@ export default function SettingsPage() {
     exerciseFrequency: "",
     exerciseFrequencyOther: "",
   });
-
+ 
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [isLoading, setIsLoading] = useState(false);
-
+ 
   // 運動頻度の選択肢
   const exerciseOptions = [
     { value: "週に1回以上運動する", label: "週に1回以上運動する" },
@@ -64,25 +65,55 @@ export default function SettingsPage() {
     { value: "運動しない", label: "運動しない" },
     { value: "そのほか", label: "そのほか" },
   ];
-
+ 
   // 性別の選択肢
   const genderOptions = [
     { value: "女", label: "女" },
     { value: "男", label: "男" },
     { value: "そのほか", label: "そのほか" },
   ];
-
+ 
+  // Cognitoユーザー情報を取得
+  const fetchCognitoUserData = async () => {
+    try {
+      const userInfo = await fetchCognitoUserInfo();
+      setCurrentUserId(userInfo.userId);
+      setUserEmail(userInfo.email || "");
+     
+      console.log('Settings - Cognito User Info:', {
+        userId: userInfo.userId,
+        email: userInfo.email
+      });
+    } catch (error) {
+      console.error('設定画面でのCognitoユーザー情報取得エラー:', error);
+      // 認証エラーの場合はログイン画面へリダイレクト
+      router.push("/biory/login");
+    }
+  };
+ 
   // 既存のユーザー情報を取得
   useEffect(() => {
-    fetchUserProfile();
+    fetchCognitoUserData();
   }, []);
-
+ 
+  // currentUserIdが取得できた後にプロフィールを取得
+  useEffect(() => {
+    if (currentUserId) {
+      fetchUserProfile();
+    }
+  }, [currentUserId]);
+ 
   const fetchUserProfile = async () => {
+    if (!currentUserId) {
+      console.log('User ID not available yet');
+      return;
+    }
+ 
     try {
       const { data: profiles } = await client.models.UserProfile.list({
         filter: { userId: { eq: currentUserId } }
       });
-
+ 
       if (profiles && profiles.length > 0) {
         const profile = profiles[0];
         const profileData = {
@@ -101,15 +132,15 @@ export default function SettingsPage() {
       } else {
         // プロフィールがない場合はサンプルデータを表示
         const sampleData = {
-          name: "田中 太郎",
-          height: "170.5",
-          weight: "65.0",
-          gender: "男",
-          favoriteFoods: "寿司",
-          allergies: "卵",
-          dislikedFoods: "パクチー",
-          exerciseFrequency: "週に1回程度運動する",
-          exerciseFrequencyOther: "",
+          name: "未設定",
+          height: "未設定",
+          weight: "未設定",
+          gender: "未設定",
+          favoriteFoods: "未設定",
+          allergies: "未設定",
+          dislikedFoods: "未設定",
+          exerciseFrequency: "未設定",
+          exerciseFrequencyOther: "未設定",
         };
         setFormData(sampleData);
         setUserProfile(sampleData);
@@ -118,11 +149,11 @@ export default function SettingsPage() {
       console.error("ユーザー情報の取得エラー:", error);
     }
   };
-
+ 
   // バリデーション関数
   const validateForm = (): boolean => {
     const newErrors: ValidationErrors = {};
-
+ 
     // 名前のバリデーション
     if (!formData.name.trim()) {
       newErrors.name = "名前は必須です";
@@ -133,7 +164,7 @@ export default function SettingsPage() {
     } else if (!/^[a-zA-Z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF ]+$/.test(formData.name)) {
       newErrors.name = "名前は日本語、英字、数字、半角スペースのみ使用可能です";
     }
-
+ 
     // 身長のバリデーション
     if (!formData.height.trim()) {
       newErrors.height = "身長は必須です";
@@ -145,7 +176,7 @@ export default function SettingsPage() {
         newErrors.height = "身長は50～300cmの範囲で入力してください";
       }
     }
-
+ 
     // 体重のバリデーション
     if (!formData.weight.trim()) {
       newErrors.weight = "体重は必須です";
@@ -157,21 +188,21 @@ export default function SettingsPage() {
         newErrors.weight = "体重は20～300kgの範囲で入力してください";
       }
     }
-
+ 
     // 性別のバリデーション
     if (!formData.gender) {
       newErrors.gender = "性別を選択してください";
     }
-
+ 
     // 運動頻度のバリデーション
     if (!formData.exerciseFrequency) {
       newErrors.exerciseFrequency = "運動頻度を選択してください";
     }
-
+ 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
+ 
   // 編集モードの切り替え
   const handleEditModeToggle = () => {
     if (isEditMode) {
@@ -183,7 +214,7 @@ export default function SettingsPage() {
     }
     setIsEditMode(!isEditMode);
   };
-
+ 
   // 保存処理（ボタンクリック用）
   const handleSave = async () => {
     if (validateForm()) {
@@ -198,22 +229,27 @@ export default function SettingsPage() {
   };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+   
     if (!validateForm()) {
       return;
     }
-
+ 
+    if (!currentUserId) {
+      alert("ユーザー情報の取得中です。しばらくお待ちください。");
+      return;
+    }
+ 
     setIsLoading(true);
-
+ 
     try {
       // 既存のプロフィールがあるかチェック
       const { data: existingProfiles } = await client.models.UserProfile.list({
         filter: { userId: { eq: currentUserId } }
       });
-
+ 
       const profileData = {
         userId: currentUserId,
-        email: userEmail,
+        // email: userEmail,
         name: formData.name,
         height: parseFloat(formData.height),
         weight: parseFloat(formData.weight),
@@ -224,7 +260,7 @@ export default function SettingsPage() {
         exerciseFrequency: formData.exerciseFrequency,
         exerciseFrequencyOther: formData.exerciseFrequency === "そのほか" ? formData.exerciseFrequencyOther : "",
       };
-
+ 
       if (existingProfiles && existingProfiles.length > 0) {
         // 更新
         await client.models.UserProfile.update({
@@ -235,13 +271,13 @@ export default function SettingsPage() {
         // 新規作成
         await client.models.UserProfile.create(profileData);
       }
-
+ 
       // 保存完了後は編集モードを終了して設定画面に留まる
       setUserProfile(formData);
       setIsEditMode(false);
       // 成功メッセージをコンソールに出力
       console.log("設定を保存しました。");
-      
+     
     } catch (error) {
       console.error("ユーザー情報の保存エラー:", error);
       alert("保存中にエラーが発生しました。もう一度お試しください。");
@@ -249,7 +285,7 @@ export default function SettingsPage() {
       setIsLoading(false);
     }
   };
-
+ 
   const handleInputChange = (field: keyof UserProfileForm, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // エラーをクリア
@@ -257,13 +293,13 @@ export default function SettingsPage() {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
   };
-
+ 
 {/*
   const handleBackToHome = () => {
     router.push("/biory/home");
   };
 */}
-
+ 
   return (
     <BioryLayout>
       <div className="settings-container">
@@ -272,7 +308,7 @@ export default function SettingsPage() {
           <div className="date">設定</div>
           <div className="greeting">あなたの情報</div>
         </section>
-
+ 
         {/* ユーザー情報セクション */}
         <section className="user-info-section">
           <div className="section-header">
@@ -281,17 +317,21 @@ export default function SettingsPage() {
           <div className="user-info-content">
             <div className="user-info-row">
               <span className="user-info-label">ID（メールアドレス）：</span>
-              <span className="user-info-value">{userEmail}</span>
+              <span className="user-info-value">{userEmail || "読み込み中..."}</span>
+            </div>
+            <div className="user-info-row">
+              <span className="user-info-label">ユーザーID：</span>
+              <span className="user-info-value">{currentUserId || "読み込み中..."}</span>
             </div>
           </div>
         </section>
-
+ 
       {/* 基礎情報セクション */}
       <section className="basic-info-section">
         <div className="section-header">
           <h3 className="section-title-highlight">📄 基礎情報</h3>
           {!isEditMode && (
-            <button 
+            <button
               className="change-button"
               onClick={() => setIsEditMode(true)}
               disabled={isLoading}
@@ -300,7 +340,7 @@ export default function SettingsPage() {
             </button>
           )}
         </div>
-
+ 
         <form id="user-profile-form" onSubmit={handleSubmit} className="profile-form">
           {/* 名前 */}
           <div className="form-group">
@@ -321,7 +361,7 @@ export default function SettingsPage() {
               <div className="info-value">{formData.name || "未設定"}</div>
             )}
           </div>
-
+ 
           {/* 身長 */}
           <div className="form-group">
             <label className="form-label">身長</label>
@@ -343,7 +383,7 @@ export default function SettingsPage() {
               <div className="info-value">{formData.height ? `${formData.height} cm` : "未設定"}</div>
             )}
           </div>
-
+ 
           {/* 体重 */}
           <div className="form-group">
             <label className="form-label">体重</label>
@@ -365,7 +405,7 @@ export default function SettingsPage() {
               <div className="info-value">{formData.weight ? `${formData.weight} kg` : "未設定"}</div>
             )}
           </div>
-
+ 
           {/* 性別 */}
           <div className="form-group">
             <label className="form-label">性別</label>
@@ -389,7 +429,7 @@ export default function SettingsPage() {
               <div className="info-value">{formData.gender || "未設定"}</div>
             )}
           </div>
-
+ 
           {/* 好きな食べ物 */}
           <div className="form-group">
             <label className="form-label">好きなたべもの</label>
@@ -405,7 +445,7 @@ export default function SettingsPage() {
               <div className="info-value">{formData.favoriteFoods || "未設定"}</div>
             )}
           </div>
-
+ 
           {/* アレルギー */}
           <div className="form-group">
             <label className="form-label">アレルギー</label>
@@ -421,7 +461,7 @@ export default function SettingsPage() {
               <div className="info-value">{formData.allergies || "なし"}</div>
             )}
           </div>
-
+ 
           {/* 嫌いな食べ物 */}
           <div className="form-group">
             <label className="form-label">嫌いな食べ物</label>
@@ -437,7 +477,7 @@ export default function SettingsPage() {
               <div className="info-value">{formData.dislikedFoods || "なし"}</div>
             )}
           </div>
-
+ 
           {/* 運動頻度 */}
           <div className="form-group">
             <label className="form-label">運動量</label>
@@ -459,14 +499,14 @@ export default function SettingsPage() {
               </>
             ) : (
               <div className="info-value">
-                {formData.exerciseFrequency === "そのほか" && formData.exerciseFrequencyOther 
-                  ? formData.exerciseFrequencyOther 
+                {formData.exerciseFrequency === "そのほか" && formData.exerciseFrequencyOther
+                  ? formData.exerciseFrequencyOther
                   : formData.exerciseFrequency || "未設定"
                 }
               </div>
             )}
           </div>
-
+ 
           {/* その他運動頻度 */}
           {isEditMode && formData.exerciseFrequency === "そのほか" && (
             <div className="form-group">
@@ -481,20 +521,20 @@ export default function SettingsPage() {
             </div>
           )}
         </form>
-
+ 
         {/* 編集モード時のボタン群 */}
         {isEditMode && (
           <div className="form-buttons">
-            <button 
-              className="cancel-button" 
+            <button
+              className="cancel-button"
               onClick={handleEditModeToggle}
               type="button"
               disabled={isLoading}
             >
               キャンセル
             </button>
-            <button 
-              className="save-button" 
+            <button
+              className="save-button"
               onClick={handleSave}
               type="button"
               disabled={isLoading}
@@ -508,3 +548,5 @@ export default function SettingsPage() {
     </BioryLayout>
   );
 }
+ 
+ 

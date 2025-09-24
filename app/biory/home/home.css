@@ -31,6 +31,25 @@
   color: #8B4513;
 }
 
+/* Cognito情報表示スタイル */
+.cognito-info {
+  margin-top: 10px;
+  padding: 8px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #666;
+}
+
+.cognito-id {
+  margin-bottom: 4px;
+  font-family: monospace;
+}
+
+.user-email {
+  font-style: italic;
+}
+
 /* メインコンテンツエリア */
 .main-content {
   display: grid;
