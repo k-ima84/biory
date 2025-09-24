@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { generateClient } from "aws-amplify/data";
+import { getCurrentUser, fetchUserAttributes } from "aws-amplify/auth";
 import { Amplify } from "aws-amplify";
 import outputs from "../../../amplify_outputs.json";
 import type { Schema } from "../../../amplify/data/resource";
@@ -35,6 +36,8 @@ export default function HomePage() {
   const router = useRouter();
   const [currentDate, setCurrentDate] = useState("");
   const [userName, setUserName] = useState("");
+  const [cognitoUserId, setCognitoUserId] = useState("");
+  const [userEmail, setUserEmail] = useState("");
   const [nutritionData, setNutritionData] = useState<NutritionData>({
     calories: 0,
     protein: { value: 0, percentage: 0 },
@@ -67,26 +70,67 @@ export default function HomePage() {
     setCurrentDate(formattedDate);
   };
 
-  // ユーザープロフィールを取得する関数
-  // ユーザープロフィールを取得する関数
-const fetchUserProfile = async () => {
-  try {
-    const { data: profiles } = await client.models.UserProfile.list();
-    if (profiles && profiles.length > 0) {
-      const profile = profiles[0];
-      setUserName(profile.name || "ゲスト");
+  // Cognitoユーザー情報を取得する関数
+  const fetchCognitoUserInfo = async () => {
+    try {
+      // 現在のユーザー情報を取得
+      const currentUser = await getCurrentUser();
+      setCognitoUserId(currentUser.userId); // ユニークID取得
+      
+      // ユーザー属性を取得（名前、メールなど）
+      const attributes = await fetchUserAttributes();
+      setUserEmail(attributes.email || "");
+      
+      // 表示名を設定（名前があれば名前、なければメールアドレスの@より前）
+      const displayName = attributes.name || 
+                          attributes.given_name || 
+                          attributes.email?.split('@')[0] || 
+                          "ユーザー";
+      
+      console.log('Cognito User Info:', {
+        userId: currentUser.userId,
+        username: currentUser.username,
+        attributes: attributes
+      });
 
-      // Null合体演算子を使用してデフォルト値を設定
-      setHealthData(prev => ({
-        ...prev,
-        weight: profile.weight ?? 0  // null または undefined の場合は 0
-      }));
+      return displayName;
+
+    } catch (error) {
+      console.error('Cognitoユーザー情報取得エラー:', error);
+      // 認証されていない場合はログイン画面へ
+      router.push("/biory/login");
+      return "ゲスト";
     }
-  } catch (error) {
-    console.error("ユーザープロフィール取得エラー:", error);
-    setUserName("ゲスト");
-  }
-};
+  };
+
+  // ユーザープロフィールを取得する関数
+  // ユーザープロフィールを取得する関数
+  const fetchUserProfile = async () => {
+    try {
+      // まずCognitoユーザー情報を取得
+      const cognitoDisplayName = await fetchCognitoUserInfo();
+      
+      // 次にプロファイルデータベースから情報を取得
+      const { data: profiles } = await client.models.UserProfile.list();
+      if (profiles && profiles.length > 0) {
+        const profile = profiles[0];
+        // データベースに名前があればそれを使用、なければCognitoの表示名を使用
+        setUserName(profile.name || cognitoDisplayName);
+
+        // Null合体演算子を使用してデフォルト値を設定
+        setHealthData(prev => ({
+          ...prev,
+          weight: profile.weight ?? 0  // null または undefined の場合は 0
+        }));
+      } else {
+        // プロファイルがない場合はCognitoの表示名を使用
+        setUserName(cognitoDisplayName);
+      }
+    } catch (error) {
+      console.error("ユーザープロフィール取得エラー:", error);
+      setUserName("ゲスト");
+    }
+  };
  
 
   // 栄養データを取得する関数
@@ -209,6 +253,12 @@ const fetchUserProfile = async () => {
       <section className="date-greeting">
         <div className="date">{currentDate}</div>
         <div className="greeting">こんにちは！{userName}さん</div>
+        {cognitoUserId && (
+          <div className="cognito-info">
+            <div className="cognito-id">CognitoID: {cognitoUserId}</div>
+            {userEmail && <div className="user-email">Email: {userEmail}</div>}
+          </div>
+        )}
       </section>
 
       {/* 栄養情報セクション */}
