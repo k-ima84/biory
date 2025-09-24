@@ -1,6 +1,6 @@
 import { log } from './common';
 import { seedNutritionData } from './seed-nutrition';
-import { seedMealData } from './seed-meal';
+import { seedDailyRecordData } from './seed-dailyrecord';
 
 // 全てのシードデータを投入する関数
 export const seedAllData = async (): Promise<void> => {
@@ -10,8 +10,8 @@ export const seedAllData = async (): Promise<void> => {
     // 栄養データを投入
     await seedNutritionData();
     
-    // 食事データを投入
-    await seedMealData();
+    // 日次記録データを投入
+    await seedDailyRecordData();
     
     log.success('🎉 全シードデータの投入が完了しました！');
   } catch (error) {

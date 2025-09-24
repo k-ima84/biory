@@ -29,7 +29,7 @@ async function getAmplifyConnectedTables(): Promise<{ nutrition: string; meal: s
   try {
     // Amplifyクライアントでデータを取得して実際のテーブルを特定
     const { data: nutritions } = await client.models.Nutrition.list();
-    const { data: meals } = await client.models.Meal.list();
+    const { data: meals } = await client.models.DailyRecord.list();
     
     const nutritionCount = nutritions?.length || 0;
     const mealCount = meals?.length || 0;
@@ -124,17 +124,17 @@ async function testDatabase(): Promise<void> {
 
     console.log(''); // 空行
 
-    // Mealテーブルの全データを取得
-    const { data: meals } = await client.models.Meal.list();
-    log.data(`🍽️ Mealテーブル（${tableInfo?.meal || 'Meal'}）のデータ件数`, meals?.length || 0);
+    // DailyRecordテーブルの全データを取得
+    const { data: meals } = await client.models.DailyRecord.list();
+    log.data(`📝 DailyRecordテーブルのデータ件数`, meals?.length || 0);
     
     if (meals && meals.length > 0) {
-      log.success('取得したMealデータ:');
+      log.success('取得したDailyRecordデータ:');
       meals.forEach((meal, index) => {
         console.log(`  ${index + 1}. UserID: ${meal.userId}, Date: ${meal.date}, Type: ${meal.mealType}, Content: ${meal.content}`);
       });
     } else {
-      log.error('Mealテーブルにデータが存在しません');
+      log.error('DailyRecordテーブルにデータが存在しません');
     }
 
     log.success('データベーステスト完了');
