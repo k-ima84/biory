@@ -33,17 +33,17 @@ export const clearData = async () => {
       }
     }
 
-    // 既存のMealデータを削除
-    const { data: meals } = await client.models.Meal.list();
-    console.log(`削除対象のMealデータ: ${meals?.length || 0}件`);
+    // 既存のDailyRecordデータを削除
+    const { data: meals } = await client.models.DailyRecord.list();
+    console.log(`削除対象のDailyRecordデータ: ${meals?.length || 0}件`);
 
     if (meals && meals.length > 0) {
       for (let i = 0; i < meals.length; i++) {
         const meal = meals[i];
-        console.log(`Mealデータ ${i + 1}/${meals.length} を削除中... ID: ${meal.id}`);
+        console.log(`DailyRecordデータ ${i + 1}/${meals.length} を削除中... ID: ${meal.id}`);
         
-        await client.models.Meal.delete({ id: meal.id });
-        console.log(`✅ Mealデータ ${i + 1} の削除完了`);
+        await client.models.DailyRecord.delete({ id: meal.id });
+        console.log(`✅ DailyRecordデータ ${i + 1} の削除完了`);
       }
     }
 

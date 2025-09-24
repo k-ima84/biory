@@ -10,7 +10,7 @@
     "seed": "tsx amplify/seed/seed.ts",
     "seed:all": "tsx amplify/seed/seed-all.ts",
     "seed:nutrition": "tsx amplify/seed/seed-nutrition.ts",
-    "seed:meal": "tsx amplify/seed/seed-meal.ts",
+    "seed:dailyrecord": "tsx amplify/seed/seed-dailyrecord.ts",
     "test:db": "tsx amplify/seed/test-db-connection.ts",
     "clear:db": "tsx amplify/seed/clear-db.ts",
     "check:env": "tsx amplify/seed/check-env.ts"

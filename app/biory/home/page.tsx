@@ -84,25 +84,52 @@ export default function HomePage() {
   };
 
   // ユーザープロフィールを取得する関数
-  // ユーザープロフィールを取得する関数
-const fetchUserProfile = async () => {
-  try {
-    const { data: profiles } = await client.models.UserProfile.list();
-    if (profiles && profiles.length > 0) {
-      const profile = profiles[0];
-      setUserName(profile.name || "ゲスト");
-
-      // Null合体演算子を使用してデフォルト値を設定
-      setHealthData(prev => ({
-        ...prev,
-        weight: profile.weight ?? 0  // null または undefined の場合は 0
-      }));
+  const fetchUserProfile = async () => {
+    try {
+      const { data: profiles } = await client.models.UserProfile.list();
+      if (profiles && profiles.length > 0) {
+        const profile = profiles[0];
+        setUserName(profile.name || "ゲスト");
+      }
+    } catch (error) {
+      console.error("ユーザープロフィール取得エラー:", error);
+      setUserName("ゲスト");
     }
-  } catch (error) {
-    console.error("ユーザープロフィール取得エラー:", error);
-    setUserName("ゲスト");
-  }
-};
+  };
+
+  // DailyRecordから健康データを取得する関数
+  const fetchHealthDataFromDailyRecord = async (dateString: string) => {
+    try {
+      const { data: dailyRecords } = await client.models.DailyRecord.list();
+      // 健康データ専用レコード（mealTypeがnullまたは未定義のレコード）を検索
+      const todayHealthRecord = dailyRecords?.find(record => 
+        record.userId === "user2" && record.date === dateString && !record.mealType
+      );
+
+      if (todayHealthRecord) {
+        setHealthData({
+          condition: todayHealthRecord.condition || "とても良い 😊",
+          mood: todayHealthRecord.mood || "ポジティブ",
+          weight: todayHealthRecord.weight || 0,
+        });
+      } else {
+        // デフォルト値を設定
+        setHealthData({
+          condition: "とても良い 😊",
+          mood: "ポジティブ",
+          weight: 0,
+        });
+      }
+    } catch (error) {
+      console.error("健康データ取得エラー:", error);
+      // エラー時はデフォルト値を設定
+      setHealthData({
+        condition: "とても良い 😊",
+        mood: "ポジティブ",
+        weight: 0,
+      });
+    }
+  };
  
 
   // 栄養データを取得する関数
@@ -136,8 +163,11 @@ const fetchUserProfile = async () => {
   // 食事データを取得する関数
   const fetchMealData = async (dateString: string) => {
     try {
-      const { data: meals } = await client.models.Meal.list();
-      const todayMeals = meals?.filter(m => m.date === dateString);
+      const { data: dailyRecords } = await client.models.DailyRecord.list();
+      // 食事データ専用レコード（mealTypeが設定されているレコード）のみを検索
+      const todayMeals = dailyRecords?.filter(m => 
+        m.date === dateString && m.userId === "user2" && m.mealType
+      );
 
       const mealsByType = {
         breakfast: "—",
@@ -183,6 +213,7 @@ const fetchUserProfile = async () => {
     const dateString = getCurrentDateString();
     fetchNutritionData(dateString);
     fetchMealData(dateString);
+    fetchHealthDataFromDailyRecord(dateString);
 
     // 1分ごとに日付を更新（日付が変わった場合のため）
     const dateUpdateInterval = setInterval(() => {
@@ -193,12 +224,15 @@ const fetchUserProfile = async () => {
       if (newDateString !== dateString) {
         fetchNutritionData(newDateString);
         fetchMealData(newDateString);
+        fetchHealthDataFromDailyRecord(newDateString);
       }
     }, 60000); // 1分間隔
 
-    // ページフォーカス時にユーザープロフィールを再取得
+    // ページフォーカス時にユーザープロフィールと健康データを再取得
     const handleFocus = () => {
       fetchUserProfile();
+      const currentDateString = getCurrentDateString();
+      fetchHealthDataFromDailyRecord(currentDateString);
     };
     window.addEventListener('focus', handleFocus);
 
@@ -243,12 +277,44 @@ const fetchUserProfile = async () => {
 
   const handleHealthSave = async () => {
     try {
-      // ここで実際のデータ保存処理を行う
+      const dateString = getCurrentDateString();
+      
+      // DailyRecordテーブルから今日の健康データを検索
+      const { data: dailyRecords } = await client.models.DailyRecord.list();
+      const existingHealthRecord = dailyRecords?.find(record => 
+        record.userId === "user2" && record.date === dateString && !record.mealType
+      );
+
+      if (existingHealthRecord) {
+        // 既存のレコードを更新
+        await client.models.DailyRecord.update({
+          id: existingHealthRecord.id,
+          condition: healthEditData.condition,
+          mood: healthEditData.mood,
+          weight: healthEditData.weight,
+        });
+        console.log("健康データを更新しました:", healthEditData);
+      } else {
+        // 新しいレコードを作成
+        await client.models.DailyRecord.create({
+          userId: "user2",
+          date: dateString,
+          condition: healthEditData.condition,
+          mood: healthEditData.mood,
+          weight: healthEditData.weight,
+          content: "", // 健康データ専用レコードなのでcontentは空
+          mealType: null, // 健康データ専用レコードなのでmealTypeはnull
+        });
+        console.log("新しい健康データを作成しました:", healthEditData);
+      }
+
+      // 画面の状態を更新
       setHealthData(healthEditData);
       setIsHealthEditMode(false);
       console.log("「本日の調子」が保存されました:", healthEditData);
     } catch (error) {
-      console.error("保存エラー:", error);
+      console.error("健康データ保存エラー:", error);
+      alert("保存に失敗しました。もう一度お試しください。");
     }
   };
 
@@ -273,12 +339,55 @@ const fetchUserProfile = async () => {
 
   const handleMealSave = async () => {
     try {
-      // ここで実際のデータ保存処理を行う
+      const dateString = getCurrentDateString();
+      
+      // DailyRecordテーブルから今日の食事データを検索
+      const { data: dailyRecords } = await client.models.DailyRecord.list();
+      const todayMealRecords = dailyRecords?.filter(record => 
+        record.userId === "user2" && record.date === dateString && record.mealType
+      );
+
+      // 各食事タイプ（朝・昼・夜）について処理
+      const mealTypes = [
+        { key: 'breakfast' as keyof MealData, type: 'breakfast', content: mealEditData.breakfast },
+        { key: 'lunch' as keyof MealData, type: 'lunch', content: mealEditData.lunch },
+        { key: 'dinner' as keyof MealData, type: 'dinner', content: mealEditData.dinner }
+      ];
+
+      for (const meal of mealTypes) {
+        const existingMealRecord = todayMealRecords?.find(record => 
+          record.mealType === meal.type
+        );
+
+        if (existingMealRecord) {
+          // 既存のレコードを更新
+          await client.models.DailyRecord.update({
+            id: existingMealRecord.id,
+            content: meal.content,
+          });
+          console.log(`${meal.type}データを更新しました:`, meal.content);
+        } else {
+          // 新しいレコードを作成
+          await client.models.DailyRecord.create({
+            userId: "user2",
+            date: dateString,
+            mealType: meal.type,
+            content: meal.content,
+            condition: null, // 食事データ専用レコードなのでconditionはnull
+            mood: null, // 食事データ専用レコードなのでmoodはnull
+            weight: null, // 食事データ専用レコードなのでweightはnull
+          });
+          console.log(`新しい${meal.type}データを作成しました:`, meal.content);
+        }
+      }
+
+      // 画面の状態を更新
       setMealData(mealEditData);
       setIsMealEditMode(false);
       console.log("「本日の食事」が保存されました:", mealEditData);
     } catch (error) {
-      console.error("保存エラー:", error);
+      console.error("食事データ保存エラー:", error);
+      alert("保存に失敗しました。もう一度お試しください。");
     }
   };
 
