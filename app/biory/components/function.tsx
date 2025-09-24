@@ -5,7 +5,7 @@ import React from 'react';
 // Cognitoユーザー情報の型定義
 export interface CognitoUserInfo {
   userId: string;
-//  email?: string;
+  email?: string;
 //  preferredUsername?: string;
 //  name?: string;
 //  displayName: string;
@@ -27,11 +27,11 @@ export const fetchCognitoUserInfo = async (): Promise<CognitoUserInfo> => {
     // 現在認証されているユーザーの情報を取得
     const user = await getCurrentUser();
     const userId = user.userId; // CognitoのユニークなユーザーID (sub)
-    /*
+    
     // ユーザーの属性（メールアドレスなど）を取得
     const userAttributes = await fetchUserAttributes();
     const email = userAttributes.email || "";
-    const preferredUsername = userAttributes.preferred_username || "";
+    /*const preferredUsername = userAttributes.preferred_username || "";
     const name = userAttributes.name || "";
 
     // 表示用の名前を決定（name > preferred_username > email のユーザー名部分 の優先順位）
@@ -46,7 +46,7 @@ export const fetchCognitoUserInfo = async (): Promise<CognitoUserInfo> => {
     */
     return {
       userId,
-    //  email,
+      email,
     //  preferredUsername,
     //  name,
     //  displayName
