@@ -8,7 +8,7 @@ import outputs from "../../../amplify_outputs.json";
 import type { Schema } from "../../../amplify/data/resource";
 import BioryLayout from "../components/BioryLayout";
 import "./home.css";
-import { getCognitoUserId } from '../components/function';
+import { fetchCognitoUserInfo } from '../components/function';
 
 
 Amplify.configure(outputs);
@@ -71,12 +71,12 @@ export default function HomePage() {
   };
 
   // Cognitoユーザー情報を取得する関数（共通関数を使用）
-  const fetchCognitoUserInfo = async () => {
+  const loadCognitoUserInfo = async () => {
     try {
-      const userId = await getCognitoUserId();
-      setCognitoUserId(userId);
+      const userInfo = await fetchCognitoUserInfo();
+      setCognitoUserId(userInfo.userId);
       
-      console.log('Cognito User ID:', userId);
+      console.log('Cognito User ID:', userInfo.userId);
 
       return "ユーザー"; // シンプルにユーザーとして返す
 
@@ -93,7 +93,7 @@ export default function HomePage() {
   const fetchUserProfile = async () => {
     try {
       // まずCognitoユーザー情報を取得
-      const cognitoDisplayName = await fetchCognitoUserInfo();
+      const cognitoDisplayName = await loadCognitoUserInfo();
       
       // 次にプロファイルデータベースから情報を取得
       const { data: profiles } = await client.models.UserProfile.list();

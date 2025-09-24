@@ -132,15 +132,15 @@ export default function SettingsPage() {
       } else {
         // プロフィールがない場合はサンプルデータを表示
         const sampleData = {
-          name: "田中 太郎",
-          height: "170.5",
-          weight: "65.0",
-          gender: "男",
-          favoriteFoods: "寿司",
-          allergies: "卵",
-          dislikedFoods: "パクチー",
-          exerciseFrequency: "週に1回程度運動する",
-          exerciseFrequencyOther: "",
+          name: "未設定",
+          height: "未設定",
+          weight: "未設定",
+          gender: "未設定",
+          favoriteFoods: "未設定",
+          allergies: "未設定",
+          dislikedFoods: "未設定",
+          exerciseFrequency: "未設定",
+          exerciseFrequencyOther: "未設定",
         };
         setFormData(sampleData);
         setUserProfile(sampleData);

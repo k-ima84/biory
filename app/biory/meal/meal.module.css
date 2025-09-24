@@ -32,6 +32,17 @@
   color: #8B4513;
   margin: 0;
 }
+
+/*↓削除予定-------------*/
+.cognitoInfo {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: rgba(75, 175, 79, 0.1);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: #4caf50;
+}
+/*↑削除予定-------------*/
  
 .mealsContainer {
   display: grid;
