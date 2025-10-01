@@ -1,4 +1,4 @@
-import { getCurrentUser, fetchUserAttributes } from 'aws-amplify/auth';
+import { getCurrentUser, fetchUserAttributes, signOut } from 'aws-amplify/auth';
 import { useRouter } from "next/navigation";
 import React from 'react';
 
@@ -95,6 +95,27 @@ export const checkAuthStatus = async (): Promise<boolean> => {
     return true;
   } catch (error) {
     return false;
+  }
+};
+
+/**
+ * ログアウト処理を実行する関数
+ * @returns Promise<void>
+ * @throws {CognitoError} ログアウトエラー
+ */
+export const handleSignOut = async (): Promise<void> => {
+  try {
+    await signOut();
+    console.log('ログアウトが完了しました');
+  } catch (error) {
+    console.error('ログアウトエラー:', error);
+    
+    const cognitoError: CognitoError = {
+      error: error instanceof Error ? error : new Error('Logout error'),
+      isAuthError: false
+    };
+    
+    throw cognitoError;
   }
 };
 

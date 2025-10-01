@@ -2,6 +2,7 @@
  
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { handleSignOut } from "./function";
 import "./layout.css";
  
 interface LayoutProps {
@@ -40,6 +41,18 @@ export default function BioryLayout({ children }: LayoutProps) {
         break;
     }
   };
+
+  const handleLogout = async () => {
+    try {
+      await handleSignOut();
+      // ログアウト後はログイン画面へリダイレクト
+      router.push("/biory/login");
+    } catch (error) {
+      console.error('ログアウト処理でエラーが発生しました:', error);
+      // エラーが発生してもログイン画面へリダイレクト
+      router.push("/biory/login");
+    }
+  };
  
   const isActive = (section: string) => {
     let active = false;
@@ -69,6 +82,9 @@ export default function BioryLayout({ children }: LayoutProps) {
       {/* ヘッダー */}
       <header className="biory-header">
         <h1 className="biory-logo">biory</h1>
+        <button className="logout-button" onClick={handleLogout}>
+          ログアウト
+        </button>
       </header>
  
       {/* メインコンテンツ */}
