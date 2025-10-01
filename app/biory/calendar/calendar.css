@@ -11,10 +11,11 @@
   text-align: center;
   margin-bottom: 30px;
   padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #ffffff;
   border-radius: 15px;
-  color: white;
-  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+  color: #333333;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
 }
 
 .calendar-title {
@@ -34,9 +35,9 @@
 }
 
 .nav-button {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  color: #495057;
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -49,7 +50,8 @@
 }
 
 .nav-button:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: #e9ecef;
+  color: #212529;
   transform: scale(1.1);
 }
 
@@ -57,13 +59,13 @@
   font-size: 1.5rem;
   font-weight: 600;
   min-width: 200px;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  color: #495057;
 }
 
 .today-button {
-  background: rgba(255, 255, 255, 0.9);
-  color: #667eea;
-  border: none;
+  background: #fdcb6e;
+  color: #2d3436;
+  border: 1px solid #d68910;
   padding: 8px 16px;
   border-radius: 20px;
   font-weight: 600;
@@ -72,7 +74,8 @@
 }
 
 .today-button:hover {
-  background: white;
+  background: #d68910;
+  color: black;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
@@ -153,23 +156,27 @@
 }
 
 .calendar-day.today {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: white;
+  color: #2d3436;
   font-weight: 700;
+  border: 2px solid #fdcb6e;
 }
 
 .calendar-day.today:hover {
-  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+  background: #fdcb6e;
+  color: #2d3436;
 }
 
 .calendar-day.selected {
-  background: #28a745;
-  color: white;
+  background: #fdcb6e;
+  color: #2d3436;
   font-weight: 700;
+  border: 2px solid #fdcb6e;
 }
 
 .calendar-day.selected:hover {
-  background: #218838;
+  background: #d68910;
+  color: black;
 }
 
 .calendar-day.sunday .day-number {
@@ -180,9 +187,14 @@
   color: #3498db;
 }
 
+.calendar-day.holiday .day-number {
+  color: #e74c3c;
+  font-weight: 700;
+}
+
 .calendar-day.today .day-number,
 .calendar-day.selected .day-number {
-  color: white;
+  color: black;
 }
 
 .day-number {

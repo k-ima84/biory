@@ -91,6 +91,156 @@ export default function CalendarPage() {
     return new Date(date.getFullYear(), date.getMonth(), 1).getDay();
   };
 
+  // 基本の祝日判定（振替休日は含まない）
+  const isBaseHoliday = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    
+    // 固定祝日
+    const fixedHolidays = [
+      { month: 1, day: 1 },    // 元日
+      { month: 2, day: 11 },   // 建国記念の日
+      { month: 2, day: 23 },   // 天皇誕生日
+      { month: 4, day: 29 },   // 昭和の日
+      { month: 5, day: 3 },    // 憲法記念日
+      { month: 5, day: 4 },    // みどりの日
+      { month: 5, day: 5 },    // こどもの日
+      { month: 8, day: 11 },   // 山の日
+      { month: 11, day: 3 },   // 文化の日
+      { month: 11, day: 23 },  // 勤労感謝の日
+    ];
+
+    // 固定祝日チェック
+    if (fixedHolidays.some(holiday => holiday.month === month && holiday.day === day)) {
+      return true;
+    }
+
+    // ハッピーマンデー制度の祝日
+    const getNthMonday = (year: number, month: number, nth: number) => {
+      const firstDay = new Date(year, month - 1, 1);
+      const firstMonday = 1 + (7 - firstDay.getDay() + 1) % 7;
+      return firstMonday + (nth - 1) * 7;
+    };
+
+    // 成人の日（1月第2月曜日）
+    if (month === 1 && day === getNthMonday(year, 1, 2)) return true;
+    
+    // 海の日（7月第3月曜日）
+    if (month === 7 && day === getNthMonday(year, 7, 3)) return true;
+    
+    // 敬老の日（9月第3月曜日）
+    if (month === 9 && day === getNthMonday(year, 9, 3)) return true;
+    
+    // スポーツの日（10月第2月曜日）
+    if (month === 10 && day === getNthMonday(year, 10, 2)) return true;
+
+    // 春分の日・秋分の日の正確な計算
+    if (month === 3) {
+      let shunbun;
+      if (year >= 1851 && year <= 1899) {
+        shunbun = Math.floor(19.8277 + 0.242194 * (year - 1851) - Math.floor((year - 1851) / 4));
+      } else if (year >= 1900 && year <= 1979) {
+        shunbun = Math.floor(21.1245 + 0.242194 * (year - 1900) - Math.floor((year - 1900) / 4));
+      } else if (year >= 1980 && year <= 2099) {
+        shunbun = Math.floor(20.8431 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4));
+      } else if (year >= 2100 && year <= 2150) {
+        shunbun = Math.floor(21.8510 + 0.242194 * (year - 2100) - Math.floor((year - 2100) / 4));
+      }
+      if (day === shunbun) return true;
+    }
+    
+    if (month === 9) {
+      let shubun;
+      if (year >= 1851 && year <= 1899) {
+        shubun = Math.floor(22.7020 + 0.242194 * (year - 1851) - Math.floor((year - 1851) / 4));
+      } else if (year >= 1900 && year <= 1979) {
+        shubun = Math.floor(23.7340 + 0.242194 * (year - 1900) - Math.floor((year - 1900) / 4));
+      } else if (year >= 1980 && year <= 2099) {
+        shubun = Math.floor(23.2488 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4));
+      } else if (year >= 2100 && year <= 2150) {
+        shubun = Math.floor(24.2488 + 0.242194 * (year - 2100) - Math.floor((year - 2100) / 4));
+      }
+      if (day === shubun) return true;
+    }
+
+    return false;
+  };
+
+  // 振替休日判定
+  const isSubstituteHoliday = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    
+    // 振替休日を探すため、その月の1日から順次チェック
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    
+    for (let d = new Date(firstDay); d <= lastDay; d.setDate(d.getDate() + 1)) {
+      // 日曜日かつ祝日の場合
+      if (d.getDay() === 0 && isBaseHoliday(d)) {
+        // 振替休日を探す（翌日から開始）
+        let substituteDate = new Date(d);
+        substituteDate.setDate(substituteDate.getDate() + 1);
+        
+        // 祝日でない日まで進める
+        while (isBaseHoliday(substituteDate)) {
+          substituteDate.setDate(substituteDate.getDate() + 1);
+        }
+        
+        // 振替日が引数の日付と一致する場合は振替休日
+        if (substituteDate.getFullYear() === date.getFullYear() &&
+            substituteDate.getMonth() === date.getMonth() &&
+            substituteDate.getDate() === date.getDate()) {
+          return true;
+        }
+      }
+    }
+    
+    // 前月の日曜祝日の振替休日が今月に来る場合もチェック
+    const prevMonth = new Date(year, month - 1, 1);
+    const prevMonthLastDay = new Date(year, month, 0);
+    
+    for (let d = new Date(prevMonth); d <= prevMonthLastDay; d.setDate(d.getDate() + 1)) {
+      if (d.getDay() === 0 && isBaseHoliday(d)) {
+        let substituteDate = new Date(d);
+        substituteDate.setDate(substituteDate.getDate() + 1);
+        
+        while (isBaseHoliday(substituteDate)) {
+          substituteDate.setDate(substituteDate.getDate() + 1);
+        }
+        
+        if (substituteDate.getFullYear() === date.getFullYear() &&
+            substituteDate.getMonth() === date.getMonth() &&
+            substituteDate.getDate() === date.getDate()) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  };
+
+  // 祝日に挟まれた日の判定
+  const isSandwichedHoliday = (date: Date) => {
+    // 前日と翌日を取得
+    const prevDay = new Date(date);
+    prevDay.setDate(prevDay.getDate() - 1);
+    const nextDay = new Date(date);
+    nextDay.setDate(nextDay.getDate() + 1);
+    
+    // 前日と翌日が両方とも祝日（基本祝日または振替休日）で、当日が平日の場合
+    return (isBaseHoliday(prevDay) || isSubstituteHoliday(prevDay)) &&
+           (isBaseHoliday(nextDay) || isSubstituteHoliday(nextDay)) &&
+           !isBaseHoliday(date) &&
+           !isSubstituteHoliday(date);
+  };
+
+  // 日本の祝日判定（基本祝日 + 振替休日 + 挟まれた日）
+  const isJapaneseHoliday = (date: Date) => {
+    return isBaseHoliday(date) || isSubstituteHoliday(date) || isSandwichedHoliday(date);
+  };
+
   // カレンダーの日付配列を生成
   const generateCalendarDays = () => {
     const year = currentDate.getFullYear();
@@ -106,21 +256,31 @@ export default function CalendarPage() {
     
     // 前月の表示日付を追加
     for (let i = firstDay - 1; i >= 0; i--) {
+      const date = new Date(year, month - 1, daysInPrevMonth - i);
+      const isHoliday = isJapaneseHoliday(date);
+      const isSubstitute = isSubstituteHoliday(date);
       days.push({
         day: daysInPrevMonth - i,
         isCurrentMonth: false,
         isPrevMonth: true,
-        date: new Date(year, month - 1, daysInPrevMonth - i)
+        date: date,
+        isHoliday: isHoliday,
+        isSubstituteHoliday: isSubstitute
       });
     }
     
     // 当月の日付を追加
     for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day);
+      const isHoliday = isJapaneseHoliday(date);
+      const isSubstitute = isSubstituteHoliday(date);
       days.push({
         day: day,
         isCurrentMonth: true,
         isPrevMonth: false,
-        date: new Date(year, month, day)
+        date: date,
+        isHoliday: isHoliday,
+        isSubstituteHoliday: isSubstitute
       });
     }
     
@@ -132,11 +292,16 @@ export default function CalendarPage() {
     const remainingDays = targetCells - totalCells;
     
     for (let day = 1; day <= remainingDays; day++) {
+      const date = new Date(year, month + 1, day);
+      const isHoliday = isJapaneseHoliday(date);
+      const isSubstitute = isSubstituteHoliday(date);
       days.push({
         day: day,
         isCurrentMonth: false,
         isPrevMonth: false,
-        date: new Date(year, month + 1, day)
+        date: date,
+        isHoliday: isHoliday,
+        isSubstituteHoliday: isSubstitute
       });
     }
     
@@ -266,6 +431,8 @@ export default function CalendarPage() {
                   isToday(dayData.date) ? 'today' : ''
                 } ${
                   isSelectedDate(dayData.date) ? 'selected' : ''
+                } ${
+                  dayData.isHoliday ? 'holiday' : ''
                 } ${
                   index % 7 === 0 ? 'sunday' : index % 7 === 6 ? 'saturday' : ''
                 }`}
