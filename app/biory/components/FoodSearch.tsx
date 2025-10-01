@@ -42,10 +42,10 @@ export default function FoodSearch({ onFoodSelect, isOpen = true, onClose }: Foo
         
         // 全件取得（ページネーション対応）
         let allFoodData: any[] = [];
-        let nextToken = null;
+        let nextToken: string | null = null;
         
         do {
-          const result = await client.models.FoodNutrition.list({
+          const result: any = await client.models.FoodNutrition.list({
             limit: 1000,
             nextToken: nextToken || undefined
           });

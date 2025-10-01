@@ -11,10 +11,10 @@ async function getAllFoods() {
     console.log("全食品データを取得中...");
     
     let allFoods: any[] = [];
-    let nextToken = null;
+    let nextToken: string | null = null;
     
     do {
-      const result = await client.models.FoodNutrition.list({
+      const result: any = await client.models.FoodNutrition.list({
         limit: 1000,
         nextToken: nextToken || undefined
       });
