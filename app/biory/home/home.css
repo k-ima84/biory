@@ -246,7 +246,7 @@
   font-size: 16px;
 }
 
-/* 編集ボタン */
+/* 編集ボタン
 .edit-button {
   position: fixed;
   bottom: 100px;
@@ -266,7 +266,8 @@
 
 .edit-button:hover {
   background-color: #90d4aa;
-}
+}*/
+
 
 /*以下の部分についてはレイアウトに寄せているため、Feature004へマージする予定*/
 /* レスポンシブ対応 - BioryLayoutの幅制御に合わせて調整 */

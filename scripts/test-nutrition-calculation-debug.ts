@@ -14,10 +14,10 @@ async function testNutritionCalculation() {
     console.log("\n1. 食品検索テスト");
     
     let allFoodData: any[] = [];
-    let nextToken = null;
+    let nextToken: string | null = null;
     
     do {
-      const result = await client.models.FoodNutrition.list({
+      const result: any = await client.models.FoodNutrition.list({
         limit: 1000,
         nextToken: nextToken || undefined
       });
