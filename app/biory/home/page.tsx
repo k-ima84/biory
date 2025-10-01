@@ -120,7 +120,7 @@ export default function HomePage() {
         // データベースに名前があればそれを使用
         setUserName(profile.name || "ユーザー");
 
-        // Null合体演算子を使用してデフォルト値を設定
+        // UserProfileから体重を取得してhealthDataに設定
         setHealthData(prev => ({
           ...prev,
           weight: profile.weight ?? 0  // null または undefined の場合は 0
@@ -128,44 +128,53 @@ export default function HomePage() {
       } else {
         // 該当するUserProfileがない場合はデフォルト名を使用
         setUserName("ユーザー");
+        setHealthData(prev => ({
+          ...prev,
+          weight: 0
+        }));
       }
     } catch (error) {
       console.error("ユーザープロフィール取得エラー:", error);
       setUserName("ゲスト");
+      setHealthData(prev => ({
+        ...prev,
+        weight: 0
+      }));
     }
   };
 
-  // DailyRecordから健康データを取得する関数
+  // DailyRecordから健康データを取得する関数（体重以外）
   const fetchHealthDataFromDailyRecord = async (dateString: string) => {
     try {
       const { data: dailyRecords } = await client.models.DailyRecord.list();
       // 健康データ専用レコード（mealTypeがnullまたは未定義のレコード）を検索
       const todayHealthRecord = dailyRecords?.find(record => 
-        record.userId === "user2" && record.date === dateString && !record.mealType
+        record.userId === cognitoUserId && record.date === dateString && !record.mealType
       );
 
       if (todayHealthRecord) {
-        setHealthData({
+        setHealthData(prev => ({
+          ...prev,
           condition: todayHealthRecord.condition || "とても良い 😊",
           mood: todayHealthRecord.mood || "ポジティブ",
-          weight: todayHealthRecord.weight || 0,
-        });
+          // 体重はUserProfileから取得するのでここでは更新しない
+        }));
       } else {
-        // デフォルト値を設定
-        setHealthData({
+        // デフォルト値を設定（体重は除く）
+        setHealthData(prev => ({
+          ...prev,
           condition: "とても良い 😊",
           mood: "ポジティブ",
-          weight: 0,
-        });
+        }));
       }
     } catch (error) {
       console.error("健康データ取得エラー:", error);
-      // エラー時はデフォルト値を設定
-      setHealthData({
+      // エラー時はデフォルト値を設定（体重は除く）
+      setHealthData(prev => ({
+        ...prev,
         condition: "とても良い 😊",
         mood: "ポジティブ",
-        weight: 0,
-      });
+      }));
     }
   };
  
@@ -200,11 +209,13 @@ export default function HomePage() {
 
   // 食事データを取得する関数
   const fetchMealData = async (dateString: string) => {
+    if (!cognitoUserId) return;
+    
     try {
       const { data: dailyRecords } = await client.models.DailyRecord.list();
       // 食事データ専用レコード（mealTypeが設定されているレコード）のみを検索
       const todayMeals = dailyRecords?.filter(m => 
-        m.date === dateString && m.userId === "user2" && m.mealType
+        m.date === dateString && m.userId === cognitoUserId && m.mealType
       );
 
       const mealsByType = {
@@ -325,10 +336,24 @@ export default function HomePage() {
     try {
       const dateString = getCurrentDateString();
       
-      // DailyRecordテーブルから今日の健康データを検索
+      // 1. UserProfileの体重を更新
+      const { data: profiles } = await client.models.UserProfile.list({
+        filter: { userId: { eq: cognitoUserId } }
+      });
+
+      if (profiles && profiles.length > 0) {
+        const profile = profiles[0];
+        await client.models.UserProfile.update({
+          id: profile.id,
+          weight: healthEditData.weight,
+        });
+        console.log("UserProfileの体重を更新しました:", healthEditData.weight);
+      }
+
+      // 2. DailyRecordの健康データ（体調・気分・体重）を更新
       const { data: dailyRecords } = await client.models.DailyRecord.list();
       const existingHealthRecord = dailyRecords?.find(record => 
-        record.userId === "user2" && record.date === dateString && !record.mealType
+        record.userId === cognitoUserId && record.date === dateString && !record.mealType
       );
 
       if (existingHealthRecord) {
@@ -339,11 +364,11 @@ export default function HomePage() {
           mood: healthEditData.mood,
           weight: healthEditData.weight,
         });
-        console.log("健康データを更新しました:", healthEditData);
+        console.log("DailyRecordの健康データを更新しました:", healthEditData);
       } else {
         // 新しいレコードを作成
         await client.models.DailyRecord.create({
-          userId: "user2",
+          userId: cognitoUserId,
           date: dateString,
           condition: healthEditData.condition,
           mood: healthEditData.mood,
@@ -351,7 +376,7 @@ export default function HomePage() {
           content: "", // 健康データ専用レコードなのでcontentは空
           mealType: null, // 健康データ専用レコードなのでmealTypeはnull
         });
-        console.log("新しい健康データを作成しました:", healthEditData);
+        console.log("新しいDailyRecord健康データを作成しました:", healthEditData);
       }
 
       // 画面の状態を更新
@@ -390,7 +415,7 @@ export default function HomePage() {
       // DailyRecordテーブルから今日の食事データを検索
       const { data: dailyRecords } = await client.models.DailyRecord.list();
       const todayMealRecords = dailyRecords?.filter(record => 
-        record.userId === "user2" && record.date === dateString && record.mealType
+        record.userId === cognitoUserId && record.date === dateString && record.mealType
       );
 
       // 各食事タイプ（朝・昼・夜）について処理
@@ -415,7 +440,7 @@ export default function HomePage() {
         } else {
           // 新しいレコードを作成
           await client.models.DailyRecord.create({
-            userId: "user2",
+            userId: cognitoUserId,
             date: dateString,
             mealType: meal.type,
             content: meal.content,
