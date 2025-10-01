@@ -148,40 +148,30 @@ def create_meal_prompt(preferences: Dict, restrictions: list, target_calories: i
     random_style = random.choice(cooking_styles)
     random_seed = int(time.time()) % 1000
     
-    prompt = f"""日本料理中心のバランスの良い献立をJSON形式で作成してください。
-
-条件:
-- 総カロリー: {target_calories}kcal
-- 朝食: {breakfast_cal}kcal (主食・主菜・副菜)
-- 昼食: {lunch_cal}kcal (主食・主菜・副菜)
-- 夕食: {dinner_cal}kcal (主食・主菜・副菜)
-- 季節: {random_season}の食材を使用
-- スタイル: {random_style}要素を取り入れる{user_constraints}
-
-毎回異なる料理を提案し、各食事に主食(ごはん、パンなど)、主菜(メイン料理)、副菜(サラダ、汁物など)を含めてください。
-ランダムID: {random_seed}
-
-JSON形式で回答してください:
+    prompt = f"""以下のJSON形式のみで回答してください。説明文は不要です。
 
 {{
   "meals": [
     {{
       "mealType": "朝食",
       "calories": {breakfast_cal},
-      "dishes": ["主食名", "主菜名", "副菜名"]
+      "dishes": ["ごはん", "焼き魚", "味噌汁"]
     }},
     {{
       "mealType": "昼食",
       "calories": {lunch_cal},
-      "dishes": ["主食名", "主菜名", "副菜名"]
+      "dishes": ["ごはん", "豚の生姜焼き", "野菜サラダ"]
     }},
     {{
       "mealType": "夕食",
       "calories": {dinner_cal},
-      "dishes": ["主食名", "主菜名", "副菜名"]
+      "dishes": ["ごはん", "鶏の照り焼き", "野菜炒め"]
     }}
   ]
-}}"""
+}}
+
+上記と同じ形式で、{target_calories}kcalの日本料理献立を作成してください。{user_constraints}
+ID:{random_seed}"""
     return prompt
 
 def parse_meal_suggestion(text: str) -> list:
@@ -278,40 +268,39 @@ def create_simple_meals_from_text(text: str) -> list:
     シンプルなテキストパースのフォールバック
     """
     try:
-        # テキストから料理名らしきものを抽出
-        import re
+        # 基本的な献立を生成（AIが失敗した場合のフォールバック）
+        import random
         
-        # 日本料理のキーワードを探す
-        food_keywords = ['ごはん', '味噌汁', '納豆', '魚', '肉', '野菜', 'サラダ', '炒め', '焼き']
-        found_foods = []
+        dishes_pool = [
+            ['ごはん', '焼き魚', '味噌汁'],
+            ['ごはん', '納豆', 'わかめスープ'],
+            ['ごはん', '豚の生姜焼き', '野菜サラダ'],
+            ['ごはん', '鶏の照り焼き', '野菜炒め'],
+            ['ごはん', 'さばの塩焼き', 'きんぴらごぼう']
+        ]
         
-        for keyword in food_keywords:
-            if keyword in text:
-                found_foods.append(keyword)
+        selected_dishes = random.sample(dishes_pool, 3)
         
-        if len(found_foods) >= 3:  # 最低3つの料理が見つかった場合
-            return [
-                {
-                    'mealType': '朝食',
-                    'calories': 500,
-                    'dishes': found_foods[:2] + ['味噌汁'],
-                    'color': '#FF8C42'
-                },
-                {
-                    'mealType': '昼食', 
-                    'calories': 700,
-                    'dishes': found_foods[1:3] + ['ごはん'],
-                    'color': '#FF8C42'
-                },
-                {
-                    'mealType': '夕食',
-                    'calories': 800, 
-                    'dishes': found_foods[-2:] + ['野菜炒め'],
-                    'color': '#FF8C42'
-                }
-            ]
-        
-        return []
+        return [
+            {
+                'mealType': '朝食',
+                'calories': 500,
+                'dishes': selected_dishes[0],
+                'color': '#FF8C42'
+            },
+            {
+                'mealType': '昼食', 
+                'calories': 700,
+                'dishes': selected_dishes[1],
+                'color': '#FF8C42'
+            },
+            {
+                'mealType': '夕食',
+                'calories': 800, 
+                'dishes': selected_dishes[2],
+                'color': '#FF8C42'
+            }
+        ]
         
     except Exception as e:
         logger.error(f"Simple parsing error: {e}")
