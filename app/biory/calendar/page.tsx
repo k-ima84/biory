@@ -402,7 +402,7 @@ export default function CalendarPage() {
             className="today-button"
             onClick={goToCurrentMonth}
           >
-            今月
+            今日
           </button>
         </div>
 
