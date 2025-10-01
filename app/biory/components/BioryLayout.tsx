@@ -31,7 +31,7 @@ export default function BioryLayout({ children }: LayoutProps) {
         router.push("/biory/meal");
         break;
       case "calendar":
-        console.log("カレンダー画面へ遷移"); // 今後実装
+        router.push("/biory/calendar");
         break;
       case "settings":
         router.push("/biory/settings");
@@ -49,6 +49,9 @@ export default function BioryLayout({ children }: LayoutProps) {
         break;
       case "meal":
         active = currentPath === "/biory/meal";
+        break;
+      case "calendar":
+        active = currentPath.startsWith("/biory/calendar");
         break;
       case "settings":
         active = currentPath.startsWith("/biory/settings");

@@ -1,0 +1,436 @@
+/* カレンダーページのスタイル */
+.calendar-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: 'Hiragino Sans', 'ヒラギノ角ゴシック', 'Meiryo', 'メイリオ', sans-serif;
+}
+
+/* カレンダーヘッダー */
+.calendar-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 15px;
+  color: white;
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+}
+
+.calendar-title {
+  font-size: 2rem;
+  margin: 0 0 20px 0;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* カレンダーナビゲーション */
+.calendar-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+.nav-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.current-month {
+  font-size: 1.5rem;
+  font-weight: 600;
+  min-width: 200px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.today-button {
+  background: rgba(255, 255, 255, 0.9);
+  color: #667eea;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.today-button:hover {
+  background: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* カレンダーグリッドコンテナ */
+.calendar-grid-container {
+  background: white;
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+/* 曜日ヘッダー */
+.calendar-days-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  margin-bottom: 10px;
+}
+
+.day-header {
+  padding: 15px 0;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  background: #f8f9ff;
+  color: #333;
+  border-radius: 8px;
+}
+
+.day-header.sunday {
+  color: #e74c3c;
+}
+
+.day-header.saturday {
+  color: #3498db;
+}
+
+/* カレンダーグリッド */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: #e9ecef;
+  border-radius: 10px;
+  padding: 1px;
+}
+
+/* 各日付セル */
+.calendar-day {
+  background: white;
+  min-height: 80px;
+  padding: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  position: relative;
+}
+
+.calendar-day:hover {
+  background: #f8f9ff;
+  transform: scale(1.02);
+  z-index: 1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.calendar-day.other-month {
+  background: #f8f9fa;
+  color: #adb5bd;
+}
+
+.calendar-day.other-month:hover {
+  background: #f1f3f4;
+}
+
+.calendar-day.today {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-weight: 700;
+}
+
+.calendar-day.today:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+}
+
+.calendar-day.selected {
+  background: #28a745;
+  color: white;
+  font-weight: 700;
+}
+
+.calendar-day.selected:hover {
+  background: #218838;
+}
+
+.calendar-day.sunday .day-number {
+  color: #e74c3c;
+}
+
+.calendar-day.saturday .day-number {
+  color: #3498db;
+}
+
+.calendar-day.today .day-number,
+.calendar-day.selected .day-number {
+  color: white;
+}
+
+.day-number {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+/* 選択日付情報 */
+.selected-date-info {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border-left: 5px solid #28a745;
+}
+
+.selected-date-header {
+  margin-bottom: 20px;
+  text-align: center;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.selected-date-header h3 {
+  color: #333;
+  margin: 0 0 10px 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.selected-date {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #666;
+  font-weight: 600;
+}
+
+/* 読み込み中 */
+.loading {
+  text-align: center;
+  padding: 30px;
+  color: #666;
+}
+
+.loading p {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* DailyRecord表示 */
+.daily-records h4 {
+  color: #333;
+  margin: 0 0 20px 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.daily-record-item {
+  background: #f8f9ff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 15px;
+  border-left: 4px solid #667eea;
+}
+
+.daily-record-item:last-child {
+  margin-bottom: 0;
+}
+
+.record-section {
+  margin-bottom: 15px;
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.record-section:last-child {
+  margin-bottom: 0;
+}
+
+.record-label {
+  flex-shrink: 0;
+  font-weight: 600;
+  color: #555;
+  min-width: 80px;
+  font-size: 0.95rem;
+}
+
+.record-content {
+  flex: 1;
+  color: #333;
+  font-size: 1rem;
+  line-height: 1.5;
+  background: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+}
+
+/* 記録タイプ別のスタイリング */
+.record-section.meal .record-content {
+  border-left: 3px solid #ff6b6b;
+}
+
+.record-section.condition .record-content {
+  border-left: 3px solid #4ecdc4;
+}
+
+.record-section.mood .record-content {
+  border-left: 3px solid #ffe66d;
+}
+
+.record-section.weight .record-content {
+  border-left: 3px solid #a8e6cf;
+  font-weight: 600;
+  color: #2c5530;
+}
+
+/* データなし表示 */
+.no-records {
+  text-align: center;
+  padding: 40px 20px;
+  color: #888;
+}
+
+.no-records p {
+  margin: 0 0 10px 0;
+  font-size: 1.1rem;
+}
+
+.no-records-hint {
+  font-size: 0.9rem;
+  color: #aaa;
+  font-style: italic;
+}
+
+/* デバッグ情報 */
+.debug-info {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 2px solid #f0f0f0;
+}
+
+.debug-info details {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.debug-info summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #666;
+  font-size: 0.9rem;
+  padding: 5px;
+}
+
+.debug-info summary:hover {
+  color: #333;
+}
+
+.debug-content {
+  margin-top: 10px;
+  padding: 10px;
+  background: white;
+  border-radius: 6px;
+  border-left: 3px solid #007bff;
+}
+
+.debug-content p {
+  margin: 5px 0;
+  font-size: 0.85rem;
+  color: #555;
+  line-height: 1.4;
+}
+
+.debug-content strong {
+  color: #333;
+}
+
+/* レスポンシブデザイン */
+@media (max-width: 768px) {
+  .calendar-container {
+    padding: 10px;
+  }
+  
+  .calendar-title {
+    font-size: 1.6rem;
+  }
+  
+  .current-month {
+    font-size: 1.2rem;
+    min-width: 150px;
+  }
+  
+  .calendar-grid-container {
+    padding: 15px;
+  }
+  
+  .calendar-day {
+    min-height: 60px;
+    padding: 4px;
+  }
+  
+  .day-number {
+    font-size: 1rem;
+  }
+  
+  .day-header {
+    padding: 10px 0;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-nav {
+    gap: 15px;
+  }
+  
+  .nav-button {
+    width: 35px;
+    height: 35px;
+    font-size: 1.2rem;
+  }
+  
+  .current-month {
+    font-size: 1.1rem;
+    min-width: 120px;
+  }
+  
+  .calendar-day {
+    min-height: 50px;
+    padding: 2px;
+  }
+  
+  .day-number {
+    font-size: 0.9rem;
+  }
+  
+  .day-header {
+    padding: 8px 0;
+    font-size: 0.75rem;
+  }
+  
+  .today-button {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+  }
+}
