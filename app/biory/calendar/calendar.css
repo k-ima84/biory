@@ -209,7 +209,8 @@
   border-radius: 15px;
   padding: 25px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  border-left: 5px solid #28a745;
+  /*border-left: 5px solid #28a745;*/
+  border-left: 5px solid #70472B;
 }
 
 .selected-date-header {
@@ -259,7 +260,8 @@
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 15px;
-  border-left: 4px solid #667eea;
+  /*border-left: 4px solid #667eea;*/
+  border-left: 4px solid #FDCB6E;
 }
 
 .daily-record-item:last-child {
@@ -298,7 +300,8 @@
 
 /* 記録タイプ別のスタイリング */
 .record-section.meal .record-content {
-  border-left: 3px solid #ff6b6b;
+  /*border-left: 3px solid #ff6b6b;*/
+  border-left: 3px solid #FDCB6E;
 }
 
 .record-section.condition .record-content {
