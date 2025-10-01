@@ -141,8 +141,15 @@
   transition: all 0.2s ease;
 }
 
-.nav-item:hover {
-  background-color: #f0f0f0;
+/* 非アクティブナビゲーションアイテムのホバー */
+.nav-item:hover:not(.active) {
+  background-color: #f0f0f0; /* 薄いグレー */
+  border-radius: 8px;
+}
+
+/* アクティブナビゲーションアイテムのホバー */
+.nav-item.active:hover {
+  background-color: #f39c12; /* 濃いオレンジ */
   border-radius: 8px;
 }
 
@@ -354,8 +361,15 @@
     padding: 12px 20px;
   }
   
-  .nav-item:hover {
-    background-color: #f0f0f0;
+  /* デスクトップ版：非アクティブナビゲーションアイテムのホバー */
+  .nav-item:hover:not(.active) {
+    background-color: #f0f0f0; /* 薄いグレー */
+    border-radius: 12px;
+  }
+  
+  /* デスクトップ版：アクティブナビゲーションアイテムのホバー */
+  .nav-item.active:hover {
+    background-color: #f39c12; /* 濃いオレンジ */
     border-radius: 12px;
   }
   

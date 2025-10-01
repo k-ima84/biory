@@ -13,7 +13,7 @@
   padding: 20px;
   background: #ffffff;
   border-radius: 15px;
-  color: #333333;
+  color: #6f6b68;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   border: 1px solid #e9ecef;
 }
@@ -59,7 +59,7 @@
   font-size: 1.5rem;
   font-weight: 600;
   min-width: 200px;
-  color: #495057;
+  color: #6f6b68;
 }
 
 .today-button {
@@ -74,7 +74,7 @@
 }
 
 .today-button:hover {
-  background: #d68910;
+  background: #f39c12;
   color: black;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -137,6 +137,7 @@
   align-items: center;
   justify-content: flex-start;
   position: relative;
+  color: #6f6b68;
 }
 
 .calendar-day:hover {
@@ -157,7 +158,7 @@
 
 .calendar-day.today {
   background: white;
-  color: #2d3436;
+  color: #6f6b68;
   font-weight: 700;
   border: 2px solid #fdcb6e;
 }
@@ -175,7 +176,7 @@
 }
 
 .calendar-day.selected:hover {
-  background: #d68910;
+  background: #f39c12;
   color: black;
 }
 
@@ -192,15 +193,19 @@
   font-weight: 700;
 }
 
-.calendar-day.today .day-number,
+.calendar-day.today .day-number {
+  color: #6f6b68;
+}
+
 .calendar-day.selected .day-number {
-  color: black;
+  color: #6f6b68;
 }
 
 .day-number {
   font-size: 1.1rem;
   font-weight: 600;
   margin-bottom: 4px;
+  color: #6f6b68;
 }
 
 /* 選択日付情報 */
@@ -221,7 +226,7 @@
 }
 
 .selected-date-header h3 {
-  color: #333;
+  color: #6f6b68;
   margin: 0 0 10px 0;
   font-size: 1.3rem;
   font-weight: 600;
@@ -248,7 +253,7 @@
 
 /* DailyRecord表示 */
 .daily-records h4 {
-  color: #333;
+  color: #6f6b68;
   margin: 0 0 20px 0;
   font-size: 1.2rem;
   font-weight: 600;
