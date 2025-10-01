@@ -109,7 +109,7 @@ export default function BioryLayout({ children }: LayoutProps) {
           <div className="nav-icon meal-icon"></div>
         </button>
         <button
-          className="nav-item"
+          className={`nav-item ${isActive("calendar") ? "active" : ""}`}
           onClick={() => handleNavClick("calendar")}
         >
           <div className="nav-icon calendar-icon"></div>
