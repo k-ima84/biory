@@ -6,7 +6,7 @@ from typing import Dict, Any
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-bedrock = boto3.client('bedrock-runtime', region_name='us-east-1')
+bedrock = boto3.client('bedrock-runtime', region_name='ap-northeast-1')
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
@@ -23,27 +23,28 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         dietary_restrictions = body.get('dietaryRestrictions', [])
         target_calories = body.get('targetCalories', 2000)
         
+        logger.info(f"Received preferences: {user_preferences}")
+        logger.info(f"Target calories: {target_calories}")
+        
         # Bedrockへのプロンプト作成
         prompt = create_meal_prompt(user_preferences, dietary_restrictions, target_calories)
         
-        # Bedrock Claude 3 Haikuを呼び出し
+        # Bedrock Titan Text G1を呼び出し
         response = bedrock.invoke_model(
-            modelId='anthropic.claude-3-haiku-20240307-v1:0',
+            modelId='amazon.titan-text-express-v1',
             body=json.dumps({
-                "anthropic_version": "bedrock-2023-05-31",
-                "max_tokens": 1500,
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ]
+                "inputText": prompt,
+                "textGenerationConfig": {
+                    "maxTokenCount": 1500,
+                    "temperature": 0.7,
+                    "stopSequences": []
+                }
             })
         )
         
         # レスポンスの解析
         response_body = json.loads(response['body'].read())
-        meal_suggestion_text = response_body['content'][0]['text']
+        meal_suggestion_text = response_body['results'][0]['outputText']
         
         # JSON形式の献立データを抽出
         meal_data = parse_meal_suggestion(meal_suggestion_text)
@@ -52,6 +53,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             'statusCode': 200,
             'headers': cors_headers(),
             'body': json.dumps({
+                'suggestion': json.dumps({"meals": meal_data}, ensure_ascii=False),
                 'meals': meal_data,
                 'totalCalories': sum(meal['calories'] for meal in meal_data),
                 'timestamp': context.aws_request_id
@@ -70,46 +72,59 @@ def create_meal_prompt(preferences: Dict, restrictions: list, target_calories: i
     """
     Bedrock用のプロンプトを作成
     """
+    import random
+    
+    # ユーザー情報を整理
+    favorite_foods = preferences.get('favoriteFoods', '')
+    disliked_foods = preferences.get('dislikedFoods', '')
+    allergies = preferences.get('allergies', '')
+    gender = preferences.get('gender', '')
+    weight = preferences.get('weight', 60)
+    
+    # ランダム要素を追加
+    seasons = ['春', '夏', '秋', '冬']
+    cooking_styles = ['和食', '洋食', '中華', 'イタリアン', 'フレンチ']
+    random_season = random.choice(seasons)
+    random_style = random.choice(cooking_styles)
+    random_number = random.randint(1, 1000)
+    
     prompt = f"""
-あなたは経験豊富な栄養士です。以下の条件に基づいて1日の献立（朝食、昼食、夕食）を提案してください。
+あなたは経験豊富な管理栄養士です。以下の条件で{random_season}にふさわしい{random_style}中心の1日の献立を提案してください。
 
-【基本条件】
-- 健康的でバランスの取れた食事
-- 日本の食材を中心とした料理
-- 1日の総カロリー目安: {target_calories}kcal
-- 各食事のカロリー配分: 朝食25%, 昼食35%, 夕食40%
+【ユーザー情報】
+- 性別: {gender or '不明'}
+- 体重: {weight}kg
+- 好きな食べ物: {favorite_foods or '特になし'}
+- 嫌いな食べ物: {disliked_foods or '特になし'}
+- アレルギー: {allergies or 'なし'}
 
-【制約事項】
-{f"- 食事制限: {', '.join(restrictions)}" if restrictions else "- 特別な食事制限なし"}
+【条件】
+- 総カロリー: {target_calories}kcal
+- 朝食25%、昼食35%、夕食40%の配分
+- ユーザーの好みを反映し、嫌いなものやアレルギーは絶対に除外
+- 毎回異なるメニューを提案（リクエスト番号: {random_number}）
+- 季節の食材を使用
 
-【ユーザーの好み】
-{json.dumps(preferences, ensure_ascii=False) if preferences else "特になし"}
-
-以下のJSON形式で正確に回答してください:
+以下のJSON形式で回答してください：
 {{
   "meals": [
     {{
       "mealType": "朝食",
-      "calories": 500,
-      "dishes": ["料理名1", "料理名2", "料理名3", "料理名4"],
-      "color": "#FF8C42"
+      "calories": {int(target_calories * 0.25)},
+      "dishes": ["具体的な料理名1", "具体的な料理名2", "具体的な料理名3"]
     }},
     {{
-      "mealType": "昼食", 
-      "calories": 700,
-      "dishes": ["料理名1", "料理名2", "料理名3", "料理名4"],
-      "color": "#FF8C42"
+      "mealType": "昼食",
+      "calories": {int(target_calories * 0.35)},
+      "dishes": ["具体的な料理名1", "具体的な料理名2", "具体的な料理名3"]
     }},
     {{
       "mealType": "夕食",
-      "calories": 800,
-      "dishes": ["料理名1", "料理名2", "料理名3", "料理名4"],
-      "color": "#FF8C42"
+      "calories": {int(target_calories * 0.40)},
+      "dishes": ["具体的な料理名1", "具体的な料理名2", "具体的な料理名3"]
     }}
   ]
 }}
-
-JSON以外の説明文は不要です。
 """
     return prompt
 

@@ -20,7 +20,7 @@ import logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-bedrock = boto3.client('bedrock-runtime', region_name='us-east-1')
+bedrock = boto3.client('bedrock-runtime', region_name='ap-northeast-1')
 
 def handler(event, context):
     try:
@@ -31,24 +31,22 @@ def handler(event, context):
         # Bedrockへのプロンプト作成
         prompt = create_meal_prompt(user_preferences)
         
-        # Bedrock Claude 3 Haikuを呼び出し
+        # Bedrock Titan Text G1を呼び出し
         response = bedrock.invoke_model(
-            modelId='anthropic.claude-3-haiku-20240307-v1:0',
+            modelId='amazon.titan-text-express-v1',
             body=json.dumps({
-                "anthropic_version": "bedrock-2023-05-31",
-                "max_tokens": 1000,
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ]
+                "inputText": prompt,
+                "textGenerationConfig": {
+                    "maxTokenCount": 1000,
+                    "temperature": 0.7,
+                    "stopSequences": []
+                }
             })
         )
         
         # レスポンスの解析
         response_body = json.loads(response['body'].read())
-        meal_suggestion = response_body['content'][0]['text']
+        meal_suggestion = response_body['results'][0]['outputText']
         
         return {
             'statusCode': 200,
@@ -118,8 +116,14 @@ def create_meal_prompt(preferences):
     mealSuggestionFunction.addToRolePolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
-        actions: ['bedrock:InvokeModel'],
-        resources: ['arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-haiku-20240307-v1:0'],
+        actions: [
+          'bedrock:InvokeModel',
+          'bedrock:InvokeModelWithResponseStream'
+        ],
+        resources: [
+          'arn:aws:bedrock:ap-northeast-1::foundation-model/amazon.titan-text-express-v1',
+          'arn:aws:bedrock:ap-northeast-1::foundation-model/amazon.titan-*'
+        ],
       })
     );
 

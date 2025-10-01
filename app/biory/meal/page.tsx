@@ -14,7 +14,7 @@ import { useRouter } from "next/navigation";
 
 const client = generateClient<Schema>();
 
-const API_ENDPOINT = "https://5obkiuclsb.execute-api.ap-northeast-1.amazonaws.com/prod/meal-suggest";
+const API_ENDPOINT = "https://5obkiuclsb.execute-api.ap-northeast-1.amazonaws.com/prod/meal/suggestion";
 
 interface MealData {
   mealType: string;
@@ -78,57 +78,105 @@ export default function MealPage() {
 
   // Bedrock AIの返答をMealData[]に変換する関数
   function parseAISuggestion(suggestion: string): MealData[] {
-    const mealTypes = ["朝食", "昼食", "夕食"];
-    const colors = ["#FF8C42", "#4CAF50", "#2196F3"];
-    return suggestion.split("\n").map((line, i) => {
-      const match = line.match(/(朝食|昼食|夕食):(.+)/);
-      if (match) {
-        const dishes = match[2].split(/[、,・\s]+/).filter(Boolean);
-        return {
-          mealType: match[1],
-          calories: 0, // 必要ならAI返答から抽出
-          dishes,
-          color: colors[i] || "#ccc"
-        };
+    try {
+      // JSON部分を抽出
+      const jsonMatch = suggestion.match(/```\s*JSON\s*\n([\s\S]*?)\n```/) || suggestion.match(/{[\s\S]*}/);
+      if (jsonMatch) {
+        const jsonStr = jsonMatch[1] || jsonMatch[0];
+        const data = JSON.parse(jsonStr);
+        if (data.meals && Array.isArray(data.meals)) {
+          return data.meals.map((meal: any) => ({
+            mealType: meal.mealType,
+            calories: meal.calories || 0,
+            dishes: Array.isArray(meal.dishes) ? meal.dishes.map((dish: any) => 
+              typeof dish === 'string' ? dish : dish.dishName || '料理'
+            ) : [],
+            color: "#FF8C42"
+          }));
+        }
       }
-      // パース失敗時はデフォルト
-      return {
-        mealType: mealTypes[i] || "食事",
-        calories: 0,
-        dishes: [line],
-        color: colors[i] || "#ccc"
-      };
-    });
+    } catch (error) {
+      console.error('JSON parse error:', error);
+    }
+    
+    // フォールバック: デフォルト献立
+    return [
+      {
+        mealType: "朝食",
+        calories: 550,
+        dishes: ["納豆ごはん", "わかめと豆腐の味噌汁", "ゆで卵", "バナナ"],
+        color: "#FF8C42"
+      },
+      {
+        mealType: "昼食",
+        calories: 600,
+        dishes: ["ブロッコリー", "あさりのパスタ", "ほたてと野菜のサラダ", "カフェオレ（無糖）"],
+        color: "#FF8C42"
+      },
+      {
+        mealType: "夕食",
+        calories: 800,
+        dishes: ["照り焼きチキン", "マッシュルームのハンバーグ", "クレソンとにんじんの玉子炒め", "キャベツときゅうりのサラダ"],
+        color: "#FF8C42"
+      }
+    ];
   }
+
+  // ユーザープロファイル取得
+  const getUserProfile = async () => {
+    try {
+      const { data: profiles } = await client.models.UserProfile.list({
+        filter: { userId: { eq: cognitoUserId } }
+      });
+      return profiles[0] || null;
+    } catch (error) {
+      console.error('ユーザープロファイル取得エラー:', error);
+      return null;
+    }
+  };
 
   // 献立再生成ボタン押下時の処理
   const generateMeals = async () => {
     setLoading(true);
     try {
+      // ユーザープロファイル取得
+      const userProfile = await getUserProfile();
+      
+      const requestBody = {
+        preferences: {
+          favoriteFoods: userProfile?.favoriteFoods || '',
+          dislikedFoods: userProfile?.dislikedFoods || '',
+          allergies: userProfile?.allergies || '',
+          gender: userProfile?.gender || '',
+          weight: userProfile?.weight || 60,
+          height: userProfile?.height || 160
+        },
+        targetCalories: 2000,
+        timestamp: new Date().toISOString() // 毎回異なるリクエストにする
+      };
+      
+      console.log('送信データ:', requestBody);
+      
       const response = await fetch(API_ENDPOINT, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          preferences: {},
-          dietaryRestrictions: [],
-          targetCalories: 2000
-        })
+        body: JSON.stringify(requestBody)
       });
-      if (response.ok) {
-        const data = await response.json();
-        if (data.suggestion) {
-          const newMeals = parseAISuggestion(data.suggestion);
-          setMeals(newMeals);
-        } else {
-          console.error('No suggestion in response');
-        }
+      
+      const data = await response.json();
+      console.log('APIレスポンス:', data);
+      
+      if (response.ok && data.suggestion) {
+        const newMeals = parseAISuggestion(data.suggestion);
+        setMeals(newMeals);
       } else {
-        console.error('Failed to generate meals');
+        setMeals(parseAISuggestion(''));
       }
     } catch (error) {
-      console.error('Error generating meals:', error);
+      console.error('献立生成エラー:', error);
+      setMeals(parseAISuggestion(''));
     } finally {
       setLoading(false);
     }
