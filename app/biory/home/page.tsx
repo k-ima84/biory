@@ -182,13 +182,90 @@ export default function HomePage() {
   };
  
 
-  // 栄養データを取得する関数
+  // FoodNutritionから食品を検索する関数
+  const searchFoodNutrition = async (foodName: string) => {
+    try {
+      // 全件取得（ページネーション対応）
+      let allFoodData: any[] = [];
+      let nextToken = null;
+      
+      do {
+        const result = await client.models.FoodNutrition.list({
+          limit: 1000,
+          nextToken: nextToken || undefined
+        });
+        
+        if (result.data) {
+          allFoodData = allFoodData.concat(result.data);
+        }
+        
+        nextToken = result.nextToken;
+      } while (nextToken);
+      
+      // あいまい検索（部分一致）
+      const matchedFood = allFoodData.find(food => 
+        food.foodName?.includes(foodName) || foodName.includes(food.foodName || '')
+      );
+      
+      if (matchedFood) {
+        console.log(`食品発見: ${matchedFood.foodName} -> カロリー:${matchedFood.energyKcal}, P:${matchedFood.proteinG}g`);
+        return {
+          calories: matchedFood.energyKcal || 0,
+          protein: matchedFood.proteinG || 0,
+          fat: matchedFood.fatG || 0,
+          carbs: matchedFood.carbohydrateG || 0,
+        };
+      }
+    } catch (error) {
+      console.error(`食品検索エラー (${foodName}):`, error);
+    }
+    
+    console.log(`食品未発見: ${foodName}`);
+    // デフォルト値
+    return { calories: 0, protein: 0, fat: 0, carbs: 0 };
+  };
+
+  // 食事記録から栄養価を自動計算する関数
+  const calculateNutritionFromMeals = async (meals: string[]) => {
+    let totalCalories = 0;
+    let totalProtein = 0;
+    let totalFat = 0;
+    let totalCarbs = 0;
+    
+    for (const mealContent of meals) {
+      if (mealContent && mealContent !== "—" && mealContent.trim() !== "") {
+        // 複数の食材が含まれている場合は分割
+        const foods = mealContent.split(/[、,，]+/).map(food => food.trim());
+        
+        for (const food of foods) {
+          if (food) {
+            const nutrition = await searchFoodNutrition(food);
+            totalCalories += nutrition.calories;
+            totalProtein += nutrition.protein;
+            totalFat += nutrition.fat;
+            totalCarbs += nutrition.carbs;
+          }
+        }
+      }
+    }
+    
+    return {
+      calories: Math.round(totalCalories),
+      protein: Math.round(totalProtein * 10) / 10,
+      fat: Math.round(totalFat * 10) / 10,
+      carbs: Math.round(totalCarbs * 10) / 10,
+    };
+  };
+
+  // 栄養データを取得する関数（手動記録と自動計算の両方対応）
   const fetchNutritionData = async (dateString: string) => {
     try {
+      // まず手動記録されたNutritionテーブルを確認
       const { data: nutritions } = await client.models.Nutrition.list();
       const todayNutrition = nutritions?.find(n => n.date === dateString);
 
       if (todayNutrition) {
+        // 手動記録がある場合はそれを使用
         setNutritionData({
           calories: todayNutrition.calories || 0,
           protein: { 
@@ -204,6 +281,40 @@ export default function HomePage() {
             percentage: Math.round(((todayNutrition.carbs || 0) * 4 / (todayNutrition.calories || 1)) * 100)
           },
         });
+      } else {
+        // 手動記録がない場合は食事記録から自動計算
+        if (cognitoUserId) {
+          const { data: dailyRecords } = await client.models.DailyRecord.list();
+          const todayMeals = dailyRecords?.filter(m => 
+            m.date === dateString && m.userId === cognitoUserId && m.mealType
+          );
+
+          const mealContents = ['breakfast', 'lunch', 'dinner'].map(mealType => {
+            const meal = todayMeals?.find(m => m.mealType === mealType);
+            return meal?.content || '';
+          });
+
+          const calculatedNutrition = await calculateNutritionFromMeals(mealContents);
+          
+          setNutritionData({
+            calories: calculatedNutrition.calories,
+            protein: { 
+              value: calculatedNutrition.protein, 
+              percentage: calculatedNutrition.calories > 0 ? 
+                Math.round((calculatedNutrition.protein * 4 / calculatedNutrition.calories) * 100) : 0
+            },
+            fat: { 
+              value: calculatedNutrition.fat, 
+              percentage: calculatedNutrition.calories > 0 ? 
+                Math.round((calculatedNutrition.fat * 9 / calculatedNutrition.calories) * 100) : 0
+            },
+            carbs: { 
+              value: calculatedNutrition.carbs, 
+              percentage: calculatedNutrition.calories > 0 ? 
+                Math.round((calculatedNutrition.carbs * 4 / calculatedNutrition.calories) * 100) : 0
+            },
+          });
+        }
       }
     } catch (error) {
       console.error("栄養データ取得エラー:", error);
@@ -504,6 +615,10 @@ export default function HomePage() {
       // 画面の状態を更新
       setMealData(mealEditData);
       setIsMealEditMode(false);
+      
+      // 栄養価を再計算
+      await fetchNutritionData(dateString);
+      
       console.log("「本日の食事」が保存されました:", mealEditData);
     } catch (error) {
       console.error("食事データ保存エラー:", error);

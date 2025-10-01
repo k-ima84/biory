@@ -19,6 +19,26 @@ const schema = a.schema({
     })
     .authorization((allow) => [allow.publicApiKey()]),
 
+  FoodNutrition: a
+    .model({
+      foodNumber: a.string(),
+      foodName: a.string(),
+      category: a.string(),
+      energyKcal: a.float(),
+      proteinG: a.float(),
+      fatG: a.float(),
+      carbohydrateG: a.float(),
+      sodiumMg: a.float(),
+      calciumMg: a.float(),
+      ironMg: a.float(),
+      vitaminAUg: a.float(),
+      vitaminB1Mg: a.float(),
+      vitaminB2Mg: a.float(),
+      vitaminCMg: a.float(),
+      cholesterolMg: a.float(),
+    })
+    .authorization((allow) => [allow.publicApiKey()]),
+
   DailyRecord: a
     .model({
       userId: a.string(),
