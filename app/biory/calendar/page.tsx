@@ -100,9 +100,9 @@ export default function CalendarPage() {
     
     const days = [];
     
-    // 前月の末尾日付
-    const prevMonth = new Date(year, month - 1, 0);
-    const daysInPrevMonth = prevMonth.getDate();
+    // 前月の末尾日付を正しく取得
+    const prevMonthLastDate = new Date(year, month, 0);
+    const daysInPrevMonth = prevMonthLastDate.getDate();
     
     // 前月の表示日付を追加
     for (let i = firstDay - 1; i >= 0; i--) {
@@ -124,8 +124,13 @@ export default function CalendarPage() {
       });
     }
     
-    // 次月の日付を追加（6週間 = 42日分になるまで）
-    const remainingDays = 42 - days.length;
+    // 次月の日付を追加（最小限の週数になるまで）
+    // 7の倍数になるまで次月の日付を追加
+    const totalCells = days.length;
+    const weeksNeeded = Math.ceil(totalCells / 7);
+    const targetCells = weeksNeeded * 7;
+    const remainingDays = targetCells - totalCells;
+    
     for (let day = 1; day <= remainingDays; day++) {
       days.push({
         day: day,
@@ -170,6 +175,12 @@ export default function CalendarPage() {
   // 日付をクリック
   const handleDateClick = (date: Date, isCurrentMonth: boolean) => {
     if (isCurrentMonth) {
+      // 当月の日付の場合、選択して記録を取得
+      setSelectedDate(date);
+      fetchDailyRecords(date);
+    } else {
+      // 他の月の日付の場合、その月に移動してから選択
+      setCurrentDate(new Date(date.getFullYear(), date.getMonth(), 1));
       setSelectedDate(date);
       fetchDailyRecords(date);
     }
