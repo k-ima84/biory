@@ -172,8 +172,8 @@ export default function SettingsPage() {
       newErrors.height = "身長は正しい形式で入力してください（例：170.50）";
     } else {
       const heightValue = parseFloat(formData.height);
-      if (heightValue < 50 || heightValue > 300) {
-        newErrors.height = "身長は50～300cmの範囲で入力してください";
+      if (heightValue < 0 || heightValue > 300) {
+        newErrors.height = "身長は0～300cmの範囲で入力してください";
       }
     }
  
@@ -184,8 +184,8 @@ export default function SettingsPage() {
       newErrors.weight = "体重は正しい形式で入力してください（例：65.50）";
     } else {
       const weightValue = parseFloat(formData.weight);
-      if (weightValue < 20 || weightValue > 300) {
-        newErrors.weight = "体重は20～300kgの範囲で入力してください";
+      if (weightValue < 0 || weightValue > 300) {
+        newErrors.weight = "体重は0～300kgの範囲で入力してください";
       }
     }
  
