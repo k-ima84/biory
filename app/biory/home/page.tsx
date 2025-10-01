@@ -65,6 +65,9 @@ export default function HomePage() {
     weight: 0,
   });
 
+  // 体重入力のエラー状態
+  const [weightError, setWeightError] = useState<string>("");
+
   // 「本日の食事」編集機能用のstate
   const [isMealEditMode, setIsMealEditMode] = useState(false);
   const [mealEditData, setMealEditData] = useState<MealData>({
@@ -318,9 +321,11 @@ export default function HomePage() {
     if (isHealthEditMode) {
       // 編集をキャンセルして元のデータに戻す
       setHealthEditData(healthData);
+      setWeightError(""); // エラーをクリア
     } else {
       // 編集モードに入る時は現在のデータをコピー
       setHealthEditData(healthData);
+      setWeightError(""); // エラーをクリア
     }
     setIsHealthEditMode(!isHealthEditMode);
   };
@@ -330,11 +335,52 @@ export default function HomePage() {
       ...prev,
       [field]: value
     }));
+
+    // 体重の場合はエラーをクリア（リアルタイムバリデーションは行わない）
+    if (field === 'weight') {
+      setWeightError("");
+    }
+  };
+
+  // 体重のバリデーション関数
+  const validateWeight = (weight: string | number): boolean => {
+    const weightString = typeof weight === 'string' ? weight : weight.toString();
+    
+    // 空文字チェック
+    if (!weightString.trim()) {
+      setWeightError("体重は必須です");
+      return false;
+    }
+    
+    // 正規表現チェック
+    if (!/^\d{1,3}(\.\d{1,2})?$/.test(weightString)) {
+      setWeightError("体重は正しい形式で入力してください（例：65.50）");
+      return false;
+    }
+    
+    const weightNum = parseFloat(weightString);
+    
+    // 範囲チェック
+    if (weightNum < 0 || weightNum > 300) {
+      setWeightError("体重は0～300kgの範囲で入力してください");
+      return false;
+    }
+    
+    // エラーなし
+    setWeightError("");
+    return true;
   };
 
   const handleHealthSave = async () => {
     try {
+      // 体重のバリデーションチェック（保存時に実行）
+      const isWeightValid = validateWeight(healthEditData.weight);
+      if (!isWeightValid) {
+        return; // バリデーションエラーがある場合は保存を中止
+      }
+
       const dateString = getCurrentDateString();
+      const weightValue = typeof healthEditData.weight === 'string' ? parseFloat(healthEditData.weight) : healthEditData.weight;
       
       // 1. UserProfileの体重を更新
       const { data: profiles } = await client.models.UserProfile.list({
@@ -345,9 +391,9 @@ export default function HomePage() {
         const profile = profiles[0];
         await client.models.UserProfile.update({
           id: profile.id,
-          weight: healthEditData.weight,
+          weight: weightValue,
         });
-        console.log("UserProfileの体重を更新しました:", healthEditData.weight);
+        console.log("UserProfileの体重を更新しました:", weightValue);
       }
 
       // 2. DailyRecordの健康データ（体調・気分・体重）を更新
@@ -362,7 +408,7 @@ export default function HomePage() {
           id: existingHealthRecord.id,
           condition: healthEditData.condition,
           mood: healthEditData.mood,
-          weight: healthEditData.weight,
+          weight: weightValue,
         });
         console.log("DailyRecordの健康データを更新しました:", healthEditData);
       } else {
@@ -372,15 +418,18 @@ export default function HomePage() {
           date: dateString,
           condition: healthEditData.condition,
           mood: healthEditData.mood,
-          weight: healthEditData.weight,
+          weight: weightValue,
           content: "", // 健康データ専用レコードなのでcontentは空
           mealType: null, // 健康データ専用レコードなのでmealTypeはnull
         });
         console.log("新しいDailyRecord健康データを作成しました:", healthEditData);
       }
 
-      // 画面の状態を更新
-      setHealthData(healthEditData);
+      // 画面の状態を更新（数値として保存）
+      setHealthData({
+        ...healthEditData,
+        weight: weightValue
+      });
       setIsHealthEditMode(false);
       console.log("「本日の調子」が保存されました:", healthEditData);
     } catch (error) {
@@ -759,21 +808,33 @@ export default function HomePage() {
             </div>
             <div className="health-row">
               <span className="health-label">体重：</span>
-              <input 
-                type="number"
-                step="0.1"
-                value={healthEditData.weight || ''}
-                onChange={(e) => handleHealthInputChange('weight', parseFloat(e.target.value) || 0)}
-                placeholder="体重を入力"
-                style={{
-                  padding: '4px 8px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  fontSize: '14px',
-                  width: '80px'
-                }}
-              />
-              <span style={{ marginLeft: '4px' }}>kg</span>
+              <div style={{ display: 'flex', alignItems: 'flex-start', flex: 1 }}>
+                <input 
+                  type="text"
+                  value={healthEditData.weight || ''}
+                  onChange={(e) => handleHealthInputChange('weight', e.target.value)}
+                  placeholder="体重を入力"
+                  style={{
+                    padding: '4px 8px',
+                    border: `1px solid ${weightError ? '#e74c3c' : '#ddd'}`,
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                    width: '80px',
+                    backgroundColor: weightError ? '#fdf2f2' : 'white'
+                  }}
+                />
+                <span style={{ marginLeft: '4px', marginRight: '8px' }}>kg</span>
+                {weightError && (
+                  <span style={{ 
+                    color: '#e74c3c', 
+                    fontSize: '12px', 
+                    marginTop: '2px',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    {weightError}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         ) : (
