@@ -147,7 +147,8 @@
 }
 
 .nav-item.active {
-  background-color: #a8e6cf;
+  /* background-color: #a8e6cf; */
+  background-color:#FDCB6E;
   border-radius: 8px;
   /* 強制的な再描画のため */
   transform: translateZ(0);
