@@ -65,6 +65,9 @@ export default function HomePage() {
     weight: 0,
   });
 
+  // 体重入力のエラー状態
+  const [weightError, setWeightError] = useState<string>("");
+
   // 「本日の食事」編集機能用のstate
   const [isMealEditMode, setIsMealEditMode] = useState(false);
   const [mealEditData, setMealEditData] = useState<MealData>({
@@ -120,7 +123,7 @@ export default function HomePage() {
         // データベースに名前があればそれを使用
         setUserName(profile.name || "ユーザー");
 
-        // Null合体演算子を使用してデフォルト値を設定
+        // UserProfileから体重を取得してhealthDataに設定
         setHealthData(prev => ({
           ...prev,
           weight: profile.weight ?? 0  // null または undefined の場合は 0
@@ -128,55 +131,141 @@ export default function HomePage() {
       } else {
         // 該当するUserProfileがない場合はデフォルト名を使用
         setUserName("ユーザー");
+        setHealthData(prev => ({
+          ...prev,
+          weight: 0
+        }));
       }
     } catch (error) {
       console.error("ユーザープロフィール取得エラー:", error);
       setUserName("ゲスト");
+      setHealthData(prev => ({
+        ...prev,
+        weight: 0
+      }));
     }
   };
 
-  // DailyRecordから健康データを取得する関数
+  // DailyRecordから健康データを取得する関数（体重以外）
   const fetchHealthDataFromDailyRecord = async (dateString: string) => {
     try {
       const { data: dailyRecords } = await client.models.DailyRecord.list();
       // 健康データ専用レコード（mealTypeがnullまたは未定義のレコード）を検索
       const todayHealthRecord = dailyRecords?.find(record => 
-        record.userId === "user2" && record.date === dateString && !record.mealType
+        record.userId === cognitoUserId && record.date === dateString && !record.mealType
       );
 
       if (todayHealthRecord) {
-        setHealthData({
+        setHealthData(prev => ({
+          ...prev,
           condition: todayHealthRecord.condition || "とても良い 😊",
           mood: todayHealthRecord.mood || "ポジティブ",
-          weight: todayHealthRecord.weight || 0,
-        });
+          // 体重はUserProfileから取得するのでここでは更新しない
+        }));
       } else {
-        // デフォルト値を設定
-        setHealthData({
+        // デフォルト値を設定（体重は除く）
+        setHealthData(prev => ({
+          ...prev,
           condition: "とても良い 😊",
           mood: "ポジティブ",
-          weight: 0,
-        });
+        }));
       }
     } catch (error) {
       console.error("健康データ取得エラー:", error);
-      // エラー時はデフォルト値を設定
-      setHealthData({
+      // エラー時はデフォルト値を設定（体重は除く）
+      setHealthData(prev => ({
+        ...prev,
         condition: "とても良い 😊",
         mood: "ポジティブ",
-        weight: 0,
-      });
+      }));
     }
   };
  
 
-  // 栄養データを取得する関数
+  // FoodNutritionから食品を検索する関数
+  const searchFoodNutrition = async (foodName: string) => {
+    try {
+      // 全件取得（ページネーション対応）
+      let allFoodData: any[] = [];
+      let nextToken = null;
+      
+      do {
+        const result = await client.models.FoodNutrition.list({
+          limit: 1000,
+          nextToken: nextToken || undefined
+        });
+        
+        if (result.data) {
+          allFoodData = allFoodData.concat(result.data);
+        }
+        
+        nextToken = result.nextToken;
+      } while (nextToken);
+      
+      // あいまい検索（部分一致）
+      const matchedFood = allFoodData.find(food => 
+        food.foodName?.includes(foodName) || foodName.includes(food.foodName || '')
+      );
+      
+      if (matchedFood) {
+        console.log(`食品発見: ${matchedFood.foodName} -> カロリー:${matchedFood.energyKcal}, P:${matchedFood.proteinG}g`);
+        return {
+          calories: matchedFood.energyKcal || 0,
+          protein: matchedFood.proteinG || 0,
+          fat: matchedFood.fatG || 0,
+          carbs: matchedFood.carbohydrateG || 0,
+        };
+      }
+    } catch (error) {
+      console.error(`食品検索エラー (${foodName}):`, error);
+    }
+    
+    console.log(`食品未発見: ${foodName}`);
+    // デフォルト値
+    return { calories: 0, protein: 0, fat: 0, carbs: 0 };
+  };
+
+  // 食事記録から栄養価を自動計算する関数
+  const calculateNutritionFromMeals = async (meals: string[]) => {
+    let totalCalories = 0;
+    let totalProtein = 0;
+    let totalFat = 0;
+    let totalCarbs = 0;
+    
+    for (const mealContent of meals) {
+      if (mealContent && mealContent !== "—" && mealContent.trim() !== "") {
+        // 複数の食材が含まれている場合は分割
+        const foods = mealContent.split(/[、,，]+/).map(food => food.trim());
+        
+        for (const food of foods) {
+          if (food) {
+            const nutrition = await searchFoodNutrition(food);
+            totalCalories += nutrition.calories;
+            totalProtein += nutrition.protein;
+            totalFat += nutrition.fat;
+            totalCarbs += nutrition.carbs;
+          }
+        }
+      }
+    }
+    
+    return {
+      calories: Math.round(totalCalories),
+      protein: Math.round(totalProtein * 10) / 10,
+      fat: Math.round(totalFat * 10) / 10,
+      carbs: Math.round(totalCarbs * 10) / 10,
+    };
+  };
+
+  // 栄養データを取得する関数（手動記録と自動計算の両方対応）
   const fetchNutritionData = async (dateString: string) => {
     try {
+      // まず手動記録されたNutritionテーブルを確認
       const { data: nutritions } = await client.models.Nutrition.list();
       const todayNutrition = nutritions?.find(n => n.date === dateString);
 
       if (todayNutrition) {
+        // 手動記録がある場合はそれを使用
         setNutritionData({
           calories: todayNutrition.calories || 0,
           protein: { 
@@ -192,6 +281,40 @@ export default function HomePage() {
             percentage: Math.round(((todayNutrition.carbs || 0) * 4 / (todayNutrition.calories || 1)) * 100)
           },
         });
+      } else {
+        // 手動記録がない場合は食事記録から自動計算
+        if (cognitoUserId) {
+          const { data: dailyRecords } = await client.models.DailyRecord.list();
+          const todayMeals = dailyRecords?.filter(m => 
+            m.date === dateString && m.userId === cognitoUserId && m.mealType
+          );
+
+          const mealContents = ['breakfast', 'lunch', 'dinner'].map(mealType => {
+            const meal = todayMeals?.find(m => m.mealType === mealType);
+            return meal?.content || '';
+          });
+
+          const calculatedNutrition = await calculateNutritionFromMeals(mealContents);
+          
+          setNutritionData({
+            calories: calculatedNutrition.calories,
+            protein: { 
+              value: calculatedNutrition.protein, 
+              percentage: calculatedNutrition.calories > 0 ? 
+                Math.round((calculatedNutrition.protein * 4 / calculatedNutrition.calories) * 100) : 0
+            },
+            fat: { 
+              value: calculatedNutrition.fat, 
+              percentage: calculatedNutrition.calories > 0 ? 
+                Math.round((calculatedNutrition.fat * 9 / calculatedNutrition.calories) * 100) : 0
+            },
+            carbs: { 
+              value: calculatedNutrition.carbs, 
+              percentage: calculatedNutrition.calories > 0 ? 
+                Math.round((calculatedNutrition.carbs * 4 / calculatedNutrition.calories) * 100) : 0
+            },
+          });
+        }
       }
     } catch (error) {
       console.error("栄養データ取得エラー:", error);
@@ -200,11 +323,13 @@ export default function HomePage() {
 
   // 食事データを取得する関数
   const fetchMealData = async (dateString: string) => {
+    if (!cognitoUserId) return;
+    
     try {
       const { data: dailyRecords } = await client.models.DailyRecord.list();
       // 食事データ専用レコード（mealTypeが設定されているレコード）のみを検索
       const todayMeals = dailyRecords?.filter(m => 
-        m.date === dateString && m.userId === "user2" && m.mealType
+        m.date === dateString && m.userId === cognitoUserId && m.mealType
       );
 
       const mealsByType = {
@@ -307,9 +432,11 @@ export default function HomePage() {
     if (isHealthEditMode) {
       // 編集をキャンセルして元のデータに戻す
       setHealthEditData(healthData);
+      setWeightError(""); // エラーをクリア
     } else {
       // 編集モードに入る時は現在のデータをコピー
       setHealthEditData(healthData);
+      setWeightError(""); // エラーをクリア
     }
     setIsHealthEditMode(!isHealthEditMode);
   };
@@ -319,16 +446,71 @@ export default function HomePage() {
       ...prev,
       [field]: value
     }));
+
+    // 体重の場合はエラーをクリア（リアルタイムバリデーションは行わない）
+    if (field === 'weight') {
+      setWeightError("");
+    }
+  };
+
+  // 体重のバリデーション関数
+  const validateWeight = (weight: string | number): boolean => {
+    const weightString = typeof weight === 'string' ? weight : weight.toString();
+    
+    // 空文字チェック
+    if (!weightString.trim()) {
+      setWeightError("体重は必須です");
+      return false;
+    }
+    
+    // 正規表現チェック
+    if (!/^\d{1,3}(\.\d{1,2})?$/.test(weightString)) {
+      setWeightError("体重は正しい形式で入力してください（例：65.50）");
+      return false;
+    }
+    
+    const weightNum = parseFloat(weightString);
+    
+    // 範囲チェック
+    if (weightNum < 0 || weightNum > 300) {
+      setWeightError("体重は0～300kgの範囲で入力してください");
+      return false;
+    }
+    
+    // エラーなし
+    setWeightError("");
+    return true;
   };
 
   const handleHealthSave = async () => {
     try {
+      // 体重のバリデーションチェック（保存時に実行）
+      const isWeightValid = validateWeight(healthEditData.weight);
+      if (!isWeightValid) {
+        return; // バリデーションエラーがある場合は保存を中止
+      }
+
       const dateString = getCurrentDateString();
+      const weightValue = typeof healthEditData.weight === 'string' ? parseFloat(healthEditData.weight) : healthEditData.weight;
       
-      // DailyRecordテーブルから今日の健康データを検索
+      // 1. UserProfileの体重を更新
+      const { data: profiles } = await client.models.UserProfile.list({
+        filter: { userId: { eq: cognitoUserId } }
+      });
+
+      if (profiles && profiles.length > 0) {
+        const profile = profiles[0];
+        await client.models.UserProfile.update({
+          id: profile.id,
+          weight: weightValue,
+        });
+        console.log("UserProfileの体重を更新しました:", weightValue);
+      }
+
+      // 2. DailyRecordの健康データ（体調・気分・体重）を更新
       const { data: dailyRecords } = await client.models.DailyRecord.list();
       const existingHealthRecord = dailyRecords?.find(record => 
-        record.userId === "user2" && record.date === dateString && !record.mealType
+        record.userId === cognitoUserId && record.date === dateString && !record.mealType
       );
 
       if (existingHealthRecord) {
@@ -337,25 +519,28 @@ export default function HomePage() {
           id: existingHealthRecord.id,
           condition: healthEditData.condition,
           mood: healthEditData.mood,
-          weight: healthEditData.weight,
+          weight: weightValue,
         });
-        console.log("健康データを更新しました:", healthEditData);
+        console.log("DailyRecordの健康データを更新しました:", healthEditData);
       } else {
         // 新しいレコードを作成
         await client.models.DailyRecord.create({
-          userId: "user2",
+          userId: cognitoUserId,
           date: dateString,
           condition: healthEditData.condition,
           mood: healthEditData.mood,
-          weight: healthEditData.weight,
+          weight: weightValue,
           content: "", // 健康データ専用レコードなのでcontentは空
           mealType: null, // 健康データ専用レコードなのでmealTypeはnull
         });
-        console.log("新しい健康データを作成しました:", healthEditData);
+        console.log("新しいDailyRecord健康データを作成しました:", healthEditData);
       }
 
-      // 画面の状態を更新
-      setHealthData(healthEditData);
+      // 画面の状態を更新（数値として保存）
+      setHealthData({
+        ...healthEditData,
+        weight: weightValue
+      });
       setIsHealthEditMode(false);
       console.log("「本日の調子」が保存されました:", healthEditData);
     } catch (error) {
@@ -390,7 +575,7 @@ export default function HomePage() {
       // DailyRecordテーブルから今日の食事データを検索
       const { data: dailyRecords } = await client.models.DailyRecord.list();
       const todayMealRecords = dailyRecords?.filter(record => 
-        record.userId === "user2" && record.date === dateString && record.mealType
+        record.userId === cognitoUserId && record.date === dateString && record.mealType
       );
 
       // 各食事タイプ（朝・昼・夜）について処理
@@ -415,7 +600,7 @@ export default function HomePage() {
         } else {
           // 新しいレコードを作成
           await client.models.DailyRecord.create({
-            userId: "user2",
+            userId: cognitoUserId,
             date: dateString,
             mealType: meal.type,
             content: meal.content,
@@ -430,6 +615,10 @@ export default function HomePage() {
       // 画面の状態を更新
       setMealData(mealEditData);
       setIsMealEditMode(false);
+      
+      // 栄養価を再計算
+      await fetchNutritionData(dateString);
+      
       console.log("「本日の食事」が保存されました:", mealEditData);
     } catch (error) {
       console.error("食事データ保存エラー:", error);
@@ -737,21 +926,33 @@ export default function HomePage() {
             </div>
             <div className="health-row">
               <span className="health-label">体重：</span>
-              <input 
-                type="number"
-                step="0.1"
-                value={healthEditData.weight || ''}
-                onChange={(e) => handleHealthInputChange('weight', parseFloat(e.target.value) || 0)}
-                placeholder="体重を入力"
-                style={{
-                  padding: '4px 8px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  fontSize: '14px',
-                  width: '80px'
-                }}
-              />
-              <span style={{ marginLeft: '4px' }}>kg</span>
+              <div style={{ display: 'flex', alignItems: 'flex-start', flex: 1 }}>
+                <input 
+                  type="text"
+                  value={healthEditData.weight || ''}
+                  onChange={(e) => handleHealthInputChange('weight', e.target.value)}
+                  placeholder="体重を入力"
+                  style={{
+                    padding: '4px 8px',
+                    border: `1px solid ${weightError ? '#e74c3c' : '#ddd'}`,
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                    width: '80px',
+                    backgroundColor: weightError ? '#fdf2f2' : 'white'
+                  }}
+                />
+                <span style={{ marginLeft: '4px', marginRight: '8px' }}>kg</span>
+                {weightError && (
+                  <span style={{ 
+                    color: '#e74c3c', 
+                    fontSize: '12px', 
+                    marginTop: '2px',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    {weightError}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         ) : (
