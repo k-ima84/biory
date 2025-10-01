@@ -31,6 +31,25 @@
   color: #8B4513;
 }
 
+/* Cognito情報表示スタイル */
+.cognito-info {
+  margin-top: 10px;
+  padding: 8px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #666;
+}
+
+.cognito-id {
+  margin-bottom: 4px;
+  font-family: monospace;
+}
+
+.user-email {
+  font-style: italic;
+}
+
 /* メインコンテンツエリア */
 .main-content {
   display: grid;
@@ -249,8 +268,9 @@
   background-color: #90d4aa;
 }
 
+/*以下の部分についてはレイアウトに寄せているため、Feature004へマージする予定*/
 /* レスポンシブ対応 - BioryLayoutの幅制御に合わせて調整 */
-/* タブレット・PC対応 */
+/* タブレット・PC対応
 @media (min-width: 768px) {
   .main-content {
     grid-template-columns: 1fr 1fr;
@@ -258,40 +278,40 @@
   }
 }
 
-/* モバイル対応 */
+ モバイル対応
 @media (max-width: 767px) {
   .main-content {
     grid-template-columns: 1fr;
     gap: 15px;
-    /* モバイルでの高さ調整 - スクロールバー回避 */
+    /* モバイルでの高さ調整 - スクロールバー回避/
     min-height: calc(100vh - 280px); /* 250px→280pxに調整 */
-    /* heightプロパティを削除 */
+    /* heightプロパティを削除/
   }
   
   .nutrition-section,
   .meal-section {
     margin-bottom: 15px;
-    min-height: 140px; /* 180px→140pxに削減 */
+    min-height: 140px; /* 180px→140pxに削減/
   }
   
   .health-section {
     grid-column: 1;
-    min-height: 80px; /* 100px→80pxに削減 */
+    min-height: 80px; /* 100px→80pxに削減
   }
-}
+}*/
 
-/* 大画面対応 */
+/*大画面対応
 @media (min-width: 1024px) {
   .main-content {
     grid-template-columns: 1fr 1fr 1fr;
-    /* 大画面での高さ調整 - スクロールバー回避 */
+    /* 大画面での高さ調整 - スクロールバー回避 
     min-height: calc(100vh - 350px); /* 300px→350pxに調整 */
-    /* heightプロパティを削除 */
+    /* heightプロパティを削除
   }
   
   .health-section {
     grid-column: 1 / -1;
-    min-height: 100px; /* 140px→100pxに削減 */
+    min-height: 100px; /* 140px→100pxに削減
   }
   
   .health-content {
@@ -299,4 +319,5 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 20px;
   }
-}
+}*/
+

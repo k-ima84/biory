@@ -1,17 +1,21 @@
 import { log } from './common';
 import { seedNutritionData } from './seed-nutrition';
-import { seedMealData } from './seed-meal';
+import { seedUserProfileData } from './seed-userprofile';
+import { seedDailyRecordData } from './seed-dailyrecord';
 
 // 全てのシードデータを投入する関数
 export const seedAllData = async (): Promise<void> => {
   try {
     log.info('🌱 全シードデータの投入を開始します...');
     
+    // ユーザープロファイルデータを投入（最初に実行）
+    await seedUserProfileData();
+    
     // 栄養データを投入
     await seedNutritionData();
     
-    // 食事データを投入
-    await seedMealData();
+    // 日次記録データを投入
+    await seedDailyRecordData();
     
     log.success('🎉 全シードデータの投入が完了しました！');
   } catch (error) {

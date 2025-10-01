@@ -3,60 +3,34 @@
 import { useState, useEffect } from "react";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "@/amplify/data/resource";
-import { getCurrentUser } from "aws-amplify/auth";
+import { Amplify } from "aws-amplify";
+import outputs from "../../../amplify_outputs.json";
 import BioryLayout from "../components/BioryLayout";
 import styles from "./meal.module.css";
+import { fetchCognitoUserInfo } from '../components/function';
+import { useRouter } from "next/navigation";
  
+//Amplify.configure(outputs);
+
 const client = generateClient<Schema>();
- 
+
+const API_ENDPOINT = "https://5obkiuclsb.execute-api.ap-northeast-1.amazonaws.com/prod/meal-suggest";
+
 interface MealData {
   mealType: string;
   calories: number;
   dishes: string[];
   color: string;
-  imageUrl?: string; // 画像URLを追加（オプション）
+  imageUrl?: string;
 }
  
 export default function MealPage() {
+  const router = useRouter();
   const [user, setUser] = useState<any>(null);
-  const [meals, setMeals] = useState<MealData[]>([
-    {
-      mealType: "朝食",
-      calories: 550,
-      dishes: [
-        "納豆ごはん",
-        "わかめと豆腐の味噌汁",
-        "ゆで卵",
-        "バナナ"
-      ],
-      color: "#FF8C42",
-      imageUrl: "https://example.com/breakfast.jpg" // サンプル画像URL
-    },
-    {
-      mealType: "昼食",
-      calories: 600,
-      dishes: [
-        "ブロッコリー",
-        "あさりのパスタ",
-        "ほたてと野菜のサラダ",
-        "カフェオレ（無糖）"
-      ],
-      color: "#FF8C42",
-      imageUrl: "https://example.com/lunch.jpg" // サンプル画像URL
-    },
-    {
-      mealType: "夕食",
-      calories: 800,
-      dishes: [
-        "照り焼きチキン",
-        "マッシュルームのハンバーグ",
-        "クレソンとにんじんの玉子炒め",
-        "キャベツときゅうりのサラダ"
-      ],
-      color: "#FF8C42",
-      imageUrl: "https://example.com/dinner.jpg" // サンプル画像URL
-    }
-  ]);
+  const [loading, setLoading] = useState(false);
+  const [meals, setMeals] = useState<MealData[]>([]); // 初期値は空
+  const [cognitoUserId, setCognitoUserId] = useState("");
+  
 
   // カロリー計算
   const currentCalories = meals.reduce((total, meal) => total + meal.calories, 0);
@@ -64,18 +38,35 @@ export default function MealPage() {
   const percentage = Math.min((currentCalories / maxCalories) * 100, 100);
  
   useEffect(() => {
-    checkUser();
+    loadUserInfo();
+
+    // ページフォーカス時にユーザー情報を再取得（セッション維持のため）
+    const handleFocus = () => {
+      loadUserInfo();
+    };
+    window.addEventListener('focus', handleFocus);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
  
-  async function checkUser() {
+
+
+  // Cognitoユーザー情報を取得する関数（共通関数を使用）
+  const loadUserInfo = async () => {
     try {
-      const currentUser = await getCurrentUser();
-      setUser(currentUser);
+      const userInfo = await fetchCognitoUserInfo();
+      setCognitoUserId(userInfo.userId);
+      
+      console.log('Meal Page - Cognito User ID:', userInfo.userId);
+
     } catch (error) {
-      // ユーザーがログインしていない場合はログイン画面にリダイレクト
-      window.location.href = "/biory/login";
-    }
-  }
+      console.error('Meal画面でのCognitoユーザー情報取得エラー:', error);
+      // 認証されていない場合はログイン画面へ
+      router.push("/biory/login");
+    } 
+  };
  
   const getTodayDate = () => {
     const today = new Date();
@@ -84,6 +75,64 @@ export default function MealPage() {
       day: 'numeric'
     });
   };
+
+  // Bedrock AIの返答をMealData[]に変換する関数
+  function parseAISuggestion(suggestion: string): MealData[] {
+    const mealTypes = ["朝食", "昼食", "夕食"];
+    const colors = ["#FF8C42", "#4CAF50", "#2196F3"];
+    return suggestion.split("\n").map((line, i) => {
+      const match = line.match(/(朝食|昼食|夕食):(.+)/);
+      if (match) {
+        const dishes = match[2].split(/[、,・\s]+/).filter(Boolean);
+        return {
+          mealType: match[1],
+          calories: 0, // 必要ならAI返答から抽出
+          dishes,
+          color: colors[i] || "#ccc"
+        };
+      }
+      // パース失敗時はデフォルト
+      return {
+        mealType: mealTypes[i] || "食事",
+        calories: 0,
+        dishes: [line],
+        color: colors[i] || "#ccc"
+      };
+    });
+  }
+
+  // 献立再生成ボタン押下時の処理
+  const generateMeals = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          preferences: {},
+          dietaryRestrictions: [],
+          targetCalories: 2000
+        })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.suggestion) {
+          const newMeals = parseAISuggestion(data.suggestion);
+          setMeals(newMeals);
+        } else {
+          console.error('No suggestion in response');
+        }
+      } else {
+        console.error('Failed to generate meals');
+      }
+    } catch (error) {
+      console.error('Error generating meals:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
  
   return (
     <BioryLayout>
@@ -91,6 +140,13 @@ export default function MealPage() {
         <header className={styles.header}>
           <h1 className={styles.title}>今日のあなたにぴったりの献立</h1>
           <p className={styles.date}>{getTodayDate()}</p>
+          {/* ↓削除予定-------------------------------- */}
+          {cognitoUserId && (
+            <div className={styles.cognitoInfo}>
+              <div className={styles.cognitoId}>CognitoID: {cognitoUserId}</div>
+            </div>
+          )}
+          {/* ↑削除予定-------------------------------- */}
         </header>
  
         <div className={styles.mealsContainer}>
@@ -179,8 +235,9 @@ export default function MealPage() {
           </div>
 
           <div className={styles.actionButtons}>
-            <button className={styles.regenerateButton}>
-              <span className={styles.buttonIcon}>↻</span>献立を生成！
+            <button className={styles.regenerateButton} onClick={generateMeals} disabled={loading}>
+              <span className={styles.buttonIcon}>↻</span>
+              {loading ? '生成中...' : '献立を生成！'}
             </button>
             <button className={styles.saveButton}>
               💾 献立を保存

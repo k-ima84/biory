@@ -70,7 +70,7 @@ npm run test:db
 # 🔧 環境チェック（最初に実行推奨）
 npm run check:env
 
-# 📦 全データ投入（栄養データ + 食事データ）
+# 📦 全データ投入（栄養データ + 日次記録データ）
 npm run seed:all
 
 # 🔍 データベース状態確認
@@ -82,8 +82,8 @@ npm run test:db
 # 🥗 栄養データのみ投入
 npm run seed:nutrition
 
-# 🍽️ 食事データのみ投入  
-npm run seed:meal
+# 📝 日次記録データのみ投入  
+npm run seed:dailyrecord
 
 # 🧹 データベースを完全クリア
 npm run clear:db
@@ -96,6 +96,52 @@ tsx amplify/seed/debug-tables.ts
 ```
 
 ---
+
+## 📊 データ管理コマンド
+
+### 全データ一括操作
+```bash
+# 全テーブルにデータ投入
+npm run seed:all
+
+# 全データクリア
+npm run clear:db
+
+# 全データ確認
+npm run test:db
+```
+
+### 個別テーブル操作
+
+#### 👥 UserProfile（ユーザープロファイル）
+```bash
+# UserProfileデータを投入
+tsx amplify/seed/seed-userprofile.ts seed
+
+# UserProfileデータを確認
+tsx amplify/seed/seed-userprofile.ts show
+
+# UserProfileデータをクリア
+tsx amplify/seed/seed-userprofile.ts clear
+```
+
+#### 🍽️ Meal（食事データ）
+```bash
+# 食事データを投入
+tsx amplify/seed/seed-meal.ts
+
+# 食事データを確認（test:dbコマンドで確認可能）
+npm run test:db
+```
+
+#### 🥗 Nutrition（栄養データ）
+```bash
+# 栄養データを投入
+tsx amplify/seed/seed-nutrition.ts
+
+# 栄養データを確認（test:dbコマンドで確認可能）
+npm run test:db
+```
 
 ## セットアップ手順
 
@@ -165,9 +211,15 @@ AWS_PROFILE=your-profile npm run test:db
 - **user1 (2025-09-02)**: カロリー1250, タンパク質60g, 脂質35g, 炭水化物155g  
 - **user2 (2025-09-03)**: カロリー1300, タンパク質80g, 脂質70g, 炭水化物160g
 
-### 食事データ（9件）
-- **user1**: 朝食・昼食・夕食（2025-08-27, 2025-09-02）
-- **user2**: 朝食・昼食・夕食（2025-09-03）
+### 日次記録データ（8件）
+- **user1**: 朝食・昼食・夕食（2025-08-27, 2025-09-17）+ 体調・気分・体重情報
+- **user2**: 朝食・昼食・夕食（2025-09-17）+ 体調・気分・体重情報
+
+各レコードには以下の情報が含まれます：
+- **食事内容**: 朝食・昼食・夕食の詳細
+- **体調**: 良好・普通など
+- **気分**: 元気・普通・良いなど  
+- **体重**: kg単位での記録
 
 ---
 
@@ -179,11 +231,11 @@ amplify/seed/                      # 🎯 シードデータ管理ディレク�
 ├── common.ts                      # ⚙️ 共通設定とユーティリティ
 ├── check-env.ts                   # ✅ 環境チェック
 ├── seed-nutrition.ts              # 🥗 栄養データ投入
-├── seed-meal.ts                   # 🍽️ 食事データ投入  
+├── seed-dailyrecord.ts            # 📝 日次記録データ投入  
 ├── seed-all.ts                    # 📦 全データ一括投入
 ├── test-db-connection.ts          # 🔍 データベース接続テスト
 ├── clear-db.ts                    # 🧹 データベースクリア
-└── debug-tables.ts                #  高度なテーブルデバッグ
+└── debug-tables.ts                # 🔧 高度なテーブルデバッグ
 ```
 
 ### 各ファイルの詳細
@@ -193,7 +245,7 @@ amplify/seed/                      # 🎯 シードデータ管理ディレク�
 | `check-env.ts` | 環境設定確認 | セットアップ時、問題診断時 | `npm run check:env` |
 | `seed-all.ts` | 全データ投入 | 初回セットアップ、リセット時 | `npm run seed:all` |
 | `seed-nutrition.ts` | 栄養データ投入 | 栄養データのみテスト時 | `npm run seed:nutrition` |
-| `seed-meal.ts` | 食事データ投入 | 食事データのみテスト時 | `npm run seed:meal` |
+| `seed-dailyrecord.ts` | 日次記録データ投入 | 日次記録データのみテスト時 | `npm run seed:dailyrecord` |
 | `test-db-connection.ts` | DB接続テスト・データ確認 | データ確認、問題診断時 | `npm run test:db` |
 | `clear-db.ts` | データクリア | 開発リセット、クリーンアップ | `npm run clear:db` |
 | `debug-tables.ts` | 詳細テーブル情報表示 | 複数テーブル環境のデバッグ | `tsx amplify/seed/debug-tables.ts` |
@@ -222,7 +274,30 @@ tsx amplify/seed/debug-tables.ts
 
 ---
 
-## 🚀 推奨ワークフロー
+## � サンプルデータ内容
+
+### 👥 UserProfile データ
+投入される5人のサンプルユーザー：
+
+| ユーザーID | 名前 | 性別 | 身長 | 体重 | 運動頻度 | アレルギー |
+|------------|------|------|------|------|----------|------------|
+| user1 | 田中太郎 | 男性 | 175cm | 70kg | 週3-4回 | 卵、乳製品 |
+| user2 | 佐藤花子 | 女性 | 160cm | 55kg | 毎日 | そば |
+| user3 | 山田次郎 | 男性 | 168cm | 65kg | 週1-2回 | なし |
+| user4 | 鈴木明子 | 女性 | 155cm | 50kg | 週3-4回 | ナッツ類 |
+| user5 | 高橋健二 | 男性 | 180cm | 85kg | その他 | なし |
+
+### 🍽️ Meal データ
+- 複数ユーザーの朝食・昼食・夕食データ
+- 日付別の食事内容
+- 多様な料理のサンプル
+
+### 🥗 Nutrition データ  
+- 各日付のカロリー情報
+- タンパク質・脂質・炭水化物の詳細データ
+- PFCバランスの計算用データ
+
+## �🚀 推奨ワークフロー
 
 ### 🆕 初回セットアップ時
 ```bash
@@ -276,7 +351,7 @@ aws dynamodb list-tables --profile biory-dev --region ap-northeast-1
 ## 使用技術
 - **TypeScript**: 型安全なシードスクリプト
 - **AWS Amplify Gen 2**: バックエンドインフラ
-- **DynamoDB**: NoSQLデータベース
+- **DynamoDB**: NoSQLデータベース（DailyRecordテーブル、Nutritionテーブル）
 - **GraphQL**: API層
 
 ## 注意事項

@@ -61,9 +61,12 @@ async function checkEnvironment(): Promise<void> {
 
     log.success('🎉 環境チェック完了 - シードデータを投入できます！');
     log.info('使用方法:');
-    log.info('  npm run seed:all      # 全データ投入');
-    log.info('  npm run seed:nutrition # 栄養データのみ');
-    log.info('  npm run seed:meal      # 食事データのみ');
+    log.info('  npm run seed:all         # 全データ投入');
+    log.info('  npm run seed:userprofile # ユーザープロファイルのみ');
+    log.info('  npm run seed:nutrition   # 栄養データのみ');
+    log.info('  npm run seed:meal        # 食事データのみ');
+    log.info('  npm run test:db          # データ確認');
+    log.info('  npm run show:userprofile # ユーザープロファイル確認');
 
   } catch (error) {
     log.error(`環境チェックエラー: ${error}`);
