@@ -43,15 +43,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         # Bedrock呼び出し
         logger.info("Calling Bedrock API...")
         
-        # Bedrock Titan Text G1を呼び出し
+        # Titan Text Expressを使用
         response = bedrock.invoke_model(
             modelId='amazon.titan-text-express-v1',
             body=json.dumps({
                 "inputText": prompt,
                 "textGenerationConfig": {
-                    "maxTokenCount": 1500,
-                    "temperature": 0.7,
-                    "stopSequences": []
+                    "maxTokenCount": 1000,
+                    "temperature": 0.7
                 }
             })
         )
@@ -60,12 +59,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         logger.info("Parsing Bedrock response...")
         response_body = json.loads(response['body'].read())
         logger.info(f"Bedrock response: {response_body}")
+        
         meal_suggestion_text = response_body['results'][0]['outputText']
         logger.info(f"Extracted text length: {len(meal_suggestion_text)}")
         
         # JSON形式の献立データを抽出
         meal_data = parse_meal_suggestion(meal_suggestion_text)
         logger.info(f"Generated meal data: {meal_data}")
+        logger.info(f"Meal data type: {type(meal_data)}")
+        logger.info(f"Meal data length: {len(meal_data) if meal_data else 0}")
+        
+        # 各食事の詳細をログ出力
+        if meal_data:
+            for i, meal in enumerate(meal_data):
+                logger.info(f"Meal {i}: {meal}")
         
         debug_info = {
             'userId': user_id,
@@ -78,15 +85,20 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         print(f"DEBUG INFO: {debug_info}")  # printで強制出力
         
+        # レスポンスデータを準備
+        response_data = {
+            'meals': meal_data,
+            'totalCalories': sum(meal['calories'] for meal in meal_data) if meal_data else 0,
+            'timestamp': context.aws_request_id,
+            'debug': debug_info
+        }
+        
+        logger.info(f"Final response data: {response_data}")
+        
         return {
             'statusCode': 200,
             'headers': cors_headers(),
-            'body': json.dumps({
-                'meals': meal_data,
-                'totalCalories': sum(meal['calories'] for meal in meal_data) if meal_data else 0,
-                'timestamp': context.aws_request_id,
-                'debug': debug_info
-            }, ensure_ascii=False)
+            'body': json.dumps(response_data, ensure_ascii=False)
         }
         
     except Exception as e:
@@ -106,55 +118,70 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
 
 def create_meal_prompt(preferences: Dict, restrictions: list, target_calories: int) -> str:
     """
-    Bedrock用のプロンプトを作成
+    ユーザープロファイルを考慮したプロンプトを作成
     """
     import random
+    import time
     
-    # ユーザー情報を整理
+    breakfast_cal = int(target_calories * 0.25)
+    lunch_cal = int(target_calories * 0.35)
+    dinner_cal = int(target_calories * 0.40)
+    
+    # ユーザー情報を取得
     favorite_foods = preferences.get('favoriteFoods', '')
     disliked_foods = preferences.get('dislikedFoods', '')
     allergies = preferences.get('allergies', '')
-    gender = preferences.get('gender', '')
-    weight = preferences.get('weight', 60)
     
-    # ランダム要素を追加
+    # ユーザー情報をプロンプトに組み込み
+    user_constraints = ""
+    if favorite_foods and favorite_foods != "和食":
+        user_constraints += f"\n- 好きな食べ物: {favorite_foods}を積極的に取り入れてください"
+    if disliked_foods:
+        user_constraints += f"\n- 嫌いな食べ物: {disliked_foods}は使用しないでください"
+    if allergies and allergies != "なし":
+        user_constraints += f"\n- アレルギー: {allergies}は絶対に使用しないでください"
+    
+    # ランダム要素を追加してバリエーションを作る
     seasons = ['春', '夏', '秋', '冬']
-    cooking_styles = ['和食', '洋食', '中華', 'イタリアン', 'フレンチ']
+    cooking_styles = ['和食', '洋食', '中華', 'イタリアン']
     random_season = random.choice(seasons)
     random_style = random.choice(cooking_styles)
-    random_number = random.randint(1, 1000)
+    random_seed = int(time.time()) % 1000
     
-    prompt = f"""
-JSON形式で献立を提案してください。以下の条件で献立を作成してください。
+    prompt = f"""日本料理中心のバランスの良い献立をJSON形式で作成してください。
 
 条件:
 - 総カロリー: {target_calories}kcal
-- 朝食{int(target_calories * 0.25)}kcal、昼食{int(target_calories * 0.35)}kcal、夕食{int(target_calories * 0.40)}kcal
-- 日本料理中心
-- 具体的な料理名を使用
+- 朝食: {breakfast_cal}kcal (主食・主菜・副菜)
+- 昼食: {lunch_cal}kcal (主食・主菜・副菜)
+- 夕食: {dinner_cal}kcal (主食・主菜・副菜)
+- 季節: {random_season}の食材を使用
+- スタイル: {random_style}要素を取り入れる{user_constraints}
 
-必ず以下の形式でJSONのみを返してください:
+毎回異なる料理を提案し、各食事に主食(ごはん、パンなど)、主菜(メイン料理)、副菜(サラダ、汁物など)を含めてください。
+ランダムID: {random_seed}
+
+JSON形式で回答してください:
+
 {{
   "meals": [
     {{
       "mealType": "朝食",
-      "calories": {int(target_calories * 0.25)},
-      "dishes": ["納豆ごはん", "味噌汁", "玉子焼き"]
+      "calories": {breakfast_cal},
+      "dishes": ["主食名", "主菜名", "副菜名"]
     }},
     {{
       "mealType": "昼食",
-      "calories": {int(target_calories * 0.35)},
-      "dishes": ["さばの味噌汁", "おにぎり", "サラダ"]
+      "calories": {lunch_cal},
+      "dishes": ["主食名", "主菜名", "副菜名"]
     }},
     {{
       "mealType": "夕食",
-      "calories": {int(target_calories * 0.40)},
-      "dishes": ["焼き魚", "ごはん", "野菜炒め"]
+      "calories": {dinner_cal},
+      "dishes": ["主食名", "主菜名", "副菜名"]
     }}
   ]
-}}
-
-JSON以外の文字は一切返さないでください。"""
+}}"""
     return prompt
 
 def parse_meal_suggestion(text: str) -> list:
@@ -177,37 +204,125 @@ def parse_meal_suggestion(text: str) -> list:
                 logger.info(f"Successfully parsed {len(meals)} meals")
                 return meals
         
-        logger.warning("No valid JSON found in response")
-        return get_default_meals()
+        # JSONがない場合はテキストからパース
+        logger.warning("No valid JSON found, parsing text format")
+        parsed_meals = parse_text_format(text)
+        if parsed_meals:
+            return parsed_meals
+        else:
+            logger.error("Failed to parse any meal data")
+            return []
             
     except json.JSONDecodeError as e:
         logger.error(f"JSON decode error: {e}")
-        return get_default_meals()
+        parsed_meals = parse_text_format(text)
+        if parsed_meals:
+            return parsed_meals
+        else:
+            logger.error("Failed to parse meal data after JSON error")
+            return []
+
+def parse_text_format(text: str) -> list:
+    """
+    テキスト形式のレスポンスをパース
+    """
+    try:
+        meals = []
+        lines = text.split('\n')
+        current_meal = None
+        
+        for line in lines:
+            line = line.strip()
+            if '朝食:' in line:
+                if current_meal:
+                    meals.append(current_meal)
+                current_meal = {'mealType': '朝食', 'calories': 500, 'dishes': [], 'color': '#FF8C42'}
+            elif '昼食:' in line:
+                if current_meal:
+                    meals.append(current_meal)
+                current_meal = {'mealType': '昼食', 'calories': 700, 'dishes': [], 'color': '#FF8C42'}
+            elif '夕食:' in line:
+                if current_meal:
+                    meals.append(current_meal)
+                current_meal = {'mealType': '夕食', 'calories': 800, 'dishes': [], 'color': '#FF8C42'}
+            elif current_meal and ('主食:' in line or '主菜:' in line or '副菜:' in line):
+                dish = line.split(':')[-1].strip()
+                if dish:
+                    current_meal['dishes'].append(dish)
+        
+        if current_meal:
+            meals.append(current_meal)
+        
+        # 各食事に最低1つの料理があるかチェック
+        valid_meals = [meal for meal in meals if len(meal['dishes']) > 0]
+        
+        if len(valid_meals) >= 1:  # 最低1食でもパースできればOK
+            logger.info(f"Successfully parsed {len(valid_meals)} meals from text")
+            return valid_meals
+        
+        # テキストから簡単なパースを試行
+        logger.warning("Trying simple text parsing as fallback")
+        simple_meals = create_simple_meals_from_text(text)
+        if simple_meals:
+            return simple_meals
+        
+        logger.warning("Failed to parse any valid meals from text format")
+        return []
+        
+    except Exception as e:
+        logger.error(f"Text parsing error: {e}")
+        return []
+
+def create_simple_meals_from_text(text: str) -> list:
+    """
+    シンプルなテキストパースのフォールバック
+    """
+    try:
+        # テキストから料理名らしきものを抽出
+        import re
+        
+        # 日本料理のキーワードを探す
+        food_keywords = ['ごはん', '味噌汁', '納豆', '魚', '肉', '野菜', 'サラダ', '炒め', '焼き']
+        found_foods = []
+        
+        for keyword in food_keywords:
+            if keyword in text:
+                found_foods.append(keyword)
+        
+        if len(found_foods) >= 3:  # 最低3つの料理が見つかった場合
+            return [
+                {
+                    'mealType': '朝食',
+                    'calories': 500,
+                    'dishes': found_foods[:2] + ['味噌汁'],
+                    'color': '#FF8C42'
+                },
+                {
+                    'mealType': '昼食', 
+                    'calories': 700,
+                    'dishes': found_foods[1:3] + ['ごはん'],
+                    'color': '#FF8C42'
+                },
+                {
+                    'mealType': '夕食',
+                    'calories': 800, 
+                    'dishes': found_foods[-2:] + ['野菜炒め'],
+                    'color': '#FF8C42'
+                }
+            ]
+        
+        return []
+        
+    except Exception as e:
+        logger.error(f"Simple parsing error: {e}")
+        return []
 
 def get_default_meals() -> list:
     """
-    デフォルトの献立データ
+    AIからの回答が取得できない場合のエラーメッセージ
     """
-    return [
-        {
-            "mealType": "朝食",
-            "calories": 550,
-            "dishes": ["納豆ごはん", "わかめと豆腐の味噌汁", "ゆで卵", "バナナ"],
-            "color": "#FF8C42"
-        },
-        {
-            "mealType": "昼食",
-            "calories": 600,
-            "dishes": ["ブロッコリー", "あさりのパスタ", "ほたてと野菜のサラダ", "カフェオレ（無糖）"],
-            "color": "#FF8C42"
-        },
-        {
-            "mealType": "夕食",
-            "calories": 800,
-            "dishes": ["照り焼きチキン", "マッシュルームのハンバーグ", "クレソンとにんじんの玉子炒め", "キャベツときゅうりのサラダ"],
-            "color": "#FF8C42"
-        }
-    ]
+    logger.error("AIからの献立提案が取得できませんでした")
+    return []
 
 def cors_headers() -> Dict[str, str]:
     """
@@ -225,16 +340,25 @@ def get_user_profile(user_id: str) -> Dict:
     DynamoDBからユーザープロファイルを取得
     """
     try:
-        # テーブル名を直接指定（Amplifyのデフォルト命名規則）
-        table_name = 'UserProfile-amplifyawsamplifygen2lemol-sandbox-c8984a154d'
-        print(f'Using table: {table_name}')
+        # 実際のテーブル名を取得
+        dynamodb_client = boto3.client('dynamodb', region_name='ap-northeast-1')
+        tables = dynamodb_client.list_tables()
+        userprofile_tables = [t for t in tables['TableNames'] if 'UserProfile' in t]
+        
+        if not userprofile_tables:
+            print('UserProfile table not found. Available tables:')
+            print(tables['TableNames'])
+            return {}
+            
+        table_name = userprofile_tables[0]
+        print(f'Found and using table: {table_name}')
         table = dynamodb.Table(table_name)
         print(f"Scanning table {table_name} for userId: {user_id}")
         
         # userIdでスキャンしてユーザープロファイルを取得
+        from boto3.dynamodb.conditions import Attr
         response = table.scan(
-            FilterExpression='userId = :uid',
-            ExpressionAttributeValues={':uid': user_id}
+            FilterExpression=Attr('userId').eq(user_id)
         )
         print(f"DynamoDB scan response: {response}")
         

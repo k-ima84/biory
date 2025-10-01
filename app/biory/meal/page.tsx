@@ -3,14 +3,10 @@
 import { useState, useEffect } from "react";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "@/amplify/data/resource";
-import { Amplify } from "aws-amplify";
-import outputs from "../../../amplify_outputs.json";
 import BioryLayout from "../components/BioryLayout";
 import styles from "./meal.module.css";
 import { fetchCognitoUserInfo } from '../components/function';
 import { useRouter } from "next/navigation";
- 
-//Amplify.configure(outputs);
 
 const client = generateClient<Schema>();
 
@@ -85,12 +81,25 @@ export default function MealPage() {
         const jsonStr = jsonMatch[1] || jsonMatch[0];
         const data = JSON.parse(jsonStr);
         if (data.meals && Array.isArray(data.meals)) {
-          return data.meals.map((meal: any) => ({
-            mealType: meal.mealType,
-            calories: meal.calories || 0,
-            dishes: Array.isArray(meal.dishes) ? meal.dishes : [],
-            color: "#FF8C42"
-          }));
+          return data.meals.map((meal: any) => {
+            // dishesが配列でない場合の処理
+            let dishes: string[] = [];
+            if (Array.isArray(meal.dishes)) {
+              dishes = meal.dishes.map((dish: any) => 
+                typeof dish === 'string' ? dish : dish.dish || dish.name || String(dish)
+              );
+            } else if (meal.dishes) {
+              // オブジェクトの場合は文字列に変換
+              dishes = [String(meal.dishes)];
+            }
+            
+            return {
+              mealType: meal.mealType || '食事',
+              calories: meal.calories || 0,
+              dishes: dishes,
+              color: "#FF8C42"
+            };
+          });
         }
       }
     } catch (error) {
@@ -99,15 +108,37 @@ export default function MealPage() {
     return [];
   }
 
-  // ユーザープロファイル取得
+  // ユーザープロファイル取得または作成
   const getUserProfile = async () => {
     try {
       const { data: profiles } = await client.models.UserProfile.list({
         filter: { userId: { eq: cognitoUserId } }
       });
-      return profiles[0] || null;
+      
+      if (profiles.length > 0) {
+        return profiles[0];
+      }
+      
+      // プロファイルが存在しない場合は基本プロファイルを作成
+      console.log('ユーザープロファイルが見つからないため、基本プロファイルを作成します');
+      const newProfile = await client.models.UserProfile.create({
+        userId: cognitoUserId,
+        name: "ユーザー",
+        height: 170.0,
+        weight: 65.0,
+        gender: "未設定",
+        favoriteFoods: "和食",
+        allergies: "なし",
+        dislikedFoods: "",
+        exerciseFrequency: "週1-2回",
+        exerciseFrequencyOther: ""
+      });
+      
+      console.log('基本プロファイルを作成しました:', newProfile);
+      return newProfile.data;
+      
     } catch (error) {
-      console.error('ユーザープロファイル取得エラー:', error);
+      console.error('ユーザープロファイル取得/作成エラー:', error);
       return null;
     }
   };
@@ -142,10 +173,31 @@ export default function MealPage() {
       console.log('Response status:', response.status);
       console.log('Response data:', data);
       
+      console.log('Full API response:', data); // デバッグ用
+      
       if (response.ok) {
+        // データ構造を詳細にチェック
+        console.log('data.meals:', data.meals);
+        console.log('data.meals type:', typeof data.meals);
+        console.log('data.meals isArray:', Array.isArray(data.meals));
+        
         if (data.meals && Array.isArray(data.meals) && data.meals.length > 0) {
-          console.log('Setting meals:', data.meals);
-          setMeals(data.meals);
+          console.log('Processing meals data:', data.meals);
+          // データを正規化
+          const normalizedMeals = data.meals.map((meal: any, index: number) => {
+            console.log(`Processing meal ${index}:`, meal);
+            return {
+              mealType: meal.mealType || '食事',
+              calories: meal.calories || 0,
+              dishes: Array.isArray(meal.dishes) 
+                ? meal.dishes.map((dish: any) => typeof dish === 'string' ? dish : dish.dish || dish.name || String(dish))
+                : meal.dishes ? [String(meal.dishes)] : [],
+              color: meal.color || "#FF8C42"
+            };
+          });
+          
+          console.log('Normalized meals:', normalizedMeals);
+          setMeals(normalizedMeals);
           setShowMeals(true);
         }
         else if (data.suggestion) {
@@ -156,13 +208,24 @@ export default function MealPage() {
             setShowMeals(true);
           } else {
             console.error('パースされた献立が空です');
+            alert('AIからの献立提案が取得できませんでした。もう一度お試しください。');
           }
         }
         else {
           console.error('レスポンスに献立データがありません:', data);
+          console.log('Available data keys:', Object.keys(data));
+          
+          // 空の配列が返された場合の処理
+          if (data.meals && Array.isArray(data.meals) && data.meals.length === 0) {
+            console.log('Empty meals array received');
+            alert('AIからの献立提案が空でした。もう一度お試しください。');
+          } else {
+            alert('AIからの献立提案が取得できませんでした。もう一度お試しください。');
+          }
         }
       } else {
         console.error('APIエラー - Status:', response.status, 'Data:', data);
+        alert('APIエラーが発生しました。もう一度お試しください。');
       }
     } catch (error) {
       console.error('献立生成エラー:', error);
@@ -188,7 +251,9 @@ export default function MealPage() {
  
         {showMeals && (
           <div className={styles.mealsContainer}>
-            {meals.map((meal, index) => (
+            {meals.map((meal, index) => {
+              console.log(`Meal ${index}:`, meal, 'dishes type:', typeof meal.dishes, 'is array:', Array.isArray(meal.dishes));
+              return (
               <div key={index} className={styles.mealCard}>
               <div
                 className={styles.mealHeader}
@@ -225,15 +290,22 @@ export default function MealPage() {
                 </div>
                
                 <div className={styles.dishList}>
-                  {meal.dishes.map((dish, dishIndex) => (
-                    <div key={dishIndex} className={styles.dishItem}>
-                      {dish}
+                  {Array.isArray(meal.dishes) ? (
+                    meal.dishes.map((dish, dishIndex) => (
+                      <div key={dishIndex} className={styles.dishItem}>
+                        {typeof dish === 'string' ? dish : dish.dish || dish.name || JSON.stringify(dish)}
+                      </div>
+                    ))
+                  ) : (
+                    <div className={styles.dishItem}>
+                      料理情報を取得中...
                     </div>
-                  ))}
+                  )}
                 </div>
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         )}
  
