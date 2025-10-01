@@ -500,7 +500,8 @@ export default function HomePage() {
               className="change-button"
               onClick={handleMealEditToggle}
               style={{ 
-                background: '#a8e6cf', 
+                /*background: '#a8e6cf', */
+                background: '#FDCB6E',
                 color: '#070707', 
                 border: 'none', 
                 borderRadius: '4px', 
@@ -510,10 +511,12 @@ export default function HomePage() {
                 transition: 'background-color 0.2s'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#8ec1ae';
+                /*e.currentTarget.style.backgroundColor = '#8ec1ae';*/
+                e.currentTarget.style.backgroundColor = '#f39c12';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#a8e6cf';
+                /*e.currentTarget.style.backgroundColor = '#a8e6cf';*/
+                e.currentTarget.style.backgroundColor = '#FDCB6E';
               }}
             >
               変更
@@ -628,7 +631,7 @@ export default function HomePage() {
             <button 
               onClick={handleMealSave}
               style={{
-                background: '#a8e6cf',
+                background: '#FDCB6E',
                 color: '#070707',
                 border: 'none',
                 borderRadius: '4px',
@@ -638,10 +641,10 @@ export default function HomePage() {
                 transition: 'background-color 0.2s'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#8ec1ae';
+                e.currentTarget.style.backgroundColor = '#f39c12';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#a8e6cf';
+                e.currentTarget.style.backgroundColor = '#FDCB6E';
               }}
             >
               保存
@@ -670,7 +673,7 @@ export default function HomePage() {
               className="change-button"
               onClick={handleHealthEditToggle}
               style={{ 
-                background: '#a8e6cf', 
+                background: '#FDCB6E', 
                 color: '#070707', 
                 border: 'none', 
                 borderRadius: '4px', 
@@ -680,10 +683,10 @@ export default function HomePage() {
                 transition: 'background-color 0.2s'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#8ec1ae';
+                e.currentTarget.style.backgroundColor = '#f39c12';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#a8e6cf';
+                e.currentTarget.style.backgroundColor = '#FDCB6E';
               }}
             >
               変更
@@ -802,7 +805,7 @@ export default function HomePage() {
             <button 
               onClick={handleHealthSave}
               style={{
-                background: '#a8e6cf',
+                background: '#FDCB6E',
                 color: '#070707',
                 border: 'none',
                 borderRadius: '4px',
@@ -812,10 +815,10 @@ export default function HomePage() {
                 transition: 'background-color 0.2s'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#8ec1ae';
+                e.currentTarget.style.backgroundColor = '#f39c12';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#a8e6cf';
+                e.currentTarget.style.backgroundColor = '#FDCB6E';
               }}
             >
               保存
