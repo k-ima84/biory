@@ -1,17 +1,21 @@
 import json
 import boto3
 import logging
+import os
 from typing import Dict, Any
 
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 
-bedrock = boto3.client('bedrock-runtime', region_name='us-east-1')
+bedrock = boto3.client('bedrock-runtime', region_name='ap-northeast-1')
+dynamodb = boto3.resource('dynamodb', region_name='ap-northeast-1')
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
     献立提案Lambda関数のメインハンドラー
     """
+    print(f"LAMBDA START: {json.dumps(event, default=str)}")  # printで強制出力
     try:
         # CORS対応
         if event.get('httpMethod') == 'OPTIONS':
@@ -19,104 +23,173 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         # リクエストボディの解析
         body = json.loads(event.get('body', '{}'))
-        user_preferences = body.get('preferences', {})
-        dietary_restrictions = body.get('dietaryRestrictions', [])
+        user_id = body.get('userId')
         target_calories = body.get('targetCalories', 2000)
         
-        # Bedrockへのプロンプト作成
-        prompt = create_meal_prompt(user_preferences, dietary_restrictions, target_calories)
+        logger.info(f"Received userId: {user_id}")
+        logger.info(f"Target calories: {target_calories}")
         
-        # Bedrock Claude 3 Haikuを呼び出し
+        # UserProfileテーブルからユーザー情報を取得
+        logger.info("Getting user profile...")
+        user_preferences = get_user_profile(user_id) if user_id else {}
+        logger.info(f"User preferences retrieved: {user_preferences}")
+        
+        # Bedrockへのプロンプト作成
+        logger.info("Creating meal prompt...")
+        prompt = create_meal_prompt(user_preferences, [], target_calories)
+        logger.info(f"Prompt created, length: {len(prompt)}")
+        print(f"PROMPT SENT TO BEDROCK: {prompt}")
+        
+        # Bedrock呼び出し
+        logger.info("Calling Bedrock API...")
+        
+        # Titan Text Expressを使用
         response = bedrock.invoke_model(
-            modelId='anthropic.claude-3-haiku-20240307-v1:0',
+            modelId='amazon.titan-text-express-v1',
             body=json.dumps({
-                "anthropic_version": "bedrock-2023-05-31",
-                "max_tokens": 1500,
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ]
+                "inputText": prompt,
+                "textGenerationConfig": {
+                    "maxTokenCount": 1000,
+                    "temperature": 0.7
+                }
             })
         )
         
         # レスポンスの解析
+        logger.info("Parsing Bedrock response...")
         response_body = json.loads(response['body'].read())
-        meal_suggestion_text = response_body['content'][0]['text']
+        logger.info(f"Bedrock response: {response_body}")
+        
+        meal_suggestion_text = response_body['results'][0]['outputText']
+        logger.info(f"Extracted text length: {len(meal_suggestion_text)}")
         
         # JSON形式の献立データを抽出
         meal_data = parse_meal_suggestion(meal_suggestion_text)
+        logger.info(f"Generated meal data: {meal_data}")
+        logger.info(f"Meal data type: {type(meal_data)}")
+        logger.info(f"Meal data length: {len(meal_data) if meal_data else 0}")
+        
+        # 各食事の詳細をログ出力
+        if meal_data:
+            for i, meal in enumerate(meal_data):
+                logger.info(f"Meal {i}: {meal}")
+        
+        debug_info = {
+            'userId': user_id,
+            'userPreferencesFound': bool(user_preferences),
+            'mealsCount': len(meal_data) if meal_data else 0,
+            'promptLength': len(prompt) if 'prompt' in locals() else 0,
+            'bedrockResponseReceived': 'meal_suggestion_text' in locals(),
+            'textLength': len(meal_suggestion_text) if 'meal_suggestion_text' in locals() else 0
+        }
+        
+        print(f"DEBUG INFO: {debug_info}")  # printで強制出力
+        
+        # レスポンスデータを準備
+        response_data = {
+            'meals': meal_data,
+            'totalCalories': sum(meal['calories'] for meal in meal_data) if meal_data else 0,
+            'timestamp': context.aws_request_id,
+            'debug': debug_info
+        }
+        
+        logger.info(f"Final response data: {response_data}")
         
         return {
             'statusCode': 200,
             'headers': cors_headers(),
-            'body': json.dumps({
-                'meals': meal_data,
-                'totalCalories': sum(meal['calories'] for meal in meal_data),
-                'timestamp': context.aws_request_id
-            }, ensure_ascii=False)
+            'body': json.dumps(response_data, ensure_ascii=False)
         }
         
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
         logger.error(f"Error in meal suggestion: {str(e)}")
+        logger.error(f"Full traceback: {error_details}")
         return {
             'statusCode': 500,
             'headers': cors_headers(),
-            'body': json.dumps({'error': 'Internal server error'})
+            'body': json.dumps({
+                'error': str(e),
+                'errorType': type(e).__name__,
+                'traceback': error_details
+            })
         }
 
 def create_meal_prompt(preferences: Dict, restrictions: list, target_calories: int) -> str:
     """
-    Bedrock用のプロンプトを作成
+    ユーザープロファイルを考慮したプロンプトを作成
     """
-    prompt = f"""
-あなたは経験豊富な栄養士です。以下の条件に基づいて1日の献立（朝食、昼食、夕食）を提案してください。
+    import random
+    import time
+    
+    breakfast_cal = int(target_calories * 0.25)
+    lunch_cal = int(target_calories * 0.35)
+    dinner_cal = int(target_calories * 0.40)
+    
+    # ユーザー情報を取得
+    favorite_foods = preferences.get('favoriteFoods', '')
+    disliked_foods = preferences.get('dislikedFoods', '')
+    allergies = preferences.get('allergies', '')
+    
+    # ユーザー情報をプロンプトに組み込み
+    user_constraints = ""
+    if favorite_foods and favorite_foods != "和食":
+        user_constraints += f"\n- 好きな食べ物: {favorite_foods}を積極的に取り入れてください"
+    if disliked_foods:
+        user_constraints += f"\n- 嫌いな食べ物: {disliked_foods}は使用しないでください"
+    if allergies and allergies != "なし":
+        user_constraints += f"\n- アレルギー: {allergies}は絶対に使用しないでください"
+    
+    # ランダム要素を追加してバリエーションを作る
+    seasons = ['春', '夏', '秋', '冬']
+    cooking_styles = ['和食', '洋食', '中華', 'イタリアン']
+    random_season = random.choice(seasons)
+    random_style = random.choice(cooking_styles)
+    random_seed = int(time.time()) % 1000
+    
+    prompt = f"""日本料理中心のバランスの良い献立をJSON形式で作成してください。
 
-【基本条件】
-- 健康的でバランスの取れた食事
-- 日本の食材を中心とした料理
-- 1日の総カロリー目安: {target_calories}kcal
-- 各食事のカロリー配分: 朝食25%, 昼食35%, 夕食40%
+条件:
+- 総カロリー: {target_calories}kcal
+- 朝食: {breakfast_cal}kcal (主食・主菜・副菜)
+- 昼食: {lunch_cal}kcal (主食・主菜・副菜)
+- 夕食: {dinner_cal}kcal (主食・主菜・副菜)
+- 季節: {random_season}の食材を使用
+- スタイル: {random_style}要素を取り入れる{user_constraints}
 
-【制約事項】
-{f"- 食事制限: {', '.join(restrictions)}" if restrictions else "- 特別な食事制限なし"}
+毎回異なる料理を提案し、各食事に主食(ごはん、パンなど)、主菜(メイン料理)、副菜(サラダ、汁物など)を含めてください。
+ランダムID: {random_seed}
 
-【ユーザーの好み】
-{json.dumps(preferences, ensure_ascii=False) if preferences else "特になし"}
+JSON形式で回答してください:
 
-以下のJSON形式で正確に回答してください:
 {{
   "meals": [
     {{
       "mealType": "朝食",
-      "calories": 500,
-      "dishes": ["料理名1", "料理名2", "料理名3", "料理名4"],
-      "color": "#FF8C42"
+      "calories": {breakfast_cal},
+      "dishes": ["主食名", "主菜名", "副菜名"]
     }},
     {{
-      "mealType": "昼食", 
-      "calories": 700,
-      "dishes": ["料理名1", "料理名2", "料理名3", "料理名4"],
-      "color": "#FF8C42"
+      "mealType": "昼食",
+      "calories": {lunch_cal},
+      "dishes": ["主食名", "主菜名", "副菜名"]
     }},
     {{
       "mealType": "夕食",
-      "calories": 800,
-      "dishes": ["料理名1", "料理名2", "料理名3", "料理名4"],
-      "color": "#FF8C42"
+      "calories": {dinner_cal},
+      "dishes": ["主食名", "主菜名", "副菜名"]
     }}
   ]
-}}
-
-JSON以外の説明文は不要です。
-"""
+}}"""
     return prompt
 
 def parse_meal_suggestion(text: str) -> list:
     """
     Bedrockからの応答をパースして献立データを抽出
     """
+    logger.info(f"Parsing Bedrock response: {text[:500]}...")  # 最初の500文字をログ出力
+    
     try:
         # JSON部分を抽出
         start_idx = text.find('{')
@@ -124,40 +197,132 @@ def parse_meal_suggestion(text: str) -> list:
         
         if start_idx != -1 and end_idx != -1:
             json_str = text[start_idx:end_idx]
+            logger.info(f"Extracted JSON: {json_str}")
             data = json.loads(json_str)
-            return data.get('meals', [])
+            meals = data.get('meals', [])
+            if meals:
+                logger.info(f"Successfully parsed {len(meals)} meals")
+                return meals
+        
+        # JSONがない場合はテキストからパース
+        logger.warning("No valid JSON found, parsing text format")
+        parsed_meals = parse_text_format(text)
+        if parsed_meals:
+            return parsed_meals
         else:
-            # フォールバック: デフォルト献立
-            return get_default_meals()
+            logger.error("Failed to parse any meal data")
+            return []
             
-    except json.JSONDecodeError:
-        logger.warning("Failed to parse Bedrock response, using default meals")
-        return get_default_meals()
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON decode error: {e}")
+        parsed_meals = parse_text_format(text)
+        if parsed_meals:
+            return parsed_meals
+        else:
+            logger.error("Failed to parse meal data after JSON error")
+            return []
+
+def parse_text_format(text: str) -> list:
+    """
+    テキスト形式のレスポンスをパース
+    """
+    try:
+        meals = []
+        lines = text.split('\n')
+        current_meal = None
+        
+        for line in lines:
+            line = line.strip()
+            if '朝食:' in line:
+                if current_meal:
+                    meals.append(current_meal)
+                current_meal = {'mealType': '朝食', 'calories': 500, 'dishes': [], 'color': '#FF8C42'}
+            elif '昼食:' in line:
+                if current_meal:
+                    meals.append(current_meal)
+                current_meal = {'mealType': '昼食', 'calories': 700, 'dishes': [], 'color': '#FF8C42'}
+            elif '夕食:' in line:
+                if current_meal:
+                    meals.append(current_meal)
+                current_meal = {'mealType': '夕食', 'calories': 800, 'dishes': [], 'color': '#FF8C42'}
+            elif current_meal and ('主食:' in line or '主菜:' in line or '副菜:' in line):
+                dish = line.split(':')[-1].strip()
+                if dish:
+                    current_meal['dishes'].append(dish)
+        
+        if current_meal:
+            meals.append(current_meal)
+        
+        # 各食事に最低1つの料理があるかチェック
+        valid_meals = [meal for meal in meals if len(meal['dishes']) > 0]
+        
+        if len(valid_meals) >= 1:  # 最低1食でもパースできればOK
+            logger.info(f"Successfully parsed {len(valid_meals)} meals from text")
+            return valid_meals
+        
+        # テキストから簡単なパースを試行
+        logger.warning("Trying simple text parsing as fallback")
+        simple_meals = create_simple_meals_from_text(text)
+        if simple_meals:
+            return simple_meals
+        
+        logger.warning("Failed to parse any valid meals from text format")
+        return []
+        
+    except Exception as e:
+        logger.error(f"Text parsing error: {e}")
+        return []
+
+def create_simple_meals_from_text(text: str) -> list:
+    """
+    シンプルなテキストパースのフォールバック
+    """
+    try:
+        # テキストから料理名らしきものを抽出
+        import re
+        
+        # 日本料理のキーワードを探す
+        food_keywords = ['ごはん', '味噌汁', '納豆', '魚', '肉', '野菜', 'サラダ', '炒め', '焼き']
+        found_foods = []
+        
+        for keyword in food_keywords:
+            if keyword in text:
+                found_foods.append(keyword)
+        
+        if len(found_foods) >= 3:  # 最低3つの料理が見つかった場合
+            return [
+                {
+                    'mealType': '朝食',
+                    'calories': 500,
+                    'dishes': found_foods[:2] + ['味噌汁'],
+                    'color': '#FF8C42'
+                },
+                {
+                    'mealType': '昼食', 
+                    'calories': 700,
+                    'dishes': found_foods[1:3] + ['ごはん'],
+                    'color': '#FF8C42'
+                },
+                {
+                    'mealType': '夕食',
+                    'calories': 800, 
+                    'dishes': found_foods[-2:] + ['野菜炒め'],
+                    'color': '#FF8C42'
+                }
+            ]
+        
+        return []
+        
+    except Exception as e:
+        logger.error(f"Simple parsing error: {e}")
+        return []
 
 def get_default_meals() -> list:
     """
-    デフォルトの献立データ
+    AIからの回答が取得できない場合のエラーメッセージ
     """
-    return [
-        {
-            "mealType": "朝食",
-            "calories": 550,
-            "dishes": ["納豆ごはん", "わかめと豆腐の味噌汁", "ゆで卵", "バナナ"],
-            "color": "#FF8C42"
-        },
-        {
-            "mealType": "昼食",
-            "calories": 600,
-            "dishes": ["ブロッコリー", "あさりのパスタ", "ほたてと野菜のサラダ", "カフェオレ（無糖）"],
-            "color": "#FF8C42"
-        },
-        {
-            "mealType": "夕食",
-            "calories": 800,
-            "dishes": ["照り焼きチキン", "マッシュルームのハンバーグ", "クレソンとにんじんの玉子炒め", "キャベツときゅうりのサラダ"],
-            "color": "#FF8C42"
-        }
-    ]
+    logger.error("AIからの献立提案が取得できませんでした")
+    return []
 
 def cors_headers() -> Dict[str, str]:
     """
@@ -169,6 +334,52 @@ def cors_headers() -> Dict[str, str]:
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization'
     }
+
+def get_user_profile(user_id: str) -> Dict:
+    """
+    DynamoDBからユーザープロファイルを取得
+    """
+    try:
+        # 実際のテーブル名を取得
+        dynamodb_client = boto3.client('dynamodb', region_name='ap-northeast-1')
+        tables = dynamodb_client.list_tables()
+        userprofile_tables = [t for t in tables['TableNames'] if 'UserProfile' in t]
+        
+        if not userprofile_tables:
+            print('UserProfile table not found. Available tables:')
+            print(tables['TableNames'])
+            return {}
+            
+        table_name = userprofile_tables[0]
+        print(f'Found and using table: {table_name}')
+        table = dynamodb.Table(table_name)
+        print(f"Scanning table {table_name} for userId: {user_id}")
+        
+        # userIdでスキャンしてユーザープロファイルを取得
+        from boto3.dynamodb.conditions import Attr
+        response = table.scan(
+            FilterExpression=Attr('userId').eq(user_id)
+        )
+        print(f"DynamoDB scan response: {response}")
+        
+        if response['Items']:
+            profile = response['Items'][0]
+            logger.info(f"Found user profile: {profile}")
+            return {
+                'favoriteFoods': profile.get('favoriteFoods', ''),
+                'dislikedFoods': profile.get('dislikedFoods', ''),
+                'allergies': profile.get('allergies', ''),
+                'gender': profile.get('gender', ''),
+                'weight': profile.get('weight', 60),
+                'height': profile.get('height', 160)
+            }
+        else:
+            logger.warning(f"No profile found for userId: {user_id}")
+            return {}
+            
+    except Exception as e:
+        logger.error(f"Error getting user profile: {str(e)}")
+        return {}
 
 def cors_response() -> Dict[str, Any]:
     """
