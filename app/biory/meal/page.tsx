@@ -29,6 +29,7 @@ export default function MealPage() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [meals, setMeals] = useState<MealData[]>([]); // 初期値は空
+  const [showMeals, setShowMeals] = useState(false); // 献立表示フラグ
   const [cognitoUserId, setCognitoUserId] = useState("");
   
 
@@ -79,7 +80,6 @@ export default function MealPage() {
   // Bedrock AIの返答をMealData[]に変換する関数
   function parseAISuggestion(suggestion: string): MealData[] {
     try {
-      // JSON部分を抽出
       const jsonMatch = suggestion.match(/```\s*JSON\s*\n([\s\S]*?)\n```/) || suggestion.match(/{[\s\S]*}/);
       if (jsonMatch) {
         const jsonStr = jsonMatch[1] || jsonMatch[0];
@@ -88,9 +88,7 @@ export default function MealPage() {
           return data.meals.map((meal: any) => ({
             mealType: meal.mealType,
             calories: meal.calories || 0,
-            dishes: Array.isArray(meal.dishes) ? meal.dishes.map((dish: any) => 
-              typeof dish === 'string' ? dish : dish.dishName || '料理'
-            ) : [],
+            dishes: Array.isArray(meal.dishes) ? meal.dishes : [],
             color: "#FF8C42"
           }));
         }
@@ -98,28 +96,7 @@ export default function MealPage() {
     } catch (error) {
       console.error('JSON parse error:', error);
     }
-    
-    // フォールバック: デフォルト献立
-    return [
-      {
-        mealType: "朝食",
-        calories: 550,
-        dishes: ["納豆ごはん", "わかめと豆腐の味噌汁", "ゆで卵", "バナナ"],
-        color: "#FF8C42"
-      },
-      {
-        mealType: "昼食",
-        calories: 600,
-        dishes: ["ブロッコリー", "あさりのパスタ", "ほたてと野菜のサラダ", "カフェオレ（無糖）"],
-        color: "#FF8C42"
-      },
-      {
-        mealType: "夕食",
-        calories: 800,
-        dishes: ["照り焼きチキン", "マッシュルームのハンバーグ", "クレソンとにんじんの玉子炒め", "キャベツときゅうりのサラダ"],
-        color: "#FF8C42"
-      }
-    ];
+    return [];
   }
 
   // ユーザープロファイル取得
@@ -138,21 +115,15 @@ export default function MealPage() {
   // 献立再生成ボタン押下時の処理
   const generateMeals = async () => {
     setLoading(true);
+    setShowMeals(false);
     try {
       // ユーザープロファイル取得
       const userProfile = await getUserProfile();
       
       const requestBody = {
-        preferences: {
-          favoriteFoods: userProfile?.favoriteFoods || '',
-          dislikedFoods: userProfile?.dislikedFoods || '',
-          allergies: userProfile?.allergies || '',
-          gender: userProfile?.gender || '',
-          weight: userProfile?.weight || 60,
-          height: userProfile?.height || 160
-        },
+        userId: cognitoUserId,
         targetCalories: 2000,
-        timestamp: new Date().toISOString() // 毎回異なるリクエストにする
+        timestamp: new Date().toISOString()
       };
       
       console.log('送信データ:', requestBody);
@@ -168,15 +139,33 @@ export default function MealPage() {
       const data = await response.json();
       console.log('APIレスポンス:', data);
       
-      if (response.ok && data.suggestion) {
-        const newMeals = parseAISuggestion(data.suggestion);
-        setMeals(newMeals);
+      console.log('Response status:', response.status);
+      console.log('Response data:', data);
+      
+      if (response.ok) {
+        if (data.meals && Array.isArray(data.meals) && data.meals.length > 0) {
+          console.log('Setting meals:', data.meals);
+          setMeals(data.meals);
+          setShowMeals(true);
+        }
+        else if (data.suggestion) {
+          console.log('Parsing suggestion:', data.suggestion);
+          const newMeals = parseAISuggestion(data.suggestion);
+          if (newMeals.length > 0) {
+            setMeals(newMeals);
+            setShowMeals(true);
+          } else {
+            console.error('パースされた献立が空です');
+          }
+        }
+        else {
+          console.error('レスポンスに献立データがありません:', data);
+        }
       } else {
-        setMeals(parseAISuggestion(''));
+        console.error('APIエラー - Status:', response.status, 'Data:', data);
       }
     } catch (error) {
       console.error('献立生成エラー:', error);
-      setMeals(parseAISuggestion(''));
     } finally {
       setLoading(false);
     }
@@ -197,9 +186,10 @@ export default function MealPage() {
           {/* ↑削除予定-------------------------------- */}
         </header>
  
-        <div className={styles.mealsContainer}>
-          {meals.map((meal, index) => (
-            <div key={index} className={styles.mealCard}>
+        {showMeals && (
+          <div className={styles.mealsContainer}>
+            {meals.map((meal, index) => (
+              <div key={index} className={styles.mealCard}>
               <div
                 className={styles.mealHeader}
                 style={{ backgroundColor: meal.color }}
@@ -241,10 +231,11 @@ export default function MealPage() {
                     </div>
                   ))}
                 </div>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
  
         <div className={styles.bottomSection}>
           <div className={styles.caloriesMeter}>

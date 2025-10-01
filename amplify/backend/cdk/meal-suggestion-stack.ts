@@ -12,103 +12,7 @@ export class MealSuggestionStack extends cdk.Stack {
     const mealSuggestionFunction = new lambda.Function(this, 'MealSuggestionFunction', {
       runtime: lambda.Runtime.PYTHON_3_11,
       handler: 'index.handler',
-      code: lambda.Code.fromInline(`
-import json
-import boto3
-import logging
-
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-
-bedrock = boto3.client('bedrock-runtime', region_name='ap-northeast-1')
-
-def handler(event, context):
-    try:
-        # リクエストボディの解析
-        body = json.loads(event.get('body', '{}'))
-        user_preferences = body.get('preferences', {})
-        
-        # Bedrockへのプロンプト作成
-        prompt = create_meal_prompt(user_preferences)
-        
-        # Bedrock Titan Text G1を呼び出し
-        response = bedrock.invoke_model(
-            modelId='amazon.titan-text-express-v1',
-            body=json.dumps({
-                "inputText": prompt,
-                "textGenerationConfig": {
-                    "maxTokenCount": 1000,
-                    "temperature": 0.7,
-                    "stopSequences": []
-                }
-            })
-        )
-        
-        # レスポンスの解析
-        response_body = json.loads(response['body'].read())
-        meal_suggestion = response_body['results'][0]['outputText']
-        
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-            },
-            'body': json.dumps({
-                'suggestion': meal_suggestion,
-                'timestamp': context.aws_request_id
-            })
-        }
-        
-    except Exception as e:
-        logger.error(f"Error: {str(e)}")
-        return {
-            'statusCode': 500,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            'body': json.dumps({'error': str(e)})
-        }
-
-def create_meal_prompt(preferences):
-    base_prompt = """
-あなたは栄養士です。以下の条件に基づいて1日の献立（朝食、昼食、夕食）を提案してください。
-
-条件:
-- 健康的でバランスの取れた食事
-- 日本の食材を中心とした料理
-- 各食事のカロリー目安: 朝食400-600kcal、昼食500-700kcal、夕食600-800kcal
-
-以下のJSON形式で回答してください:
-{
-  "meals": [
-    {
-      "mealType": "朝食",
-      "calories": 550,
-      "dishes": ["料理名1", "料理名2", "料理名3"]
-    },
-    {
-      "mealType": "昼食", 
-      "calories": 600,
-      "dishes": ["料理名1", "料理名2", "料理名3"]
-    },
-    {
-      "mealType": "夕食",
-      "calories": 750,
-      "dishes": ["料理名1", "料理名2", "料理名3"]
-    }
-  ]
-}
-"""
-    
-    if preferences:
-        base_prompt += f"\\n\\nユーザーの好み: {json.dumps(preferences, ensure_ascii=False)}"
-    
-    return base_prompt
-`),
+      code: lambda.Code.fromAsset('amplify/backend/function/meal-suggestion'),
       timeout: cdk.Duration.seconds(30),
     });
 
@@ -120,9 +24,23 @@ def create_meal_prompt(preferences):
           'bedrock:InvokeModel',
           'bedrock:InvokeModelWithResponseStream'
         ],
+        resources: ['*'],
+      })
+    );
+
+    // DynamoDBアクセス権限の付与
+    mealSuggestionFunction.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          'dynamodb:Scan',
+          'dynamodb:Query',
+          'dynamodb:GetItem',
+          'dynamodb:ListTables'
+        ],
         resources: [
-          'arn:aws:bedrock:ap-northeast-1::foundation-model/amazon.titan-text-express-v1',
-          'arn:aws:bedrock:ap-northeast-1::foundation-model/amazon.titan-*'
+          'arn:aws:dynamodb:ap-northeast-1:*:table/UserProfile-*',
+          'arn:aws:dynamodb:ap-northeast-1:*:table/*'
         ],
       })
     );
