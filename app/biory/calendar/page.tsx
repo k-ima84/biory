@@ -29,6 +29,7 @@ export default function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [dailyRecords, setDailyRecords] = useState<DailyRecord[]>([]);
+  const [monthlyMealData, setMonthlyMealData] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
 
   // Cognitoユーザー情報を取得
@@ -44,6 +45,68 @@ export default function CalendarPage() {
 
     fetchCurrentUser();
   }, []);
+
+  // 月が変更されたら月次データを取得
+  useEffect(() => {
+    if (currentUserId) {
+      fetchMonthlyMealData(currentDate);
+    }
+  }, [currentUserId, currentDate]);
+
+  // 月次の食事データを取得（ダイジェスト用）
+  const fetchMonthlyMealData = async (date: Date) => {
+    if (!currentUserId) return;
+
+    try {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      
+      // その月の最初と最後の日付を計算
+      const startDate = `${year}-${month}-01`;
+      const lastDay = new Date(year, date.getMonth() + 1, 0).getDate();
+      const endDate = `${year}-${month}-${String(lastDay).padStart(2, '0')}`;
+
+      console.log(`月次食事データ取得: ${startDate} ～ ${endDate}`);
+
+      // 月全体のDailyRecordを取得（食事記録のみ）
+      const { data: records } = await client.models.DailyRecord.list({
+        filter: {
+          and: [
+            { userId: { eq: currentUserId } },
+            { date: { ge: startDate } }, // 以上
+            { date: { le: endDate } },   // 以下
+            { mealType: { ne: null } },  // 食事タイプがnullでない
+            { content: { ne: null } }    // 内容がnullでない
+          ]
+        }
+      });
+
+      // 日付のSetを作成
+      const mealDates = new Set<string>();
+      records?.forEach(record => {
+        if (record.date) {
+          mealDates.add(record.date);
+        }
+      });
+
+      console.log(`食事記録がある日付: ${Array.from(mealDates)}`);
+      setMonthlyMealData(mealDates);
+      
+    } catch (error) {
+      console.error('月次食事データ取得エラー:', error);
+      setMonthlyMealData(new Set());
+    }
+  };
+
+  // 指定日付に食事記録があるかチェック
+  const hasMealRecord = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateString = `${year}-${month}-${day}`;
+    
+    return monthlyMealData.has(dateString);
+  };
 
   // 選択した日付のDailyRecordを取得
   const fetchDailyRecords = async (date: Date) => {
@@ -335,6 +398,9 @@ export default function CalendarPage() {
       }
       return newDate;
     });
+    // 月変更時は選択をクリア
+    setSelectedDate(null);
+    setDailyRecords([]);
   };
 
   // 日付をクリック
@@ -439,7 +505,13 @@ export default function CalendarPage() {
                 onClick={() => handleDateClick(dayData.date, dayData.isCurrentMonth)}
               >
                 <span className="day-number">{dayData.day}</span>
-                {/* 将来的にここにイベントやデータを表示 */}
+                
+                {/* 食事記録があるかチェックしてアイコン表示 */}
+                {hasMealRecord(dayData.date) && (
+                  <div className="meal-indicator">
+                    <div className="meal-icon" title="食事記録あり"></div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
