@@ -75,8 +75,8 @@ export default function CalendarPage() {
             { userId: { eq: currentUserId } },
             { date: { ge: startDate } }, // 以上
             { date: { le: endDate } },   // 以下
-            { mealType: { ne: null } },  // 食事タイプがnullでない
-            { content: { ne: null } }    // 内容がnullでない
+            { mealType: { ne: "" as any } },  // 食事タイプが空でない
+            { content: { ne: "" as any } }    // 内容が空でない
           ]
         }
       });
@@ -535,41 +535,70 @@ export default function CalendarPage() {
             ) : dailyRecords.length > 0 ? (
               <div className="daily-records">
                 <h4>📋 この日の記録</h4>
-                {dailyRecords.map((record, index) => (
-                  <div key={record.id || index} className="daily-record-item">
-                    {/* 食事記録 */}
-                    {record.mealType && record.content && (
-                      <div className="record-section meal">
-                        <div className="record-label">🍽️ {getMealTypeName(record.mealType)}</div>
-                        <div className="record-content">{record.content}</div>
-                      </div>
-                    )}
-                    
-                    {/* 体調記録 */}
-                    {record.condition && (
-                      <div className="record-section condition">
-                        <div className="record-label">💪 体調</div>
-                        <div className="record-content">{record.condition}</div>
-                      </div>
-                    )}
-                    
-                    {/* 気分記録 */}
-                    {record.mood && (
-                      <div className="record-section mood">
-                        <div className="record-label">😊 気分</div>
-                        <div className="record-content">{record.mood}</div>
-                      </div>
-                    )}
-                    
-                    {/* 体重記録 */}
-                    {record.weight && (
-                      <div className="record-section weight">
-                        <div className="record-label">⚖️ 体重</div>
-                        <div className="record-content">{record.weight}kg</div>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                {(() => {
+                  // 食事タイプの優先順位を定義
+                  const getMealTypePriority = (mealType: string | null | undefined) => {
+                    switch (mealType) {
+                      case 'breakfast': return 1; // 朝食
+                      case 'lunch': return 2;     // 昼食  
+                      case 'dinner': return 3;    // 夕食
+                      default: return 999;        // その他
+                    }
+                  };
+
+                  // 食事記録を抽出してソート
+                  const mealRecords = dailyRecords
+                    .filter(record => record.mealType && record.content)
+                    .sort((a, b) => getMealTypePriority(a.mealType) - getMealTypePriority(b.mealType));
+
+                  // その他の記録（体調、気分、体重）を抽出
+                  const otherRecords = dailyRecords.filter(record => 
+                    record.condition || record.mood || record.weight
+                  );
+
+                  return (
+                    <>
+                      {/* 食事記録を順序通りに表示 */}
+                      {mealRecords.map((record, index) => (
+                        <div key={`meal-${record.id || index}`} className="daily-record-item">
+                          <div className="record-section meal">
+                            <div className="record-label">🍽️ {getMealTypeName(record.mealType)}</div>
+                            <div className="record-content">{record.content}</div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* その他の記録を決まった順序で表示 */}
+                      {otherRecords.map((record, index) => (
+                        <div key={`other-${record.id || index}`} className="daily-record-item">
+                          {/* 体調記録 */}
+                          {record.condition && (
+                            <div className="record-section condition">
+                              <div className="record-label">💪 体調</div>
+                              <div className="record-content">{record.condition}</div>
+                            </div>
+                          )}
+                          
+                          {/* 気分記録 */}
+                          {record.mood && (
+                            <div className="record-section mood">
+                              <div className="record-label">😊 気分</div>
+                              <div className="record-content">{record.mood}</div>
+                            </div>
+                          )}
+                          
+                          {/* 体重記録 */}
+                          {record.weight && (
+                            <div className="record-section weight">
+                              <div className="record-label">⚖️ 体重</div>
+                              <div className="record-content">{record.weight}kg</div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </>
+                  );
+                })()}
               </div>
             ) : (
               <div className="no-records">
