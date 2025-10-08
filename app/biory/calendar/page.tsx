@@ -75,8 +75,9 @@ export default function CalendarPage() {
             { userId: { eq: currentUserId } },
             { date: { ge: startDate } }, // 以上
             { date: { le: endDate } },   // 以下
-            { mealType: { ne: "" as any } },  // 食事タイプが空でない
-            { content: { ne: "" as any } }    // 内容が空でない
+            { breakfast: { ne: "" as any } },  // 朝食タイプが空でない
+            { lunch: { ne: "" as any } },   // 昼食タイプが空でない
+            { dinner: { ne: "" as any } }    // 夕食タイプが空でない
           ]
         }
       });
