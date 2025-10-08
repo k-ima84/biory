@@ -76,7 +76,8 @@
 }
 
 .change-button {
-  background-color: #a8e6cf;
+  /* background-color: #a8e6cf; */
+  background-color: #FDCB6E;
   border-radius: 4px;
   padding: 5px 15px;
   font-size: 12px;
@@ -87,7 +88,8 @@
 }
 
 .change-button:hover {
-  background-color: #8ec1ae;
+  /* background-color: #8ec1ae; */
+  background-color: #f39c12;
 }
 
 .change-button:disabled {
@@ -395,13 +397,13 @@
 }
 
 .save-button {
-  background-color: #a8e6cf;
+  background-color: #FDCB6E;
   border: none; /* 枠線を削除 */
   color: #070707;
 }
 
 .save-button:hover {
- background-color: #8ec1ae;
+ background-color: #f39c12;
 }
 
 .save-button:disabled {

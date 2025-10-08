@@ -1,0 +1,1001 @@
+END RequestId: db177517-e9d4-47fe-8ddb-d0b664cc6999
+REPORT RequestId: db177517-e9d4-47fe-8ddb-d0b664cc6999	Duration: 6453.77 ms	Billed Duration: 6454 ms	Memory Size: 128 MB	Max Memory Used: 88 MB	
+START RequestId: 5b1e8190-b9d0-4a5c-bcac-bb3375e6b101 Version: $LATEST
+LAMBDA START: 
+{
+    "resource": "/meal/suggestion",
+    "path": "/meal/suggestion",
+    "httpMethod": "POST",
+    "headers": {
+        "Accept": "*/*",
+        "Accept-Encoding": "gzip, deflate, br, zstd",
+        "Accept-Language": "ja,en;q=0.9,en-GB;q=0.8,en-US;q=0.7",
+        "CloudFront-Forwarded-Proto": "https",
+        "CloudFront-Is-Desktop-Viewer": "true",
+        "CloudFront-Is-Mobile-Viewer": "false",
+        "CloudFront-Is-SmartTV-Viewer": "false",
+        "CloudFront-Is-Tablet-Viewer": "false",
+        "CloudFront-Viewer-ASN": "4713",
+        "CloudFront-Viewer-Country": "JP",
+        "content-type": "application/json",
+        "Host": "5obkiuclsb.execute-api.ap-northeast-1.amazonaws.com",
+        "origin": "http://localhost:3000",
+        "priority": "u=1, i",
+        "Referer": "http://localhost:3000/",
+        "sec-ch-ua": "\"Chromium\";v=\"140\", \"Not=A?Brand\";v=\"24\", \"Microsoft Edge\";v=\"140\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Windows\"",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "cross-site",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
+        "Via": "2.0 6dc64bdf16c402116bb875a1e27d73d2.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Id": "ZzFULb7YhI8hQ2lpF19xpGauXD_FSifPNqOIRB1gejOwtFNTheBGDA==",
+        "X-Amzn-Trace-Id": "Root=1-68dcb41c-133f80566c87817d1adcdac0",
+        "X-Forwarded-For": "180.25.36.239, 3.172.78.100",
+        "X-Forwarded-Port": "443",
+        "X-Forwarded-Proto": "https"
+    },
+    "multiValueHeaders": {
+        "Accept": [
+            "*/*"
+        ],
+        "Accept-Encoding": [
+            "gzip, deflate, br, zstd"
+        ],
+        "Accept-Language": [
+            "ja,en;q=0.9,en-GB;q=0.8,en-US;q=0.7"
+        ],
+        "CloudFront-Forwarded-Proto": [
+            "https"
+        ],
+        "CloudFront-Is-Desktop-Viewer": [
+            "true"
+        ],
+        "CloudFront-Is-Mobile-Viewer": [
+            "false"
+        ],
+        "CloudFront-Is-SmartTV-Viewer": [
+            "false"
+        ],
+        "CloudFront-Is-Tablet-Viewer": [
+            "false"
+        ],
+        "CloudFront-Viewer-ASN": [
+            "4713"
+        ],
+        "CloudFront-Viewer-Country": [
+            "JP"
+        ],
+        "content-type": [
+            "application/json"
+        ],
+        "Host": [
+            "5obkiuclsb.execute-api.ap-northeast-1.amazonaws.com"
+        ],
+        "origin": [
+            "http://localhost:3000"
+        ],
+        "priority": [
+            "u=1, i"
+        ],
+        "Referer": [
+            "http://localhost:3000/"
+        ],
+        "sec-ch-ua": [
+            "\"Chromium\";v=\"140\", \"Not=A?Brand\";v=\"24\", \"Microsoft Edge\";v=\"140\""
+        ],
+        "sec-ch-ua-mobile": [
+            "?0"
+        ],
+        "sec-ch-ua-platform": [
+            "\"Windows\""
+        ],
+        "sec-fetch-dest": [
+            "empty"
+        ],
+        "sec-fetch-mode": [
+            "cors"
+        ],
+        "sec-fetch-site": [
+            "cross-site"
+        ],
+        "User-Agent": [
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+        ],
+        "Via": [
+            "2.0 6dc64bdf16c402116bb875a1e27d73d2.cloudfront.net (CloudFront)"
+        ],
+        "X-Amz-Cf-Id": [
+            "ZzFULb7YhI8hQ2lpF19xpGauXD_FSifPNqOIRB1gejOwtFNTheBGDA=="
+        ],
+        "X-Amzn-Trace-Id": [
+            "Root=1-68dcb41c-133f80566c87817d1adcdac0"
+        ],
+        "X-Forwarded-For": [
+            "180.25.36.239, 3.172.78.100"
+        ],
+        "X-Forwarded-Port": [
+            "443"
+        ],
+        "X-Forwarded-Proto": [
+            "https"
+        ]
+    },
+    "queryStringParameters": null,
+    "multiValueQueryStringParameters": null,
+    "pathParameters": null,
+    "stageVariables": null,
+    "requestContext": {
+        "resourceId": "mxycdg",
+        "resourcePath": "/meal/suggestion",
+        "httpMethod": "POST",
+        "extendedRequestId": "RwEUcG-HtjMEp5g=",
+        "requestTime": "01/Oct/2025:04:54:52 +0000",
+        "path": "/prod/meal/suggestion",
+        "accountId": "537124973247",
+        "protocol": "HTTP/1.1",
+        "stage": "prod",
+        "domainPrefix": "5obkiuclsb",
+        "requestTimeEpoch": 1759294492055,
+        "requestId": "2df59846-adba-4e5c-92e9-d04c02638f2e",
+        "identity": {
+            "cognitoIdentityPoolId": null,
+            "accountId": null,
+            "cognitoIdentityId": null,
+            "caller": null,
+            "sourceIp": "180.25.36.239",
+            "principalOrgId": null,
+            "accessKey": null,
+            "cognitoAuthenticationType": null,
+            "cognitoAuthenticationProvider": null,
+            "userArn": null,
+            "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
+            "user": null
+        },
+        "domainName": "5obkiuclsb.execute-api.ap-northeast-1.amazonaws.com",
+        "deploymentId": "t6qjce",
+        "apiId": "5obkiuclsb"
+    },
+    "body": "{\"userId\":\"47148a78-90d1-700c-31cc-5fc3a69b7cc8\",\"targetCalories\":2000,\"timestamp\":\"2025-10-01T04:54:52.931Z\"}",
+    "isBase64Encoded": false
+}
+
+[INFO]	2025-10-01T04:54:52.096Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Received userId: 47148a78-90d1-700c-31cc-5fc3a69b7cc8
+[INFO]	2025-10-01T04:54:52.097Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Target calories: 2000
+[INFO]	2025-10-01T04:54:52.097Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Getting user profile...
+Using table: UserProfile-amplifyawsamplifygen2lemol-sandbox-c8984a154d
+[DEBUG]	2025-10-01T04:54:52.097Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Loading dynamodb:Table
+[DEBUG]	2025-10-01T04:54:52.097Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Event creating-resource-class.dynamodb.Table: calling handler <function lazy_call.<locals>._handler at 0x7f1667dc4e00>
+[DEBUG]	2025-10-01T04:54:52.098Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Event creating-resource-class.dynamodb.Table: calling handler <function lazy_call.<locals>._handler at 0x7f1667dc4d60>
+Scanning table UserProfile-amplifyawsamplifygen2lemol-sandbox-c8984a154d for userId: 47148a78-90d1-700c-31cc-5fc3a69b7cc8
+[DEBUG]	2025-10-01T04:54:52.098Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Calling dynamodb:scan with {'TableName': 'UserProfile-amplifyawsamplifygen2lemol-sandbox-c8984a154d', 'FilterExpression': 'userId = :uid', 'ExpressionAttributeValues': {':uid': '47148a78-90d1-700c-31cc-5fc3a69b7cc8'}}
+[DEBUG]	2025-10-01T04:54:52.098Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Event provide-client-params.dynamodb.Scan: calling handler <function copy_dynamodb_params at 0x7f16674e4f40>
+[DEBUG]	2025-10-01T04:54:52.098Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Event before-parameter-build.dynamodb.Scan: calling handler <bound method TransformationInjector.inject_condition_expressions of <boto3.dynamodb.transform.TransformationInjector object at 0x7f16674f02d0>>
+[DEBUG]	2025-10-01T04:54:52.098Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Event before-parameter-build.dynamodb.Scan: calling handler <bound method TransformationInjector.inject_attribute_value_input of <boto3.dynamodb.transform.TransformationInjector object at 0x7f16674f02d0>>
+[DEBUG]	2025-10-01T04:54:52.098Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Event before-parameter-build.dynamodb.Scan: calling handler <function generate_idempotent_uuid at 0x7f1668523560>
+[DEBUG]	2025-10-01T04:54:52.098Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Event before-parameter-build.dynamodb.Scan: calling handler <function _handle_request_validation_mode_member at 0x7f166854a0c0>
+[DEBUG]	2025-10-01T04:54:52.098Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Event before-parameter-build.dynamodb.Scan: calling handler <function block_endpoint_discovery_required_operations at 0x7f166867aac0>
+[DEBUG]	2025-10-01T04:54:52.098Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Calling endpoint provider with parameters: {'Region': 'ap-northeast-1', 'UseDualStack': False, 'UseFIPS': False, 'AccountIdEndpointMode': 'preferred', 'ResourceArn': 'UserProfile-amplifyawsamplifygen2lemol-sandbox-c8984a154d'}
+[DEBUG]	2025-10-01T04:54:52.098Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Endpoint provider result: https://dynamodb.ap-northeast-1.amazonaws.com
+[DEBUG]	2025-10-01T04:54:52.099Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Event before-call.dynamodb.Scan: calling handler <function add_recursion_detection_header at 0x7f1668521d00>
+[DEBUG]	2025-10-01T04:54:52.099Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Event before-call.dynamodb.Scan: calling handler <function inject_api_version_header_if_needed at 0x7f1668549080>
+[DEBUG]	2025-10-01T04:54:52.099Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Making request for OperationModel(name=Scan) with params: {'url_path': '/', 'query_string': '', 'method': 'POST', 'headers': {'X-Amz-Target': 'DynamoDB_20120810.Scan', 'Content-Type': 'application/x-amz-json-1.0', 'User-Agent': 'Boto3/1.40.4 md/Botocore#1.40.4 ua/2.1 os/linux#5.10.242-265.962.amzn2.x86_64 md/arch#x86_64 lang/python#3.11.13 md/pyimpl#CPython exec-env/AWS_Lambda_python3.11 m/b,D,Z,P cfg/retry-mode#legacy Botocore/1.40.4 Resource', 'X-Amzn-Trace-Id': 'Root=1-68dcb41c-133f80566c87817d1adcdac0;Parent=587cd7fc6566f5c5;Sampled=0;Lineage=1:2d4ee70a:0'}, 'body': b'{"TableName": "UserProfile-amplifyawsamplifygen2lemol-sandbox-c8984a154d", "FilterExpression": "userId = :uid", "ExpressionAttributeValues": {":uid": {"S": "47148a78-90d1-700c-31cc-5fc3a69b7cc8"}}}', 'url': 'https://dynamodb.ap-northeast-1.amazonaws.com/', 'context': {'client_region': 'ap-northeast-1', 'client_config': <botocore.config.Config object at 0x7f16674d8ed0>, 'has_streaming_input': False, 'auth_type': None, 'unsigned_payload': None, 'auth_options': ['aws.auth#sigv4']}}
+[DEBUG]	2025-10-01T04:54:52.099Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Event request-created.dynamodb.Scan: calling handler <bound method RequestSigner.handler of <botocore.signers.RequestSigner object at 0x7f16674d8e90>>
+[DEBUG]	2025-10-01T04:54:52.099Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Event choose-signer.dynamodb.Scan: calling handler <function set_operation_specific_signer at 0x7f16685232e0>
+[DEBUG]	2025-10-01T04:54:52.099Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Event choose-signer.dynamodb.Scan: calling handler <function _set_auth_scheme_preference_signer at 0x7f166854a200>
+[DEBUG]	2025-10-01T04:54:52.099Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Calculating signature using v4 auth.
+[DEBUG]	2025-10-01T04:54:52.099Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	CanonicalRequest:
+POST
+/
+
+content-type:application/x-amz-json-1.0
+host:dynamodb.ap-northeast-1.amazonaws.com
+x-amz-date:20251001T045452Z
+x-amz-security-token:IQoJb3JpZ2luX2VjEHUaDmFwLW5vcnRoZWFzdC0xIkYwRAIgZ/WV+s0iClbe7Ym+qJnseLk1H00UKMrJAs5DAHbZ2QgCIHBRersnTdjbwR20sSWClGcSIwv6gQzmegBcP3u09pTdKuEDCP7//////////wEQABoMNTM3MTI0OTczMjQ3IgzAcJxE8SySXUFHK24qtQOaKTfbyKtLGTNw9brlVhOxxuyPbSKjzp1Rb2DqtXaKYu0zpmjeO9BKlxefjoElbyyZ99gqIFz24n0Vnza+wz75CL8WB78D68grcM8frERPw41OepB8ORfs4zM51o9UWEIo/ouSnE62C2PvJ/YzSPFbjd98f18Zr9CJsrE/0VcJysWCi0LvvnFd1VGcCrDQFhjdP8Iwx/8XK1SqO4oTpJ0kvbOdeU0bBlIfcLdIaVKDCMJRK9/F4t7V/nkpm8CZQBbgMuByQesEXqZK1RiGXS9KGLtoufdF44aIc0rKAgd4gcK+QO6GNg2xTy+7fGhwRsPQTq6kiXGaEJ7bYpX3BL1VtzBUqqs8AcOxp3c6hTBU/aXyZi/qZWHWObgRNhTp6V2g9lmqx7OqFIF8jRt1H8hq/hgWscnQ/bQq+0gTkX51hN3I0hwRKJX7Pxw706aGguKr1K0zv1VzNjxEDyj6GB585ID0JP0zLHy6gt2pn6xIh+DAVHc20ggxzCVgRzlGj3xRtpQZzg1z7dvolvLsDSneI7SVe8hYlfw5aShW81ZgedVLVMM75DJ3gOZOsnr2fKSsr7+kMDC85/LGBjqfAV/3EKCRuErM2NX1vpJ54Lbga+ypzGUEuh0nbKgWdctItl1kG/2tFbe2+0YSY8w01LwAncvZ6ICXQhXSRVHunCYF7PHApwJkMdDA71KO7ztrLLuOW2URvQgOpbEkPIs7Cu+zHvHngRxX+aEcRoNcWRU7lWhaM5Z9Kc0x4h4/WxzLRXHayO8KHjZZ0aL+F55j8gARyMmPRhX+RvrNX5b/Uw==
+x-amz-target:DynamoDB_20120810.Scan
+
+content-type;host;x-amz-date;x-amz-security-token;x-amz-target
+4a35c513e97949abb73383f05cf1b224bf13a2bb67d521a31ea410b7cfbb7cad
+[DEBUG]	2025-10-01T04:54:52.099Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	StringToSign:
+AWS4-HMAC-SHA256
+20251001T045452Z
+20251001/ap-northeast-1/dynamodb/aws4_request
+2b7d445e32c74a28000dcb1488d67b0acf1b9cfa52db302f7d75b3bccda9d8a8
+[DEBUG]	2025-10-01T04:54:52.099Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Signature:
+c295bd87cd67048ab691d84b28fe66bfb32130d4e10a16b127f48387e3b27977
+[DEBUG]	2025-10-01T04:54:52.099Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Event request-created.dynamodb.Scan: calling handler <bound method UserAgentString.rebuild_and_replace_user_agent_handler of <botocore.useragent.UserAgentString object at 0x7f16674b5f90>>
+[DEBUG]	2025-10-01T04:54:52.100Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Event request-created.dynamodb.Scan: calling handler <function add_retry_headers at 0x7f1668549940>
+[DEBUG]	2025-10-01T04:54:52.156Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Sending http request: <AWSPreparedRequest stream_output=False, method=POST, url=https://dynamodb.ap-northeast-1.amazonaws.com/, headers={'X-Amz-Target': b'DynamoDB_20120810.Scan', 'Content-Type': b'application/x-amz-json-1.0', 'User-Agent': b'Boto3/1.40.4 md/Botocore#1.40.4 ua/2.1 os/linux#5.10.242-265.962.amzn2.x86_64 md/arch#x86_64 lang/python#3.11.13 md/pyimpl#CPython exec-env/AWS_Lambda_python3.11 m/b,D,Z,P cfg/retry-mode#legacy Botocore/1.40.4 Resource', 'X-Amzn-Trace-Id': b'Root=1-68dcb41c-133f80566c87817d1adcdac0;Parent=587cd7fc6566f5c5;Sampled=0;Lineage=1:2d4ee70a:0', 'X-Amz-Date': b'20251001T045452Z', 'X-Amz-Security-Token': b'IQoJb3JpZ2luX2VjEHUaDmFwLW5vcnRoZWFzdC0xIkYwRAIgZ/WV+s0iClbe7Ym+qJnseLk1H00UKMrJAs5DAHbZ2QgCIHBRersnTdjbwR20sSWClGcSIwv6gQzmegBcP3u09pTdKuEDCP7//////////wEQABoMNTM3MTI0OTczMjQ3IgzAcJxE8SySXUFHK24qtQOaKTfbyKtLGTNw9brlVhOxxuyPbSKjzp1Rb2DqtXaKYu0zpmjeO9BKlxefjoElbyyZ99gqIFz24n0Vnza+wz75CL8WB78D68grcM8frERPw41OepB8ORfs4zM51o9UWEIo/ouSnE62C2PvJ/YzSPFbjd98f18Zr9CJsrE/0VcJysWCi0LvvnFd1VGcCrDQFhjdP8Iwx/8XK1SqO4oTpJ0kvbOdeU0bBlIfcLdIaVKDCMJRK9/F4t7V/nkpm8CZQBbgMuByQesEXqZK1RiGXS9KGLtoufdF44aIc0rKAgd4gcK+QO6GNg2xTy+7fGhwRsPQTq6kiXGaEJ7bYpX3BL1VtzBUqqs8AcOxp3c6hTBU/aXyZi/qZWHWObgRNhTp6V2g9lmqx7OqFIF8jRt1H8hq/hgWscnQ/bQq+0gTkX51hN3I0hwRKJX7Pxw706aGguKr1K0zv1VzNjxEDyj6GB585ID0JP0zLHy6gt2pn6xIh+DAVHc20ggxzCVgRzlGj3xRtpQZzg1z7dvolvLsDSneI7SVe8hYlfw5aShW81ZgedVLVMM75DJ3gOZOsnr2fKSsr7+kMDC85/LGBjqfAV/3EKCRuErM2NX1vpJ54Lbga+ypzGUEuh0nbKgWdctItl1kG/2tFbe2+0YSY8w01LwAncvZ6ICXQhXSRVHunCYF7PHApwJkMdDA71KO7ztrLLuOW2URvQgOpbEkPIs7Cu+zHvHngRxX+aEcRoNcWRU7lWhaM5Z9Kc0x4h4/WxzLRXHayO8KHjZZ0aL+F55j8gARyMmPRhX+RvrNX5b/Uw==', 'Authorization': b'AWS4-HMAC-SHA256 Credential=ASIAX2DZEVK74DRC4HQS/20251001/ap-northeast-1/dynamodb/aws4_request, SignedHeaders=content-type;host;x-amz-date;x-amz-security-token;x-amz-target, Signature=c295bd87cd67048ab691d84b28fe66bfb32130d4e10a16b127f48387e3b27977', 'amz-sdk-invocation-id': b'ed9258d1-28b3-4d13-8166-67ba045bb09a', 'amz-sdk-request': b'attempt=1', 'Content-Length': '197'}>
+[DEBUG]	2025-10-01T04:54:52.156Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Certificate path: /var/lang/lib/python3.11/site-packages/botocore/cacert.pem
+[DEBUG]	2025-10-01T04:54:52.162Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	https://dynamodb.ap-northeast-1.amazonaws.com:443 "POST / HTTP/1.1" 400 112
+[DEBUG]	2025-10-01T04:54:52.162Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Response headers: {'Server': 'Server', 'Date': 'Wed, 01 Oct 2025 04:54:52 GMT', 'Content-Type': 'application/x-amz-json-1.0', 'Content-Length': '112', 'Connection': 'keep-alive', 'x-amzn-RequestId': 'QS85F788UO1KBSC9VEJGQT67E3VV4KQNSO5AEMVJF66Q9ASUAAJG', 'x-amz-crc32': '3737639027'}
+[DEBUG]	2025-10-01T04:54:52.162Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Response body:
+b'
+{
+    "__type": "com.amazonaws.dynamodb.v20120810#ResourceNotFoundException",
+    "message": "Requested resource not found"
+}
+'
+[DEBUG]	2025-10-01T04:54:52.162Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Response headers: {'Server': 'Server', 'Date': 'Wed, 01 Oct 2025 04:54:52 GMT', 'Content-Type': 'application/x-amz-json-1.0', 'Content-Length': '112', 'Connection': 'keep-alive', 'x-amzn-RequestId': 'QS85F788UO1KBSC9VEJGQT67E3VV4KQNSO5AEMVJF66Q9ASUAAJG', 'x-amz-crc32': '3737639027'}
+[DEBUG]	2025-10-01T04:54:52.163Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Response body:
+b'
+{
+    "__type": "com.amazonaws.dynamodb.v20120810#ResourceNotFoundException",
+    "message": "Requested resource not found"
+}
+'
+[DEBUG]	2025-10-01T04:54:52.163Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Event needs-retry.dynamodb.Scan: calling handler <botocore.retryhandler.RetryHandler object at 0x7f16674f01d0>
+[DEBUG]	2025-10-01T04:54:52.163Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	No retry needed.
+[DEBUG]	2025-10-01T04:54:52.163Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Event after-call.dynamodb.Scan: calling handler <bound method TransformationInjector.inject_attribute_value_output of <boto3.dynamodb.transform.TransformationInjector object at 0x7f16674f02d0>>
+[ERROR]	2025-10-01T04:54:52.163Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Error getting user profile: An error occurred (ResourceNotFoundException) when calling the Scan operation: Requested resource not found
+[INFO]	2025-10-01T04:54:52.163Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	User preferences retrieved: 
+{}
+
+[INFO]	2025-10-01T04:54:52.163Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Creating meal prompt...
+[INFO]	2025-10-01T04:54:52.163Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Prompt created, length: 486
+PROMPT SENT TO BEDROCK: 
+JSON形式で献立を提案してください。以下の条件で献立を作成してください。
+条件:
+- 総カロリー: 2000kcal
+- 朝食500kcal、昼食700kcal、夕食800kcal
+- 日本料理中心
+- 具体的な料理名を使用
+必ず以下の形式でJSONのみを返してください:
+{
+"meals": [
+{
+"mealType": "朝食",
+"calories": 500,
+"dishes": ["納豆ごはん", "味噌汁", "玉子焼き"]
+},
+{
+"mealType": "昼食",
+"calories": 700,
+"dishes": ["さばの味噌汁", "おにぎり", "サラダ"]
+},
+{
+"mealType": "夕食",
+"calories": 800,
+"dishes": ["焼き魚", "ごはん", "野菜炒め"]
+}
+]
+}
+JSON以外の文字は一切返さないでください。
+[INFO]	2025-10-01T04:54:52.163Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Calling Bedrock API...
+[DEBUG]	2025-10-01T04:54:52.163Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Event before-parameter-build.bedrock-runtime.InvokeModel: calling handler <function generate_idempotent_uuid at 0x7f1668523560>
+[DEBUG]	2025-10-01T04:54:52.163Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Event before-parameter-build.bedrock-runtime.InvokeModel: calling handler <function _handle_request_validation_mode_member at 0x7f166854a0c0>
+[DEBUG]	2025-10-01T04:54:52.163Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Calling endpoint provider with parameters: {'Region': 'ap-northeast-1', 'UseDualStack': False, 'UseFIPS': False}
+[DEBUG]	2025-10-01T04:54:52.163Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Endpoint provider result: https://bedrock-runtime.ap-northeast-1.amazonaws.com
+[DEBUG]	2025-10-01T04:54:52.164Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Event before-call.bedrock-runtime.InvokeModel: calling handler <function add_recursion_detection_header at 0x7f1668521d00>
+[DEBUG]	2025-10-01T04:54:52.164Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Event before-call.bedrock-runtime.InvokeModel: calling handler <function inject_api_version_header_if_needed at 0x7f1668549080>
+[DEBUG]	2025-10-01T04:54:52.196Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Making request for OperationModel(name=InvokeModel) with params: {'url_path': '/model/amazon.titan-text-express-v1/invoke', 'query_string': {}, 'method': 'POST', 'headers': {'User-Agent': 'Boto3/1.40.4 md/Botocore#1.40.4 ua/2.1 os/linux#5.10.242-265.962.amzn2.x86_64 md/arch#x86_64 lang/python#3.11.13 md/pyimpl#CPython exec-env/AWS_Lambda_python3.11 m/b,D,Z cfg/retry-mode#legacy Botocore/1.40.4', 'X-Amzn-Trace-Id': 'Root=1-68dcb41c-133f80566c87817d1adcdac0;Parent=587cd7fc6566f5c5;Sampled=0;Lineage=1:2d4ee70a:0'}, 'body': b'{"inputText": "\\nJSON\\u5f62\\u5f0f\\u3067\\u732e\\u7acb\\u3092\\u63d0\\u6848\\u3057\\u3066\\u304f\\u3060\\u3055\\u3044\\u3002\\u4ee5\\u4e0b\\u306e\\u6761\\u4ef6\\u3067\\u732e\\u7acb\\u3092\\u4f5c\\u6210\\u3057\\u3066\\u304f\\u3060\\u3055\\u3044\\u3002\\n\\n\\u6761\\u4ef6:\\n- \\u7dcf\\u30ab\\u30ed\\u30ea\\u30fc: 2000kcal\\n- \\u671d\\u98df500kcal\\u3001\\u663c\\u98df700kcal\\u3001\\u5915\\u98df800kcal\\n- \\u65e5\\u672c\\u6599\\u7406\\u4e2d\\u5fc3\\n- \\u5177\\u4f53\\u7684\\u306a\\u6599\\u7406\\u540d\\u3092\\u4f7f\\u7528\\n\\n\\u5fc5\\u305a\\u4ee5\\u4e0b\\u306e\\u5f62\\u5f0f\\u3067JSON\\u306e\\u307f\\u3092\\u8fd4\\u3057\\u3066\\u304f\\u3060\\u3055\\u3044:\\n{\\n  \\"meals\\": [\\n    {\\n      \\"mealType\\": \\"\\u671d\\u98df\\",\\n      \\"calories\\": 500,\\n      \\"dishes\\": [\\"\\u7d0d\\u8c46\\u3054\\u306f\\u3093\\", \\"\\u5473\\u564c\\u6c41\\", \\"\\u7389\\u5b50\\u713c\\u304d\\"]\\n    },\\n    {\\n      \\"mealType\\": \\"\\u663c\\u98df\\",\\n      \\"calories\\": 700,\\n      \\"dishes\\": [\\"\\u3055\\u3070\\u306e\\u5473\\u564c\\u6c41\\", \\"\\u304a\\u306b\\u304e\\u308a\\", \\"\\u30b5\\u30e9\\u30c0\\"]\\n    },\\n    {\\n      \\"mealType\\": \\"\\u5915\\u98df\\",\\n      \\"calories\\": 800,\\n      \\"dishes\\": [\\"\\u713c\\u304d\\u9b5a\\", \\"\\u3054\\u306f\\u3093\\", \\"\\u91ce\\u83dc\\u7092\\u3081\\"]\\n    }\\n  ]\\n}\\n\\nJSON\\u4ee5\\u5916\\u306e\\u6587\\u5b57\\u306f\\u4e00\\u5207\\u8fd4\\u3055\\u306a\\u3044\\u3067\\u304f\\u3060\\u3055\\u3044\\u3002", "textGenerationConfig": {"maxTokenCount": 1500, "temperature": 0.7, "stopSequences": []}}', 'url': 'https://bedrock-runtime.ap-northeast-1.amazonaws.com/model/amazon.titan-text-express-v1/invoke', 'context': {'client_region': 'ap-northeast-1', 'client_config': <botocore.config.Config object at 0x7f1669d59210>, 'has_streaming_input': True, 'auth_type': None, 'unsigned_payload': None, 'auth_options': ['aws.auth#sigv4', 'smithy.api#httpBearerAuth']}}
+[DEBUG]	2025-10-01T04:54:52.196Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Event request-created.bedrock-runtime.InvokeModel: calling handler <bound method RequestSigner.handler of <botocore.signers.RequestSigner object at 0x7f1667b8df50>>
+[DEBUG]	2025-10-01T04:54:52.196Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Event choose-signer.bedrock-runtime.InvokeModel: calling handler <function set_operation_specific_signer at 0x7f16685232e0>
+[DEBUG]	2025-10-01T04:54:52.196Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Event choose-signer.bedrock-runtime.InvokeModel: calling handler <function _set_auth_scheme_preference_signer at 0x7f166854a200>
+[DEBUG]	2025-10-01T04:54:52.196Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Calculating signature using v4 auth.
+[DEBUG]	2025-10-01T04:54:52.196Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	CanonicalRequest:
+POST
+/model/amazon.titan-text-express-v1/invoke
+
+host:bedrock-runtime.ap-northeast-1.amazonaws.com
+x-amz-date:20251001T045452Z
+x-amz-security-token:IQoJb3JpZ2luX2VjEHUaDmFwLW5vcnRoZWFzdC0xIkYwRAIgZ/WV+s0iClbe7Ym+qJnseLk1H00UKMrJAs5DAHbZ2QgCIHBRersnTdjbwR20sSWClGcSIwv6gQzmegBcP3u09pTdKuEDCP7//////////wEQABoMNTM3MTI0OTczMjQ3IgzAcJxE8SySXUFHK24qtQOaKTfbyKtLGTNw9brlVhOxxuyPbSKjzp1Rb2DqtXaKYu0zpmjeO9BKlxefjoElbyyZ99gqIFz24n0Vnza+wz75CL8WB78D68grcM8frERPw41OepB8ORfs4zM51o9UWEIo/ouSnE62C2PvJ/YzSPFbjd98f18Zr9CJsrE/0VcJysWCi0LvvnFd1VGcCrDQFhjdP8Iwx/8XK1SqO4oTpJ0kvbOdeU0bBlIfcLdIaVKDCMJRK9/F4t7V/nkpm8CZQBbgMuByQesEXqZK1RiGXS9KGLtoufdF44aIc0rKAgd4gcK+QO6GNg2xTy+7fGhwRsPQTq6kiXGaEJ7bYpX3BL1VtzBUqqs8AcOxp3c6hTBU/aXyZi/qZWHWObgRNhTp6V2g9lmqx7OqFIF8jRt1H8hq/hgWscnQ/bQq+0gTkX51hN3I0hwRKJX7Pxw706aGguKr1K0zv1VzNjxEDyj6GB585ID0JP0zLHy6gt2pn6xIh+DAVHc20ggxzCVgRzlGj3xRtpQZzg1z7dvolvLsDSneI7SVe8hYlfw5aShW81ZgedVLVMM75DJ3gOZOsnr2fKSsr7+kMDC85/LGBjqfAV/3EKCRuErM2NX1vpJ54Lbga+ypzGUEuh0nbKgWdctItl1kG/2tFbe2+0YSY8w01LwAncvZ6ICXQhXSRVHunCYF7PHApwJkMdDA71KO7ztrLLuOW2URvQgOpbEkPIs7Cu+zHvHngRxX+aEcRoNcWRU7lWhaM5Z9Kc0x4h4/WxzLRXHayO8KHjZZ0aL+F55j8gARyMmPRhX+RvrNX5b/Uw==
+
+host;x-amz-date;x-amz-security-token
+af634e4f8c90a65c4c54d4edcce343a3d36fb05faebf0f567947bdbb4f47c350
+[DEBUG]	2025-10-01T04:54:52.196Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	StringToSign:
+AWS4-HMAC-SHA256
+20251001T045452Z
+20251001/ap-northeast-1/bedrock/aws4_request
+394a216b1f283a04905efc957a9ede2073ef28297f83a52cac78ebb6da642481
+[DEBUG]	2025-10-01T04:54:52.197Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Signature:
+1771964e80e33667b3e5a4af3547866c0b6d19e9964b490feb8edbc148964504
+[DEBUG]	2025-10-01T04:54:52.197Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Event request-created.bedrock-runtime.InvokeModel: calling handler <bound method UserAgentString.rebuild_and_replace_user_agent_handler of <botocore.useragent.UserAgentString object at 0x7f1667b8ed50>>
+[DEBUG]	2025-10-01T04:54:52.197Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Event request-created.bedrock-runtime.InvokeModel: calling handler <function add_retry_headers at 0x7f1668549940>
+[DEBUG]	2025-10-01T04:54:52.197Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Sending http request: <AWSPreparedRequest stream_output=True, method=POST, url=https://bedrock-runtime.ap-northeast-1.amazonaws.com/model/amazon.titan-text-express-v1/invoke, headers={'User-Agent': b'Boto3/1.40.4 md/Botocore#1.40.4 ua/2.1 os/linux#5.10.242-265.962.amzn2.x86_64 md/arch#x86_64 lang/python#3.11.13 md/pyimpl#CPython exec-env/AWS_Lambda_python3.11 m/b,D,Z cfg/retry-mode#legacy Botocore/1.40.4', 'X-Amzn-Trace-Id': b'Root=1-68dcb41c-133f80566c87817d1adcdac0;Parent=587cd7fc6566f5c5;Sampled=0;Lineage=1:2d4ee70a:0', 'X-Amz-Date': b'20251001T045452Z', 'X-Amz-Security-Token': b'IQoJb3JpZ2luX2VjEHUaDmFwLW5vcnRoZWFzdC0xIkYwRAIgZ/WV+s0iClbe7Ym+qJnseLk1H00UKMrJAs5DAHbZ2QgCIHBRersnTdjbwR20sSWClGcSIwv6gQzmegBcP3u09pTdKuEDCP7//////////wEQABoMNTM3MTI0OTczMjQ3IgzAcJxE8SySXUFHK24qtQOaKTfbyKtLGTNw9brlVhOxxuyPbSKjzp1Rb2DqtXaKYu0zpmjeO9BKlxefjoElbyyZ99gqIFz24n0Vnza+wz75CL8WB78D68grcM8frERPw41OepB8ORfs4zM51o9UWEIo/ouSnE62C2PvJ/YzSPFbjd98f18Zr9CJsrE/0VcJysWCi0LvvnFd1VGcCrDQFhjdP8Iwx/8XK1SqO4oTpJ0kvbOdeU0bBlIfcLdIaVKDCMJRK9/F4t7V/nkpm8CZQBbgMuByQesEXqZK1RiGXS9KGLtoufdF44aIc0rKAgd4gcK+QO6GNg2xTy+7fGhwRsPQTq6kiXGaEJ7bYpX3BL1VtzBUqqs8AcOxp3c6hTBU/aXyZi/qZWHWObgRNhTp6V2g9lmqx7OqFIF8jRt1H8hq/hgWscnQ/bQq+0gTkX51hN3I0hwRKJX7Pxw706aGguKr1K0zv1VzNjxEDyj6GB585ID0JP0zLHy6gt2pn6xIh+DAVHc20ggxzCVgRzlGj3xRtpQZzg1z7dvolvLsDSneI7SVe8hYlfw5aShW81ZgedVLVMM75DJ3gOZOsnr2fKSsr7+kMDC85/LGBjqfAV/3EKCRuErM2NX1vpJ54Lbga+ypzGUEuh0nbKgWdctItl1kG/2tFbe2+0YSY8w01LwAncvZ6ICXQhXSRVHunCYF7PHApwJkMdDA71KO7ztrLLuOW2URvQgOpbEkPIs7Cu+zHvHngRxX+aEcRoNcWRU7lWhaM5Z9Kc0x4h4/WxzLRXHayO8KHjZZ0aL+F55j8gARyMmPRhX+RvrNX5b/Uw==', 'Authorization': b'AWS4-HMAC-SHA256 Credential=ASIAX2DZEVK74DRC4HQS/20251001/ap-northeast-1/bedrock/aws4_request, SignedHeaders=host;x-amz-date;x-amz-security-token, Signature=1771964e80e33667b3e5a4af3547866c0b6d19e9964b490feb8edbc148964504', 'amz-sdk-invocation-id': b'8e40f441-898c-4aa7-9587-6d57ccd209af', 'amz-sdk-request': b'attempt=1', 'Content-Length': '1372'}>
+[DEBUG]	2025-10-01T04:54:52.197Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Certificate path: /var/lang/lib/python3.11/site-packages/botocore/cacert.pem
+[DEBUG]	2025-10-01T04:54:52.569Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	https://bedrock-runtime.ap-northeast-1.amazonaws.com:443 "POST /model/amazon.titan-text-express-v1/invoke HTTP/1.1" 200 100
+[DEBUG]	2025-10-01T04:54:52.569Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Response headers: {'Date': 'Wed, 01 Oct 2025 04:54:52 GMT', 'Content-Type': 'application/json', 'Content-Length': '100', 'Connection': 'keep-alive', 'x-amzn-RequestId': 'ebe2e5d0-e307-4b97-9e4c-5d95d807e45d', 'X-Amzn-Bedrock-Invocation-Latency': '368', 'X-Amzn-Bedrock-Output-Token-Count': '1', 'X-Amzn-Bedrock-Input-Token-Count': '243'}
+[DEBUG]	2025-10-01T04:54:52.570Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Response body:
+<botocore.response.StreamingBody object at 0x7f166734cb20>
+[DEBUG]	2025-10-01T04:54:52.570Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Event needs-retry.bedrock-runtime.InvokeModel: calling handler <botocore.retryhandler.RetryHandler object at 0x7f1667b9f450>
+[DEBUG]	2025-10-01T04:54:52.570Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	No retry needed.
+[INFO]	2025-10-01T04:54:52.570Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Parsing Bedrock response...
+[INFO]	2025-10-01T04:54:52.570Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Bedrock response: {'inputTextTokenCount': 243, 'results': [{'tokenCount': 1, 'outputText': '', 'completionReason': 'FINISH'}]}
+[INFO]	2025-10-01T04:54:52.570Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Extracted text length: 0
+[INFO]	2025-10-01T04:54:52.570Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Parsing Bedrock response: ...
+[WARNING]	2025-10-01T04:54:52.570Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	No valid JSON found in response
+[INFO]	2025-10-01T04:54:52.570Z	5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Generated meal data: [{'mealType': '朝食', 'calories': 550, 'dishes': ['納豆ごはん', 'わかめと豆腐の味噌汁', 'ゆで卵', 'バナナ'], 'color': '#FF8C42'}, {'mealType': '昼食', 'calories': 600, 'dishes': ['ブロッコリー', 'あさりのパスタ', 'ほたてと野菜のサラダ', 'カフェオレ（無糖）'], 'color': '#FF8C42'}, {'mealType': '夕食', 'calories': 800, 'dishes': ['照り焼きチキン', 'マッシュルームのハンバーグ', 'クレソンとにんじんの玉子炒め', 'キャベツときゅうりのサラダ'], 'color': '#FF8C42'}]
+DEBUG INFO: {'userId': '47148a78-90d1-700c-31cc-5fc3a69b7cc8', 'userPreferencesFound': False, 'mealsCount': 3, 'promptLength': 486, 'bedrockResponseReceived': True, 'textLength': 0}
+END RequestId: 5b1e8190-b9d0-4a5c-bcac-bb3375e6b101
+REPORT RequestId: 5b1e8190-b9d0-4a5c-bcac-bb3375e6b101	Duration: 483.16 ms	Billed Duration: 484 ms	Memory Size: 128 MB	Max Memory Used: 88 MB	
+START RequestId: 685e2f00-9044-49a4-816c-87179aea5b8a Version: $LATEST
+LAMBDA START: 
+{
+    "resource": "/meal/suggestion",
+    "path": "/meal/suggestion",
+    "httpMethod": "POST",
+    "headers": {
+        "Accept": "*/*",
+        "Accept-Encoding": "gzip, deflate, br, zstd",
+        "Accept-Language": "ja,en;q=0.9,en-GB;q=0.8,en-US;q=0.7",
+        "CloudFront-Forwarded-Proto": "https",
+        "CloudFront-Is-Desktop-Viewer": "true",
+        "CloudFront-Is-Mobile-Viewer": "false",
+        "CloudFront-Is-SmartTV-Viewer": "false",
+        "CloudFront-Is-Tablet-Viewer": "false",
+        "CloudFront-Viewer-ASN": "4713",
+        "CloudFront-Viewer-Country": "JP",
+        "content-type": "application/json",
+        "Host": "5obkiuclsb.execute-api.ap-northeast-1.amazonaws.com",
+        "origin": "http://localhost:3000",
+        "priority": "u=1, i",
+        "Referer": "http://localhost:3000/",
+        "sec-ch-ua": "\"Chromium\";v=\"140\", \"Not=A?Brand\";v=\"24\", \"Microsoft Edge\";v=\"140\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Windows\"",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "cross-site",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
+        "Via": "2.0 6dc64bdf16c402116bb875a1e27d73d2.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Id": "1f6kr5zeK7IwqdMDmzcT_VVwUriqlYZ039BkyrcIdQctCxhEAE59XA==",
+        "X-Amzn-Trace-Id": "Root=1-68dcb41d-61a0e399182c86594f4d91c7",
+        "X-Forwarded-For": "180.25.36.239, 3.172.78.113",
+        "X-Forwarded-Port": "443",
+        "X-Forwarded-Proto": "https"
+    },
+    "multiValueHeaders": {
+        "Accept": [
+            "*/*"
+        ],
+        "Accept-Encoding": [
+            "gzip, deflate, br, zstd"
+        ],
+        "Accept-Language": [
+            "ja,en;q=0.9,en-GB;q=0.8,en-US;q=0.7"
+        ],
+        "CloudFront-Forwarded-Proto": [
+            "https"
+        ],
+        "CloudFront-Is-Desktop-Viewer": [
+            "true"
+        ],
+        "CloudFront-Is-Mobile-Viewer": [
+            "false"
+        ],
+        "CloudFront-Is-SmartTV-Viewer": [
+            "false"
+        ],
+        "CloudFront-Is-Tablet-Viewer": [
+            "false"
+        ],
+        "CloudFront-Viewer-ASN": [
+            "4713"
+        ],
+        "CloudFront-Viewer-Country": [
+            "JP"
+        ],
+        "content-type": [
+            "application/json"
+        ],
+        "Host": [
+            "5obkiuclsb.execute-api.ap-northeast-1.amazonaws.com"
+        ],
+        "origin": [
+            "http://localhost:3000"
+        ],
+        "priority": [
+            "u=1, i"
+        ],
+        "Referer": [
+            "http://localhost:3000/"
+        ],
+        "sec-ch-ua": [
+            "\"Chromium\";v=\"140\", \"Not=A?Brand\";v=\"24\", \"Microsoft Edge\";v=\"140\""
+        ],
+        "sec-ch-ua-mobile": [
+            "?0"
+        ],
+        "sec-ch-ua-platform": [
+            "\"Windows\""
+        ],
+        "sec-fetch-dest": [
+            "empty"
+        ],
+        "sec-fetch-mode": [
+            "cors"
+        ],
+        "sec-fetch-site": [
+            "cross-site"
+        ],
+        "User-Agent": [
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+        ],
+        "Via": [
+            "2.0 6dc64bdf16c402116bb875a1e27d73d2.cloudfront.net (CloudFront)"
+        ],
+        "X-Amz-Cf-Id": [
+            "1f6kr5zeK7IwqdMDmzcT_VVwUriqlYZ039BkyrcIdQctCxhEAE59XA=="
+        ],
+        "X-Amzn-Trace-Id": [
+            "Root=1-68dcb41d-61a0e399182c86594f4d91c7"
+        ],
+        "X-Forwarded-For": [
+            "180.25.36.239, 3.172.78.113"
+        ],
+        "X-Forwarded-Port": [
+            "443"
+        ],
+        "X-Forwarded-Proto": [
+            "https"
+        ]
+    },
+    "queryStringParameters": null,
+    "multiValueQueryStringParameters": null,
+    "pathParameters": null,
+    "stageVariables": null,
+    "requestContext": {
+        "resourceId": "mxycdg",
+        "resourcePath": "/meal/suggestion",
+        "httpMethod": "POST",
+        "extendedRequestId": "RwEUuH8NtjMEiiw=",
+        "requestTime": "01/Oct/2025:04:54:53 +0000",
+        "path": "/prod/meal/suggestion",
+        "accountId": "537124973247",
+        "protocol": "HTTP/1.1",
+        "stage": "prod",
+        "domainPrefix": "5obkiuclsb",
+        "requestTimeEpoch": 1759294493814,
+        "requestId": "9aa6649c-5b83-4fbc-9fae-0cd5cebf5b00",
+        "identity": {
+            "cognitoIdentityPoolId": null,
+            "accountId": null,
+            "cognitoIdentityId": null,
+            "caller": null,
+            "sourceIp": "180.25.36.239",
+            "principalOrgId": null,
+            "accessKey": null,
+            "cognitoAuthenticationType": null,
+            "cognitoAuthenticationProvider": null,
+            "userArn": null,
+            "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
+            "user": null
+        },
+        "domainName": "5obkiuclsb.execute-api.ap-northeast-1.amazonaws.com",
+        "deploymentId": "t6qjce",
+        "apiId": "5obkiuclsb"
+    },
+    "body": "{\"userId\":\"47148a78-90d1-700c-31cc-5fc3a69b7cc8\",\"targetCalories\":2000,\"timestamp\":\"2025-10-01T04:54:54.718Z\"}",
+    "isBase64Encoded": false
+}
+
+[INFO]	2025-10-01T04:54:53.835Z	685e2f00-9044-49a4-816c-87179aea5b8a	Received userId: 47148a78-90d1-700c-31cc-5fc3a69b7cc8
+[INFO]	2025-10-01T04:54:53.835Z	685e2f00-9044-49a4-816c-87179aea5b8a	Target calories: 2000
+[INFO]	2025-10-01T04:54:53.836Z	685e2f00-9044-49a4-816c-87179aea5b8a	Getting user profile...
+Using table: UserProfile-amplifyawsamplifygen2lemol-sandbox-c8984a154d
+[DEBUG]	2025-10-01T04:54:53.836Z	685e2f00-9044-49a4-816c-87179aea5b8a	Loading dynamodb:Table
+[DEBUG]	2025-10-01T04:54:53.836Z	685e2f00-9044-49a4-816c-87179aea5b8a	Event creating-resource-class.dynamodb.Table: calling handler <function lazy_call.<locals>._handler at 0x7f1667dc4e00>
+[DEBUG]	2025-10-01T04:54:53.836Z	685e2f00-9044-49a4-816c-87179aea5b8a	Event creating-resource-class.dynamodb.Table: calling handler <function lazy_call.<locals>._handler at 0x7f1667dc4d60>
+Scanning table UserProfile-amplifyawsamplifygen2lemol-sandbox-c8984a154d for userId: 47148a78-90d1-700c-31cc-5fc3a69b7cc8
+[DEBUG]	2025-10-01T04:54:53.837Z	685e2f00-9044-49a4-816c-87179aea5b8a	Calling dynamodb:scan with {'TableName': 'UserProfile-amplifyawsamplifygen2lemol-sandbox-c8984a154d', 'FilterExpression': 'userId = :uid', 'ExpressionAttributeValues': {':uid': '47148a78-90d1-700c-31cc-5fc3a69b7cc8'}}
+[DEBUG]	2025-10-01T04:54:53.837Z	685e2f00-9044-49a4-816c-87179aea5b8a	Event provide-client-params.dynamodb.Scan: calling handler <function copy_dynamodb_params at 0x7f16674e4f40>
+[DEBUG]	2025-10-01T04:54:53.837Z	685e2f00-9044-49a4-816c-87179aea5b8a	Event before-parameter-build.dynamodb.Scan: calling handler <bound method TransformationInjector.inject_condition_expressions of <boto3.dynamodb.transform.TransformationInjector object at 0x7f16674f02d0>>
+[DEBUG]	2025-10-01T04:54:53.837Z	685e2f00-9044-49a4-816c-87179aea5b8a	Event before-parameter-build.dynamodb.Scan: calling handler <bound method TransformationInjector.inject_attribute_value_input of <boto3.dynamodb.transform.TransformationInjector object at 0x7f16674f02d0>>
+[DEBUG]	2025-10-01T04:54:53.837Z	685e2f00-9044-49a4-816c-87179aea5b8a	Event before-parameter-build.dynamodb.Scan: calling handler <function generate_idempotent_uuid at 0x7f1668523560>
+[DEBUG]	2025-10-01T04:54:53.837Z	685e2f00-9044-49a4-816c-87179aea5b8a	Event before-parameter-build.dynamodb.Scan: calling handler <function _handle_request_validation_mode_member at 0x7f166854a0c0>
+[DEBUG]	2025-10-01T04:54:53.837Z	685e2f00-9044-49a4-816c-87179aea5b8a	Event before-parameter-build.dynamodb.Scan: calling handler <function block_endpoint_discovery_required_operations at 0x7f166867aac0>
+[DEBUG]	2025-10-01T04:54:53.837Z	685e2f00-9044-49a4-816c-87179aea5b8a	Calling endpoint provider with parameters: {'Region': 'ap-northeast-1', 'UseDualStack': False, 'UseFIPS': False, 'AccountIdEndpointMode': 'preferred', 'ResourceArn': 'UserProfile-amplifyawsamplifygen2lemol-sandbox-c8984a154d'}
+[DEBUG]	2025-10-01T04:54:53.837Z	685e2f00-9044-49a4-816c-87179aea5b8a	Endpoint provider result: https://dynamodb.ap-northeast-1.amazonaws.com
+[DEBUG]	2025-10-01T04:54:53.838Z	685e2f00-9044-49a4-816c-87179aea5b8a	Event before-call.dynamodb.Scan: calling handler <function add_recursion_detection_header at 0x7f1668521d00>
+[DEBUG]	2025-10-01T04:54:53.838Z	685e2f00-9044-49a4-816c-87179aea5b8a	Event before-call.dynamodb.Scan: calling handler <function inject_api_version_header_if_needed at 0x7f1668549080>
+[DEBUG]	2025-10-01T04:54:53.838Z	685e2f00-9044-49a4-816c-87179aea5b8a	Making request for OperationModel(name=Scan) with params: {'url_path': '/', 'query_string': '', 'method': 'POST', 'headers': {'X-Amz-Target': 'DynamoDB_20120810.Scan', 'Content-Type': 'application/x-amz-json-1.0', 'User-Agent': 'Boto3/1.40.4 md/Botocore#1.40.4 ua/2.1 os/linux#5.10.242-265.962.amzn2.x86_64 md/arch#x86_64 lang/python#3.11.13 md/pyimpl#CPython exec-env/AWS_Lambda_python3.11 m/b,D,Z,P cfg/retry-mode#legacy Botocore/1.40.4 Resource', 'X-Amzn-Trace-Id': 'Root=1-68dcb41d-61a0e399182c86594f4d91c7;Parent=453c7374419f8ae0;Sampled=0;Lineage=1:2d4ee70a:0'}, 'body': b'{"TableName": "UserProfile-amplifyawsamplifygen2lemol-sandbox-c8984a154d", "FilterExpression": "userId = :uid", "ExpressionAttributeValues": {":uid": {"S": "47148a78-90d1-700c-31cc-5fc3a69b7cc8"}}}', 'url': 'https://dynamodb.ap-northeast-1.amazonaws.com/', 'context': {'client_region': 'ap-northeast-1', 'client_config': <botocore.config.Config object at 0x7f16674d8ed0>, 'has_streaming_input': False, 'auth_type': None, 'unsigned_payload': None, 'auth_options': ['aws.auth#sigv4']}}
+[DEBUG]	2025-10-01T04:54:53.838Z	685e2f00-9044-49a4-816c-87179aea5b8a	Event request-created.dynamodb.Scan: calling handler <bound method RequestSigner.handler of <botocore.signers.RequestSigner object at 0x7f16674d8e90>>
+[DEBUG]	2025-10-01T04:54:53.838Z	685e2f00-9044-49a4-816c-87179aea5b8a	Event choose-signer.dynamodb.Scan: calling handler <function set_operation_specific_signer at 0x7f16685232e0>
+[DEBUG]	2025-10-01T04:54:53.838Z	685e2f00-9044-49a4-816c-87179aea5b8a	Event choose-signer.dynamodb.Scan: calling handler <function _set_auth_scheme_preference_signer at 0x7f166854a200>
+[DEBUG]	2025-10-01T04:54:53.838Z	685e2f00-9044-49a4-816c-87179aea5b8a	Calculating signature using v4 auth.
+[DEBUG]	2025-10-01T04:54:53.838Z	685e2f00-9044-49a4-816c-87179aea5b8a	CanonicalRequest:
+POST
+/
+
+content-type:application/x-amz-json-1.0
+host:dynamodb.ap-northeast-1.amazonaws.com
+x-amz-date:20251001T045453Z
+x-amz-security-token:IQoJb3JpZ2luX2VjEHUaDmFwLW5vcnRoZWFzdC0xIkYwRAIgZ/WV+s0iClbe7Ym+qJnseLk1H00UKMrJAs5DAHbZ2QgCIHBRersnTdjbwR20sSWClGcSIwv6gQzmegBcP3u09pTdKuEDCP7//////////wEQABoMNTM3MTI0OTczMjQ3IgzAcJxE8SySXUFHK24qtQOaKTfbyKtLGTNw9brlVhOxxuyPbSKjzp1Rb2DqtXaKYu0zpmjeO9BKlxefjoElbyyZ99gqIFz24n0Vnza+wz75CL8WB78D68grcM8frERPw41OepB8ORfs4zM51o9UWEIo/ouSnE62C2PvJ/YzSPFbjd98f18Zr9CJsrE/0VcJysWCi0LvvnFd1VGcCrDQFhjdP8Iwx/8XK1SqO4oTpJ0kvbOdeU0bBlIfcLdIaVKDCMJRK9/F4t7V/nkpm8CZQBbgMuByQesEXqZK1RiGXS9KGLtoufdF44aIc0rKAgd4gcK+QO6GNg2xTy+7fGhwRsPQTq6kiXGaEJ7bYpX3BL1VtzBUqqs8AcOxp3c6hTBU/aXyZi/qZWHWObgRNhTp6V2g9lmqx7OqFIF8jRt1H8hq/hgWscnQ/bQq+0gTkX51hN3I0hwRKJX7Pxw706aGguKr1K0zv1VzNjxEDyj6GB585ID0JP0zLHy6gt2pn6xIh+DAVHc20ggxzCVgRzlGj3xRtpQZzg1z7dvolvLsDSneI7SVe8hYlfw5aShW81ZgedVLVMM75DJ3gOZOsnr2fKSsr7+kMDC85/LGBjqfAV/3EKCRuErM2NX1vpJ54Lbga+ypzGUEuh0nbKgWdctItl1kG/2tFbe2+0YSY8w01LwAncvZ6ICXQhXSRVHunCYF7PHApwJkMdDA71KO7ztrLLuOW2URvQgOpbEkPIs7Cu+zHvHngRxX+aEcRoNcWRU7lWhaM5Z9Kc0x4h4/WxzLRXHayO8KHjZZ0aL+F55j8gARyMmPRhX+RvrNX5b/Uw==
+x-amz-target:DynamoDB_20120810.Scan
+
+content-type;host;x-amz-date;x-amz-security-token;x-amz-target
+4a35c513e97949abb73383f05cf1b224bf13a2bb67d521a31ea410b7cfbb7cad
+[DEBUG]	2025-10-01T04:54:53.838Z	685e2f00-9044-49a4-816c-87179aea5b8a	StringToSign:
+AWS4-HMAC-SHA256
+20251001T045453Z
+20251001/ap-northeast-1/dynamodb/aws4_request
+169e032f8cdfe1b4724a5da6ad10672778863e86272a6df5216172da89e85d74
+[DEBUG]	2025-10-01T04:54:53.838Z	685e2f00-9044-49a4-816c-87179aea5b8a	Signature:
+6f724e52d90264d8d7516ae36136663d6d7cbe7a4c94d10f8cd88b70b7514574
+[DEBUG]	2025-10-01T04:54:53.838Z	685e2f00-9044-49a4-816c-87179aea5b8a	Event request-created.dynamodb.Scan: calling handler <bound method UserAgentString.rebuild_and_replace_user_agent_handler of <botocore.useragent.UserAgentString object at 0x7f16674b5f90>>
+[DEBUG]	2025-10-01T04:54:53.838Z	685e2f00-9044-49a4-816c-87179aea5b8a	Event request-created.dynamodb.Scan: calling handler <function add_retry_headers at 0x7f1668549940>
+[DEBUG]	2025-10-01T04:54:53.839Z	685e2f00-9044-49a4-816c-87179aea5b8a	Sending http request: <AWSPreparedRequest stream_output=False, method=POST, url=https://dynamodb.ap-northeast-1.amazonaws.com/, headers={'X-Amz-Target': b'DynamoDB_20120810.Scan', 'Content-Type': b'application/x-amz-json-1.0', 'User-Agent': b'Boto3/1.40.4 md/Botocore#1.40.4 ua/2.1 os/linux#5.10.242-265.962.amzn2.x86_64 md/arch#x86_64 lang/python#3.11.13 md/pyimpl#CPython exec-env/AWS_Lambda_python3.11 m/b,D,Z,P cfg/retry-mode#legacy Botocore/1.40.4 Resource', 'X-Amzn-Trace-Id': b'Root=1-68dcb41d-61a0e399182c86594f4d91c7;Parent=453c7374419f8ae0;Sampled=0;Lineage=1:2d4ee70a:0', 'X-Amz-Date': b'20251001T045453Z', 'X-Amz-Security-Token': b'IQoJb3JpZ2luX2VjEHUaDmFwLW5vcnRoZWFzdC0xIkYwRAIgZ/WV+s0iClbe7Ym+qJnseLk1H00UKMrJAs5DAHbZ2QgCIHBRersnTdjbwR20sSWClGcSIwv6gQzmegBcP3u09pTdKuEDCP7//////////wEQABoMNTM3MTI0OTczMjQ3IgzAcJxE8SySXUFHK24qtQOaKTfbyKtLGTNw9brlVhOxxuyPbSKjzp1Rb2DqtXaKYu0zpmjeO9BKlxefjoElbyyZ99gqIFz24n0Vnza+wz75CL8WB78D68grcM8frERPw41OepB8ORfs4zM51o9UWEIo/ouSnE62C2PvJ/YzSPFbjd98f18Zr9CJsrE/0VcJysWCi0LvvnFd1VGcCrDQFhjdP8Iwx/8XK1SqO4oTpJ0kvbOdeU0bBlIfcLdIaVKDCMJRK9/F4t7V/nkpm8CZQBbgMuByQesEXqZK1RiGXS9KGLtoufdF44aIc0rKAgd4gcK+QO6GNg2xTy+7fGhwRsPQTq6kiXGaEJ7bYpX3BL1VtzBUqqs8AcOxp3c6hTBU/aXyZi/qZWHWObgRNhTp6V2g9lmqx7OqFIF8jRt1H8hq/hgWscnQ/bQq+0gTkX51hN3I0hwRKJX7Pxw706aGguKr1K0zv1VzNjxEDyj6GB585ID0JP0zLHy6gt2pn6xIh+DAVHc20ggxzCVgRzlGj3xRtpQZzg1z7dvolvLsDSneI7SVe8hYlfw5aShW81ZgedVLVMM75DJ3gOZOsnr2fKSsr7+kMDC85/LGBjqfAV/3EKCRuErM2NX1vpJ54Lbga+ypzGUEuh0nbKgWdctItl1kG/2tFbe2+0YSY8w01LwAncvZ6ICXQhXSRVHunCYF7PHApwJkMdDA71KO7ztrLLuOW2URvQgOpbEkPIs7Cu+zHvHngRxX+aEcRoNcWRU7lWhaM5Z9Kc0x4h4/WxzLRXHayO8KHjZZ0aL+F55j8gARyMmPRhX+RvrNX5b/Uw==', 'Authorization': b'AWS4-HMAC-SHA256 Credential=ASIAX2DZEVK74DRC4HQS/20251001/ap-northeast-1/dynamodb/aws4_request, SignedHeaders=content-type;host;x-amz-date;x-amz-security-token;x-amz-target, Signature=6f724e52d90264d8d7516ae36136663d6d7cbe7a4c94d10f8cd88b70b7514574', 'amz-sdk-invocation-id': b'89598fb2-9875-4c39-b3a5-32d71a94e388', 'amz-sdk-request': b'attempt=1', 'Content-Length': '197'}>
+[DEBUG]	2025-10-01T04:54:53.839Z	685e2f00-9044-49a4-816c-87179aea5b8a	Certificate path: /var/lang/lib/python3.11/site-packages/botocore/cacert.pem
+[DEBUG]	2025-10-01T04:54:53.876Z	685e2f00-9044-49a4-816c-87179aea5b8a	https://dynamodb.ap-northeast-1.amazonaws.com:443 "POST / HTTP/1.1" 400 112
+[DEBUG]	2025-10-01T04:54:53.876Z	685e2f00-9044-49a4-816c-87179aea5b8a	Response headers: {'Server': 'Server', 'Date': 'Wed, 01 Oct 2025 04:54:53 GMT', 'Content-Type': 'application/x-amz-json-1.0', 'Content-Length': '112', 'Connection': 'keep-alive', 'x-amzn-RequestId': '0KTTL7RC1KI1HBF92O8NDLELGVVV4KQNSO5AEMVJF66Q9ASUAAJG', 'x-amz-crc32': '3737639027'}
+[DEBUG]	2025-10-01T04:54:53.876Z	685e2f00-9044-49a4-816c-87179aea5b8a	Response body:
+b'
+{
+    "__type": "com.amazonaws.dynamodb.v20120810#ResourceNotFoundException",
+    "message": "Requested resource not found"
+}
+'
+[DEBUG]	2025-10-01T04:54:53.877Z	685e2f00-9044-49a4-816c-87179aea5b8a	Response headers: {'Server': 'Server', 'Date': 'Wed, 01 Oct 2025 04:54:53 GMT', 'Content-Type': 'application/x-amz-json-1.0', 'Content-Length': '112', 'Connection': 'keep-alive', 'x-amzn-RequestId': '0KTTL7RC1KI1HBF92O8NDLELGVVV4KQNSO5AEMVJF66Q9ASUAAJG', 'x-amz-crc32': '3737639027'}
+[DEBUG]	2025-10-01T04:54:53.877Z	685e2f00-9044-49a4-816c-87179aea5b8a	Response body:
+b'
+{
+    "__type": "com.amazonaws.dynamodb.v20120810#ResourceNotFoundException",
+    "message": "Requested resource not found"
+}
+'
+[DEBUG]	2025-10-01T04:54:53.877Z	685e2f00-9044-49a4-816c-87179aea5b8a	Event needs-retry.dynamodb.Scan: calling handler <botocore.retryhandler.RetryHandler object at 0x7f16674f01d0>
+[DEBUG]	2025-10-01T04:54:53.877Z	685e2f00-9044-49a4-816c-87179aea5b8a	No retry needed.
+[DEBUG]	2025-10-01T04:54:53.877Z	685e2f00-9044-49a4-816c-87179aea5b8a	Event after-call.dynamodb.Scan: calling handler <bound method TransformationInjector.inject_attribute_value_output of <boto3.dynamodb.transform.TransformationInjector object at 0x7f16674f02d0>>
+[ERROR]	2025-10-01T04:54:53.877Z	685e2f00-9044-49a4-816c-87179aea5b8a	Error getting user profile: An error occurred (ResourceNotFoundException) when calling the Scan operation: Requested resource not found
+[INFO]	2025-10-01T04:54:53.877Z	685e2f00-9044-49a4-816c-87179aea5b8a	User preferences retrieved: 
+{}
+
+[INFO]	2025-10-01T04:54:53.877Z	685e2f00-9044-49a4-816c-87179aea5b8a	Creating meal prompt...
+[INFO]	2025-10-01T04:54:53.877Z	685e2f00-9044-49a4-816c-87179aea5b8a	Prompt created, length: 486
+PROMPT SENT TO BEDROCK: 
+JSON形式で献立を提案してください。以下の条件で献立を作成してください。
+条件:
+- 総カロリー: 2000kcal
+- 朝食500kcal、昼食700kcal、夕食800kcal
+- 日本料理中心
+- 具体的な料理名を使用
+必ず以下の形式でJSONのみを返してください:
+{
+"meals": [
+{
+"mealType": "朝食",
+"calories": 500,
+"dishes": ["納豆ごはん", "味噌汁", "玉子焼き"]
+},
+{
+"mealType": "昼食",
+"calories": 700,
+"dishes": ["さばの味噌汁", "おにぎり", "サラダ"]
+},
+{
+"mealType": "夕食",
+"calories": 800,
+"dishes": ["焼き魚", "ごはん", "野菜炒め"]
+}
+]
+}
+JSON以外の文字は一切返さないでください。
+[INFO]	2025-10-01T04:54:53.877Z	685e2f00-9044-49a4-816c-87179aea5b8a	Calling Bedrock API...
+[DEBUG]	2025-10-01T04:54:53.877Z	685e2f00-9044-49a4-816c-87179aea5b8a	Event before-parameter-build.bedrock-runtime.InvokeModel: calling handler <function generate_idempotent_uuid at 0x7f1668523560>
+[DEBUG]	2025-10-01T04:54:53.877Z	685e2f00-9044-49a4-816c-87179aea5b8a	Event before-parameter-build.bedrock-runtime.InvokeModel: calling handler <function _handle_request_validation_mode_member at 0x7f166854a0c0>
+[DEBUG]	2025-10-01T04:54:53.877Z	685e2f00-9044-49a4-816c-87179aea5b8a	Calling endpoint provider with parameters: {'Region': 'ap-northeast-1', 'UseDualStack': False, 'UseFIPS': False}
+[DEBUG]	2025-10-01T04:54:53.877Z	685e2f00-9044-49a4-816c-87179aea5b8a	Endpoint provider result: https://bedrock-runtime.ap-northeast-1.amazonaws.com
+[DEBUG]	2025-10-01T04:54:53.878Z	685e2f00-9044-49a4-816c-87179aea5b8a	Event before-call.bedrock-runtime.InvokeModel: calling handler <function add_recursion_detection_header at 0x7f1668521d00>
+[DEBUG]	2025-10-01T04:54:53.878Z	685e2f00-9044-49a4-816c-87179aea5b8a	Event before-call.bedrock-runtime.InvokeModel: calling handler <function inject_api_version_header_if_needed at 0x7f1668549080>
+[DEBUG]	2025-10-01T04:54:53.878Z	685e2f00-9044-49a4-816c-87179aea5b8a	Making request for OperationModel(name=InvokeModel) with params: {'url_path': '/model/amazon.titan-text-express-v1/invoke', 'query_string': {}, 'method': 'POST', 'headers': {'User-Agent': 'Boto3/1.40.4 md/Botocore#1.40.4 ua/2.1 os/linux#5.10.242-265.962.amzn2.x86_64 md/arch#x86_64 lang/python#3.11.13 md/pyimpl#CPython exec-env/AWS_Lambda_python3.11 m/b,D,Z cfg/retry-mode#legacy Botocore/1.40.4', 'X-Amzn-Trace-Id': 'Root=1-68dcb41d-61a0e399182c86594f4d91c7;Parent=453c7374419f8ae0;Sampled=0;Lineage=1:2d4ee70a:0'}, 'body': b'{"inputText": "\\nJSON\\u5f62\\u5f0f\\u3067\\u732e\\u7acb\\u3092\\u63d0\\u6848\\u3057\\u3066\\u304f\\u3060\\u3055\\u3044\\u3002\\u4ee5\\u4e0b\\u306e\\u6761\\u4ef6\\u3067\\u732e\\u7acb\\u3092\\u4f5c\\u6210\\u3057\\u3066\\u304f\\u3060\\u3055\\u3044\\u3002\\n\\n\\u6761\\u4ef6:\\n- \\u7dcf\\u30ab\\u30ed\\u30ea\\u30fc: 2000kcal\\n- \\u671d\\u98df500kcal\\u3001\\u663c\\u98df700kcal\\u3001\\u5915\\u98df800kcal\\n- \\u65e5\\u672c\\u6599\\u7406\\u4e2d\\u5fc3\\n- \\u5177\\u4f53\\u7684\\u306a\\u6599\\u7406\\u540d\\u3092\\u4f7f\\u7528\\n\\n\\u5fc5\\u305a\\u4ee5\\u4e0b\\u306e\\u5f62\\u5f0f\\u3067JSON\\u306e\\u307f\\u3092\\u8fd4\\u3057\\u3066\\u304f\\u3060\\u3055\\u3044:\\n{\\n  \\"meals\\": [\\n    {\\n      \\"mealType\\": \\"\\u671d\\u98df\\",\\n      \\"calories\\": 500,\\n      \\"dishes\\": [\\"\\u7d0d\\u8c46\\u3054\\u306f\\u3093\\", \\"\\u5473\\u564c\\u6c41\\", \\"\\u7389\\u5b50\\u713c\\u304d\\"]\\n    },\\n    {\\n      \\"mealType\\": \\"\\u663c\\u98df\\",\\n      \\"calories\\": 700,\\n      \\"dishes\\": [\\"\\u3055\\u3070\\u306e\\u5473\\u564c\\u6c41\\", \\"\\u304a\\u306b\\u304e\\u308a\\", \\"\\u30b5\\u30e9\\u30c0\\"]\\n    },\\n    {\\n      \\"mealType\\": \\"\\u5915\\u98df\\",\\n      \\"calories\\": 800,\\n      \\"dishes\\": [\\"\\u713c\\u304d\\u9b5a\\", \\"\\u3054\\u306f\\u3093\\", \\"\\u91ce\\u83dc\\u7092\\u3081\\"]\\n    }\\n  ]\\n}\\n\\nJSON\\u4ee5\\u5916\\u306e\\u6587\\u5b57\\u306f\\u4e00\\u5207\\u8fd4\\u3055\\u306a\\u3044\\u3067\\u304f\\u3060\\u3055\\u3044\\u3002", "textGenerationConfig": {"maxTokenCount": 1500, "temperature": 0.7, "stopSequences": []}}', 'url': 'https://bedrock-runtime.ap-northeast-1.amazonaws.com/model/amazon.titan-text-express-v1/invoke', 'context': {'client_region': 'ap-northeast-1', 'client_config': <botocore.config.Config object at 0x7f1669d59210>, 'has_streaming_input': True, 'auth_type': None, 'unsigned_payload': None, 'auth_options': ['aws.auth#sigv4', 'smithy.api#httpBearerAuth']}}
+[DEBUG]	2025-10-01T04:54:53.878Z	685e2f00-9044-49a4-816c-87179aea5b8a	Event request-created.bedrock-runtime.InvokeModel: calling handler <bound method RequestSigner.handler of <botocore.signers.RequestSigner object at 0x7f1667b8df50>>
+[DEBUG]	2025-10-01T04:54:53.878Z	685e2f00-9044-49a4-816c-87179aea5b8a	Event choose-signer.bedrock-runtime.InvokeModel: calling handler <function set_operation_specific_signer at 0x7f16685232e0>
+[DEBUG]	2025-10-01T04:54:53.878Z	685e2f00-9044-49a4-816c-87179aea5b8a	Event choose-signer.bedrock-runtime.InvokeModel: calling handler <function _set_auth_scheme_preference_signer at 0x7f166854a200>
+[DEBUG]	2025-10-01T04:54:53.878Z	685e2f00-9044-49a4-816c-87179aea5b8a	Calculating signature using v4 auth.
+[DEBUG]	2025-10-01T04:54:53.878Z	685e2f00-9044-49a4-816c-87179aea5b8a	CanonicalRequest:
+POST
+/model/amazon.titan-text-express-v1/invoke
+
+host:bedrock-runtime.ap-northeast-1.amazonaws.com
+x-amz-date:20251001T045453Z
+x-amz-security-token:IQoJb3JpZ2luX2VjEHUaDmFwLW5vcnRoZWFzdC0xIkYwRAIgZ/WV+s0iClbe7Ym+qJnseLk1H00UKMrJAs5DAHbZ2QgCIHBRersnTdjbwR20sSWClGcSIwv6gQzmegBcP3u09pTdKuEDCP7//////////wEQABoMNTM3MTI0OTczMjQ3IgzAcJxE8SySXUFHK24qtQOaKTfbyKtLGTNw9brlVhOxxuyPbSKjzp1Rb2DqtXaKYu0zpmjeO9BKlxefjoElbyyZ99gqIFz24n0Vnza+wz75CL8WB78D68grcM8frERPw41OepB8ORfs4zM51o9UWEIo/ouSnE62C2PvJ/YzSPFbjd98f18Zr9CJsrE/0VcJysWCi0LvvnFd1VGcCrDQFhjdP8Iwx/8XK1SqO4oTpJ0kvbOdeU0bBlIfcLdIaVKDCMJRK9/F4t7V/nkpm8CZQBbgMuByQesEXqZK1RiGXS9KGLtoufdF44aIc0rKAgd4gcK+QO6GNg2xTy+7fGhwRsPQTq6kiXGaEJ7bYpX3BL1VtzBUqqs8AcOxp3c6hTBU/aXyZi/qZWHWObgRNhTp6V2g9lmqx7OqFIF8jRt1H8hq/hgWscnQ/bQq+0gTkX51hN3I0hwRKJX7Pxw706aGguKr1K0zv1VzNjxEDyj6GB585ID0JP0zLHy6gt2pn6xIh+DAVHc20ggxzCVgRzlGj3xRtpQZzg1z7dvolvLsDSneI7SVe8hYlfw5aShW81ZgedVLVMM75DJ3gOZOsnr2fKSsr7+kMDC85/LGBjqfAV/3EKCRuErM2NX1vpJ54Lbga+ypzGUEuh0nbKgWdctItl1kG/2tFbe2+0YSY8w01LwAncvZ6ICXQhXSRVHunCYF7PHApwJkMdDA71KO7ztrLLuOW2URvQgOpbEkPIs7Cu+zHvHngRxX+aEcRoNcWRU7lWhaM5Z9Kc0x4h4/WxzLRXHayO8KHjZZ0aL+F55j8gARyMmPRhX+RvrNX5b/Uw==
+
+host;x-amz-date;x-amz-security-token
+af634e4f8c90a65c4c54d4edcce343a3d36fb05faebf0f567947bdbb4f47c350
+[DEBUG]	2025-10-01T04:54:53.878Z	685e2f00-9044-49a4-816c-87179aea5b8a	StringToSign:
+AWS4-HMAC-SHA256
+20251001T045453Z
+20251001/ap-northeast-1/bedrock/aws4_request
+b6d35fe67d55bf112cfa88494c53ce979094118e88ee6f5c081e4720d34e08c7
+[DEBUG]	2025-10-01T04:54:53.878Z	685e2f00-9044-49a4-816c-87179aea5b8a	Signature:
+8a0f5f8eef19c8e6191450e3ca3a9ade0a5262fd289887370faae329cb9b88df
+[DEBUG]	2025-10-01T04:54:53.878Z	685e2f00-9044-49a4-816c-87179aea5b8a	Event request-created.bedrock-runtime.InvokeModel: calling handler <bound method UserAgentString.rebuild_and_replace_user_agent_handler of <botocore.useragent.UserAgentString object at 0x7f1667b8ed50>>
+[DEBUG]	2025-10-01T04:54:53.879Z	685e2f00-9044-49a4-816c-87179aea5b8a	Event request-created.bedrock-runtime.InvokeModel: calling handler <function add_retry_headers at 0x7f1668549940>
+[DEBUG]	2025-10-01T04:54:53.879Z	685e2f00-9044-49a4-816c-87179aea5b8a	Sending http request: <AWSPreparedRequest stream_output=True, method=POST, url=https://bedrock-runtime.ap-northeast-1.amazonaws.com/model/amazon.titan-text-express-v1/invoke, headers={'User-Agent': b'Boto3/1.40.4 md/Botocore#1.40.4 ua/2.1 os/linux#5.10.242-265.962.amzn2.x86_64 md/arch#x86_64 lang/python#3.11.13 md/pyimpl#CPython exec-env/AWS_Lambda_python3.11 m/b,D,Z cfg/retry-mode#legacy Botocore/1.40.4', 'X-Amzn-Trace-Id': b'Root=1-68dcb41d-61a0e399182c86594f4d91c7;Parent=453c7374419f8ae0;Sampled=0;Lineage=1:2d4ee70a:0', 'X-Amz-Date': b'20251001T045453Z', 'X-Amz-Security-Token': b'IQoJb3JpZ2luX2VjEHUaDmFwLW5vcnRoZWFzdC0xIkYwRAIgZ/WV+s0iClbe7Ym+qJnseLk1H00UKMrJAs5DAHbZ2QgCIHBRersnTdjbwR20sSWClGcSIwv6gQzmegBcP3u09pTdKuEDCP7//////////wEQABoMNTM3MTI0OTczMjQ3IgzAcJxE8SySXUFHK24qtQOaKTfbyKtLGTNw9brlVhOxxuyPbSKjzp1Rb2DqtXaKYu0zpmjeO9BKlxefjoElbyyZ99gqIFz24n0Vnza+wz75CL8WB78D68grcM8frERPw41OepB8ORfs4zM51o9UWEIo/ouSnE62C2PvJ/YzSPFbjd98f18Zr9CJsrE/0VcJysWCi0LvvnFd1VGcCrDQFhjdP8Iwx/8XK1SqO4oTpJ0kvbOdeU0bBlIfcLdIaVKDCMJRK9/F4t7V/nkpm8CZQBbgMuByQesEXqZK1RiGXS9KGLtoufdF44aIc0rKAgd4gcK+QO6GNg2xTy+7fGhwRsPQTq6kiXGaEJ7bYpX3BL1VtzBUqqs8AcOxp3c6hTBU/aXyZi/qZWHWObgRNhTp6V2g9lmqx7OqFIF8jRt1H8hq/hgWscnQ/bQq+0gTkX51hN3I0hwRKJX7Pxw706aGguKr1K0zv1VzNjxEDyj6GB585ID0JP0zLHy6gt2pn6xIh+DAVHc20ggxzCVgRzlGj3xRtpQZzg1z7dvolvLsDSneI7SVe8hYlfw5aShW81ZgedVLVMM75DJ3gOZOsnr2fKSsr7+kMDC85/LGBjqfAV/3EKCRuErM2NX1vpJ54Lbga+ypzGUEuh0nbKgWdctItl1kG/2tFbe2+0YSY8w01LwAncvZ6ICXQhXSRVHunCYF7PHApwJkMdDA71KO7ztrLLuOW2URvQgOpbEkPIs7Cu+zHvHngRxX+aEcRoNcWRU7lWhaM5Z9Kc0x4h4/WxzLRXHayO8KHjZZ0aL+F55j8gARyMmPRhX+RvrNX5b/Uw==', 'Authorization': b'AWS4-HMAC-SHA256 Credential=ASIAX2DZEVK74DRC4HQS/20251001/ap-northeast-1/bedrock/aws4_request, SignedHeaders=host;x-amz-date;x-amz-security-token, Signature=8a0f5f8eef19c8e6191450e3ca3a9ade0a5262fd289887370faae329cb9b88df', 'amz-sdk-invocation-id': b'06b977da-2c6b-438b-b055-ba2111d73904', 'amz-sdk-request': b'attempt=1', 'Content-Length': '1372'}>
+[DEBUG]	2025-10-01T04:54:53.879Z	685e2f00-9044-49a4-816c-87179aea5b8a	Certificate path: /var/lang/lib/python3.11/site-packages/botocore/cacert.pem
+[DEBUG]	2025-10-01T04:54:54.304Z	685e2f00-9044-49a4-816c-87179aea5b8a	https://bedrock-runtime.ap-northeast-1.amazonaws.com:443 "POST /model/amazon.titan-text-express-v1/invoke HTTP/1.1" 200 100
+[DEBUG]	2025-10-01T04:54:54.304Z	685e2f00-9044-49a4-816c-87179aea5b8a	Response headers: {'Date': 'Wed, 01 Oct 2025 04:54:54 GMT', 'Content-Type': 'application/json', 'Content-Length': '100', 'Connection': 'keep-alive', 'x-amzn-RequestId': '55dca839-6d5a-4217-9b6c-5c8f1841d15d', 'X-Amzn-Bedrock-Invocation-Latency': '420', 'X-Amzn-Bedrock-Output-Token-Count': '1', 'X-Amzn-Bedrock-Input-Token-Count': '243'}
+[DEBUG]	2025-10-01T04:54:54.304Z	685e2f00-9044-49a4-816c-87179aea5b8a	Response body:
+<botocore.response.StreamingBody object at 0x7f166734e950>
+[DEBUG]	2025-10-01T04:54:54.304Z	685e2f00-9044-49a4-816c-87179aea5b8a	Event needs-retry.bedrock-runtime.InvokeModel: calling handler <botocore.retryhandler.RetryHandler object at 0x7f1667b9f450>
+[DEBUG]	2025-10-01T04:54:54.304Z	685e2f00-9044-49a4-816c-87179aea5b8a	No retry needed.
+[INFO]	2025-10-01T04:54:54.304Z	685e2f00-9044-49a4-816c-87179aea5b8a	Parsing Bedrock response...
+[INFO]	2025-10-01T04:54:54.305Z	685e2f00-9044-49a4-816c-87179aea5b8a	Bedrock response: {'inputTextTokenCount': 243, 'results': [{'tokenCount': 1, 'outputText': '', 'completionReason': 'FINISH'}]}
+[INFO]	2025-10-01T04:54:54.305Z	685e2f00-9044-49a4-816c-87179aea5b8a	Extracted text length: 0
+[INFO]	2025-10-01T04:54:54.305Z	685e2f00-9044-49a4-816c-87179aea5b8a	Parsing Bedrock response: ...
+[WARNING]	2025-10-01T04:54:54.305Z	685e2f00-9044-49a4-816c-87179aea5b8a	No valid JSON found in response
+[INFO]	2025-10-01T04:54:54.305Z	685e2f00-9044-49a4-816c-87179aea5b8a	Generated meal data: [{'mealType': '朝食', 'calories': 550, 'dishes': ['納豆ごはん', 'わかめと豆腐の味噌汁', 'ゆで卵', 'バナナ'], 'color': '#FF8C42'}, {'mealType': '昼食', 'calories': 600, 'dishes': ['ブロッコリー', 'あさりのパスタ', 'ほたてと野菜のサラダ', 'カフェオレ（無糖）'], 'color': '#FF8C42'}, {'mealType': '夕食', 'calories': 800, 'dishes': ['照り焼きチキン', 'マッシュルームのハンバーグ', 'クレソンとにんじんの玉子炒め', 'キャベツときゅうりのサラダ'], 'color': '#FF8C42'}]
+DEBUG INFO: {'userId': '47148a78-90d1-700c-31cc-5fc3a69b7cc8', 'userPreferencesFound': False, 'mealsCount': 3, 'promptLength': 486, 'bedrockResponseReceived': True, 'textLength': 0}
+END RequestId: 685e2f00-9044-49a4-816c-87179aea5b8a
+REPORT RequestId: 685e2f00-9044-49a4-816c-87179aea5b8a	Duration: 481.49 ms	Billed Duration: 482 ms	Memory Size: 128 MB	Max Memory Used: 88 MB	
+START RequestId: afa5f953-6248-426d-b0d7-cd6cdbeaca2a Version: $LATEST
+LAMBDA START: 
+{
+    "resource": "/meal/suggestion",
+    "path": "/meal/suggestion",
+    "httpMethod": "POST",
+    "headers": {
+        "Accept": "*/*",
+        "Accept-Encoding": "gzip, deflate, br, zstd",
+        "Accept-Language": "ja,en;q=0.9,en-GB;q=0.8,en-US;q=0.7",
+        "CloudFront-Forwarded-Proto": "https",
+        "CloudFront-Is-Desktop-Viewer": "true",
+        "CloudFront-Is-Mobile-Viewer": "false",
+        "CloudFront-Is-SmartTV-Viewer": "false",
+        "CloudFront-Is-Tablet-Viewer": "false",
+        "CloudFront-Viewer-ASN": "4713",
+        "CloudFront-Viewer-Country": "JP",
+        "content-type": "application/json",
+        "Host": "5obkiuclsb.execute-api.ap-northeast-1.amazonaws.com",
+        "origin": "http://localhost:3000",
+        "priority": "u=1, i",
+        "Referer": "http://localhost:3000/",
+        "sec-ch-ua": "\"Chromium\";v=\"140\", \"Not=A?Brand\";v=\"24\", \"Microsoft Edge\";v=\"140\"",
+        "sec-ch-ua-mobile": "?0",
+        "sec-ch-ua-platform": "\"Windows\"",
+        "sec-fetch-dest": "empty",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "cross-site",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
+        "Via": "2.0 6dc64bdf16c402116bb875a1e27d73d2.cloudfront.net (CloudFront)",
+        "X-Amz-Cf-Id": "bCq4nmJF4icmpcq73o1YKAA_TU45JqGkdkFnw6K9wCwMCHYacCb3kA==",
+        "X-Amzn-Trace-Id": "Root=1-68dcb41f-3701d4b24144b5ec20b25026",
+        "X-Forwarded-For": "180.25.36.239, 3.172.78.78",
+        "X-Forwarded-Port": "443",
+        "X-Forwarded-Proto": "https"
+    },
+    "multiValueHeaders": {
+        "Accept": [
+            "*/*"
+        ],
+        "Accept-Encoding": [
+            "gzip, deflate, br, zstd"
+        ],
+        "Accept-Language": [
+            "ja,en;q=0.9,en-GB;q=0.8,en-US;q=0.7"
+        ],
+        "CloudFront-Forwarded-Proto": [
+            "https"
+        ],
+        "CloudFront-Is-Desktop-Viewer": [
+            "true"
+        ],
+        "CloudFront-Is-Mobile-Viewer": [
+            "false"
+        ],
+        "CloudFront-Is-SmartTV-Viewer": [
+            "false"
+        ],
+        "CloudFront-Is-Tablet-Viewer": [
+            "false"
+        ],
+        "CloudFront-Viewer-ASN": [
+            "4713"
+        ],
+        "CloudFront-Viewer-Country": [
+            "JP"
+        ],
+        "content-type": [
+            "application/json"
+        ],
+        "Host": [
+            "5obkiuclsb.execute-api.ap-northeast-1.amazonaws.com"
+        ],
+        "origin": [
+            "http://localhost:3000"
+        ],
+        "priority": [
+            "u=1, i"
+        ],
+        "Referer": [
+            "http://localhost:3000/"
+        ],
+        "sec-ch-ua": [
+            "\"Chromium\";v=\"140\", \"Not=A?Brand\";v=\"24\", \"Microsoft Edge\";v=\"140\""
+        ],
+        "sec-ch-ua-mobile": [
+            "?0"
+        ],
+        "sec-ch-ua-platform": [
+            "\"Windows\""
+        ],
+        "sec-fetch-dest": [
+            "empty"
+        ],
+        "sec-fetch-mode": [
+            "cors"
+        ],
+        "sec-fetch-site": [
+            "cross-site"
+        ],
+        "User-Agent": [
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0"
+        ],
+        "Via": [
+            "2.0 6dc64bdf16c402116bb875a1e27d73d2.cloudfront.net (CloudFront)"
+        ],
+        "X-Amz-Cf-Id": [
+            "bCq4nmJF4icmpcq73o1YKAA_TU45JqGkdkFnw6K9wCwMCHYacCb3kA=="
+        ],
+        "X-Amzn-Trace-Id": [
+            "Root=1-68dcb41f-3701d4b24144b5ec20b25026"
+        ],
+        "X-Forwarded-For": [
+            "180.25.36.239, 3.172.78.78"
+        ],
+        "X-Forwarded-Port": [
+            "443"
+        ],
+        "X-Forwarded-Proto": [
+            "https"
+        ]
+    },
+    "queryStringParameters": null,
+    "multiValueQueryStringParameters": null,
+    "pathParameters": null,
+    "stageVariables": null,
+    "requestContext": {
+        "resourceId": "mxycdg",
+        "resourcePath": "/meal/suggestion",
+        "httpMethod": "POST",
+        "extendedRequestId": "RwEU8FXntjMEZnA=",
+        "requestTime": "01/Oct/2025:04:54:55 +0000",
+        "path": "/prod/meal/suggestion",
+        "accountId": "537124973247",
+        "protocol": "HTTP/1.1",
+        "stage": "prod",
+        "domainPrefix": "5obkiuclsb",
+        "requestTimeEpoch": 1759294495243,
+        "requestId": "b658abdf-889b-4dfb-a5fd-a3c45afdfdb5",
+        "identity": {
+            "cognitoIdentityPoolId": null,
+            "accountId": null,
+            "cognitoIdentityId": null,
+            "caller": null,
+            "sourceIp": "180.25.36.239",
+            "principalOrgId": null,
+            "accessKey": null,
+            "cognitoAuthenticationType": null,
+            "cognitoAuthenticationProvider": null,
+            "userArn": null,
+            "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0",
+            "user": null
+        },
+        "domainName": "5obkiuclsb.execute-api.ap-northeast-1.amazonaws.com",
+        "deploymentId": "t6qjce",
+        "apiId": "5obkiuclsb"
+    },
+    "body": "{\"userId\":\"47148a78-90d1-700c-31cc-5fc3a69b7cc8\",\"targetCalories\":2000,\"timestamp\":\"2025-10-01T04:54:56.146Z\"}",
+    "isBase64Encoded": false
+}
+
+[INFO]	2025-10-01T04:54:55.261Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Received userId: 47148a78-90d1-700c-31cc-5fc3a69b7cc8
+[INFO]	2025-10-01T04:54:55.261Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Target calories: 2000
+[INFO]	2025-10-01T04:54:55.261Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Getting user profile...
+[DEBUG]	2025-10-01T04:54:55.261Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Loading dynamodb:Table
+[DEBUG]	2025-10-01T04:54:55.262Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Event creating-resource-class.dynamodb.Table: calling handler <function lazy_call.<locals>._handler at 0x7f1667dc4e00>
+[DEBUG]	2025-10-01T04:54:55.262Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Event creating-resource-class.dynamodb.Table: calling handler <function lazy_call.<locals>._handler at 0x7f1667dc4d60>
+[DEBUG]	2025-10-01T04:54:55.262Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Calling dynamodb:scan with {'TableName': 'UserProfile-amplifyawsamplifygen2lemol-sandbox-c8984a154d', 'FilterExpression': 'userId = :uid', 'ExpressionAttributeValues': {':uid': '47148a78-90d1-700c-31cc-5fc3a69b7cc8'}}
+[DEBUG]	2025-10-01T04:54:55.262Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Event provide-client-params.dynamodb.Scan: calling handler <function copy_dynamodb_params at 0x7f16674e4f40>
+[DEBUG]	2025-10-01T04:54:55.263Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Event before-parameter-build.dynamodb.Scan: calling handler <bound method TransformationInjector.inject_condition_expressions of <boto3.dynamodb.transform.TransformationInjector object at 0x7f16674f02d0>>
+[DEBUG]	2025-10-01T04:54:55.263Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Event before-parameter-build.dynamodb.Scan: calling handler <bound method TransformationInjector.inject_attribute_value_input of <boto3.dynamodb.transform.TransformationInjector object at 0x7f16674f02d0>>
+[DEBUG]	2025-10-01T04:54:55.263Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Event before-parameter-build.dynamodb.Scan: calling handler <function generate_idempotent_uuid at 0x7f1668523560>
+[DEBUG]	2025-10-01T04:54:55.263Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Event before-parameter-build.dynamodb.Scan: calling handler <function _handle_request_validation_mode_member at 0x7f166854a0c0>
+[DEBUG]	2025-10-01T04:54:55.263Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Event before-parameter-build.dynamodb.Scan: calling handler <function block_endpoint_discovery_required_operations at 0x7f166867aac0>
+[DEBUG]	2025-10-01T04:54:55.263Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Calling endpoint provider with parameters: {'Region': 'ap-northeast-1', 'UseDualStack': False, 'UseFIPS': False, 'AccountIdEndpointMode': 'preferred', 'ResourceArn': 'UserProfile-amplifyawsamplifygen2lemol-sandbox-c8984a154d'}
+[DEBUG]	2025-10-01T04:54:55.263Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Endpoint provider result: https://dynamodb.ap-northeast-1.amazonaws.com
+[DEBUG]	2025-10-01T04:54:55.263Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Event before-call.dynamodb.Scan: calling handler <function add_recursion_detection_header at 0x7f1668521d00>
+[DEBUG]	2025-10-01T04:54:55.263Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Event before-call.dynamodb.Scan: calling handler <function inject_api_version_header_if_needed at 0x7f1668549080>
+[DEBUG]	2025-10-01T04:54:55.263Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Making request for OperationModel(name=Scan) with params: {'url_path': '/', 'query_string': '', 'method': 'POST', 'headers': {'X-Amz-Target': 'DynamoDB_20120810.Scan', 'Content-Type': 'application/x-amz-json-1.0', 'User-Agent': 'Boto3/1.40.4 md/Botocore#1.40.4 ua/2.1 os/linux#5.10.242-265.962.amzn2.x86_64 md/arch#x86_64 lang/python#3.11.13 md/pyimpl#CPython exec-env/AWS_Lambda_python3.11 m/b,D,Z,P cfg/retry-mode#legacy Botocore/1.40.4 Resource', 'X-Amzn-Trace-Id': 'Root=1-68dcb41f-3701d4b24144b5ec20b25026;Parent=135b0d3760af0646;Sampled=0;Lineage=1:2d4ee70a:0'}, 'body': b'{"TableName": "UserProfile-amplifyawsamplifygen2lemol-sandbox-c8984a154d", "FilterExpression": "userId = :uid", "ExpressionAttributeValues": {":uid": {"S": "47148a78-90d1-700c-31cc-5fc3a69b7cc8"}}}', 'url': 'https://dynamodb.ap-northeast-1.amazonaws.com/', 'context': {'client_region': 'ap-northeast-1', 'client_config': <botocore.config.Config object at 0x7f16674d8ed0>, 'has_streaming_input': False, 'auth_type': None, 'unsigned_payload': None, 'auth_options': ['aws.auth#sigv4']}}
+[DEBUG]	2025-10-01T04:54:55.263Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Event request-created.dynamodb.Scan: calling handler <bound method RequestSigner.handler of <botocore.signers.RequestSigner object at 0x7f16674d8e90>>
+[DEBUG]	2025-10-01T04:54:55.263Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Event choose-signer.dynamodb.Scan: calling handler <function set_operation_specific_signer at 0x7f16685232e0>
+[DEBUG]	2025-10-01T04:54:55.263Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Event choose-signer.dynamodb.Scan: calling handler <function _set_auth_scheme_preference_signer at 0x7f166854a200>
+[DEBUG]	2025-10-01T04:54:55.264Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Calculating signature using v4 auth.
+[DEBUG]	2025-10-01T04:54:55.264Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	CanonicalRequest:
+POST
+/
+
+content-type:application/x-amz-json-1.0
+host:dynamodb.ap-northeast-1.amazonaws.com
+x-amz-date:20251001T045455Z
+x-amz-security-token:IQoJb3JpZ2luX2VjEHUaDmFwLW5vcnRoZWFzdC0xIkYwRAIgZ/WV+s0iClbe7Ym+qJnseLk1H00UKMrJAs5DAHbZ2QgCIHBRersnTdjbwR20sSWClGcSIwv6gQzmegBcP3u09pTdKuEDCP7//////////wEQABoMNTM3MTI0OTczMjQ3IgzAcJxE8SySXUFHK24qtQOaKTfbyKtLGTNw9brlVhOxxuyPbSKjzp1Rb2DqtXaKYu0zpmjeO9BKlxefjoElbyyZ99gqIFz24n0Vnza+wz75CL8WB78D68grcM8frERPw41OepB8ORfs4zM51o9UWEIo/ouSnE62C2PvJ/YzSPFbjd98f18Zr9CJsrE/0VcJysWCi0LvvnFd1VGcCrDQFhjdP8Iwx/8XK1SqO4oTpJ0kvbOdeU0bBlIfcLdIaVKDCMJRK9/F4t7V/nkpm8CZQBbgMuByQesEXqZK1RiGXS9KGLtoufdF44aIc0rKAgd4gcK+QO6GNg2xTy+7fGhwRsPQTq6kiXGaEJ7bYpX3BL1VtzBUqqs8AcOxp3c6hTBU/aXyZi/qZWHWObgRNhTp6V2g9lmqx7OqFIF8jRt1H8hq/hgWscnQ/bQq+0gTkX51hN3I0hwRKJX7Pxw706aGguKr1K0zv1VzNjxEDyj6GB585ID0JP0zLHy6gt2pn6xIh+DAVHc20ggxzCVgRzlGj3xRtpQZzg1z7dvolvLsDSneI7SVe8hYlfw5aShW81ZgedVLVMM75DJ3gOZOsnr2fKSsr7+kMDC85/LGBjqfAV/3EKCRuErM2NX1vpJ54Lbga+ypzGUEuh0nbKgWdctItl1kG/2tFbe2+0YSY8w01LwAncvZ6ICXQhXSRVHunCYF7PHApwJkMdDA71KO7ztrLLuOW2URvQgOpbEkPIs7Cu+zHvHngRxX+aEcRoNcWRU7lWhaM5Z9Kc0x4h4/WxzLRXHayO8KHjZZ0aL+F55j8gARyMmPRhX+RvrNX5b/Uw==
+x-amz-target:DynamoDB_20120810.Scan
+
+content-type;host;x-amz-date;x-amz-security-token;x-amz-target
+4a35c513e97949abb73383f05cf1b224bf13a2bb67d521a31ea410b7cfbb7cad
+[DEBUG]	2025-10-01T04:54:55.264Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	StringToSign:
+AWS4-HMAC-SHA256
+20251001T045455Z
+20251001/ap-northeast-1/dynamodb/aws4_request
+9fd42e0a9e45a979c3b6138143ec2facf679825d65af185bbac05ed301d4ae53
+Using table: UserProfile-amplifyawsamplifygen2lemol-sandbox-c8984a154d
+Scanning table UserProfile-amplifyawsamplifygen2lemol-sandbox-c8984a154d for userId: 47148a78-90d1-700c-31cc-5fc3a69b7cc8
+[DEBUG]	2025-10-01T04:54:55.296Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Signature:
+4847ddf57729611cf8446e3d9f92da4115eb5c4c39cccc62e813657aaa2f7fb7
+[DEBUG]	2025-10-01T04:54:55.296Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Event request-created.dynamodb.Scan: calling handler <bound method UserAgentString.rebuild_and_replace_user_agent_handler of <botocore.useragent.UserAgentString object at 0x7f16674b5f90>>
+[DEBUG]	2025-10-01T04:54:55.296Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Event request-created.dynamodb.Scan: calling handler <function add_retry_headers at 0x7f1668549940>
+[DEBUG]	2025-10-01T04:54:55.296Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Sending http request: <AWSPreparedRequest stream_output=False, method=POST, url=https://dynamodb.ap-northeast-1.amazonaws.com/, headers={'X-Amz-Target': b'DynamoDB_20120810.Scan', 'Content-Type': b'application/x-amz-json-1.0', 'User-Agent': b'Boto3/1.40.4 md/Botocore#1.40.4 ua/2.1 os/linux#5.10.242-265.962.amzn2.x86_64 md/arch#x86_64 lang/python#3.11.13 md/pyimpl#CPython exec-env/AWS_Lambda_python3.11 m/b,D,Z,P cfg/retry-mode#legacy Botocore/1.40.4 Resource', 'X-Amzn-Trace-Id': b'Root=1-68dcb41f-3701d4b24144b5ec20b25026;Parent=135b0d3760af0646;Sampled=0;Lineage=1:2d4ee70a:0', 'X-Amz-Date': b'20251001T045455Z', 'X-Amz-Security-Token': b'IQoJb3JpZ2luX2VjEHUaDmFwLW5vcnRoZWFzdC0xIkYwRAIgZ/WV+s0iClbe7Ym+qJnseLk1H00UKMrJAs5DAHbZ2QgCIHBRersnTdjbwR20sSWClGcSIwv6gQzmegBcP3u09pTdKuEDCP7//////////wEQABoMNTM3MTI0OTczMjQ3IgzAcJxE8SySXUFHK24qtQOaKTfbyKtLGTNw9brlVhOxxuyPbSKjzp1Rb2DqtXaKYu0zpmjeO9BKlxefjoElbyyZ99gqIFz24n0Vnza+wz75CL8WB78D68grcM8frERPw41OepB8ORfs4zM51o9UWEIo/ouSnE62C2PvJ/YzSPFbjd98f18Zr9CJsrE/0VcJysWCi0LvvnFd1VGcCrDQFhjdP8Iwx/8XK1SqO4oTpJ0kvbOdeU0bBlIfcLdIaVKDCMJRK9/F4t7V/nkpm8CZQBbgMuByQesEXqZK1RiGXS9KGLtoufdF44aIc0rKAgd4gcK+QO6GNg2xTy+7fGhwRsPQTq6kiXGaEJ7bYpX3BL1VtzBUqqs8AcOxp3c6hTBU/aXyZi/qZWHWObgRNhTp6V2g9lmqx7OqFIF8jRt1H8hq/hgWscnQ/bQq+0gTkX51hN3I0hwRKJX7Pxw706aGguKr1K0zv1VzNjxEDyj6GB585ID0JP0zLHy6gt2pn6xIh+DAVHc20ggxzCVgRzlGj3xRtpQZzg1z7dvolvLsDSneI7SVe8hYlfw5aShW81ZgedVLVMM75DJ3gOZOsnr2fKSsr7+kMDC85/LGBjqfAV/3EKCRuErM2NX1vpJ54Lbga+ypzGUEuh0nbKgWdctItl1kG/2tFbe2+0YSY8w01LwAncvZ6ICXQhXSRVHunCYF7PHApwJkMdDA71KO7ztrLLuOW2URvQgOpbEkPIs7Cu+zHvHngRxX+aEcRoNcWRU7lWhaM5Z9Kc0x4h4/WxzLRXHayO8KHjZZ0aL+F55j8gARyMmPRhX+RvrNX5b/Uw==', 'Authorization': b'AWS4-HMAC-SHA256 Credential=ASIAX2DZEVK74DRC4HQS/20251001/ap-northeast-1/dynamodb/aws4_request, SignedHeaders=content-type;host;x-amz-date;x-amz-security-token;x-amz-target, Signature=4847ddf57729611cf8446e3d9f92da4115eb5c4c39cccc62e813657aaa2f7fb7', 'amz-sdk-invocation-id': b'd76b58c4-24d9-493f-9ecc-8c78d4c9155c', 'amz-sdk-request': b'attempt=1', 'Content-Length': '197'}>
+[DEBUG]	2025-10-01T04:54:55.297Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Certificate path: /var/lang/lib/python3.11/site-packages/botocore/cacert.pem
+[DEBUG]	2025-10-01T04:54:55.316Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	https://dynamodb.ap-northeast-1.amazonaws.com:443 "POST / HTTP/1.1" 400 112
+[DEBUG]	2025-10-01T04:54:55.316Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Response headers: {'Server': 'Server', 'Date': 'Wed, 01 Oct 2025 04:54:55 GMT', 'Content-Type': 'application/x-amz-json-1.0', 'Content-Length': '112', 'Connection': 'keep-alive', 'x-amzn-RequestId': 'J2TB9FD2ASMA68TV6T6S4070SVVV4KQNSO5AEMVJF66Q9ASUAAJG', 'x-amz-crc32': '3737639027'}
+[DEBUG]	2025-10-01T04:54:55.316Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Response body:
+b'
+{
+    "__type": "com.amazonaws.dynamodb.v20120810#ResourceNotFoundException",
+    "message": "Requested resource not found"
+}
+'
+[DEBUG]	2025-10-01T04:54:55.316Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Response headers: {'Server': 'Server', 'Date': 'Wed, 01 Oct 2025 04:54:55 GMT', 'Content-Type': 'application/x-amz-json-1.0', 'Content-Length': '112', 'Connection': 'keep-alive', 'x-amzn-RequestId': 'J2TB9FD2ASMA68TV6T6S4070SVVV4KQNSO5AEMVJF66Q9ASUAAJG', 'x-amz-crc32': '3737639027'}
+[DEBUG]	2025-10-01T04:54:55.317Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Response body:
+b'
+{
+    "__type": "com.amazonaws.dynamodb.v20120810#ResourceNotFoundException",
+    "message": "Requested resource not found"
+}
+'
+[DEBUG]	2025-10-01T04:54:55.317Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Event needs-retry.dynamodb.Scan: calling handler <botocore.retryhandler.RetryHandler object at 0x7f16674f01d0>
+[DEBUG]	2025-10-01T04:54:55.317Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	No retry needed.
+[DEBUG]	2025-10-01T04:54:55.317Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Event after-call.dynamodb.Scan: calling handler <bound method TransformationInjector.inject_attribute_value_output of <boto3.dynamodb.transform.TransformationInjector object at 0x7f16674f02d0>>
+[ERROR]	2025-10-01T04:54:55.317Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Error getting user profile: An error occurred (ResourceNotFoundException) when calling the Scan operation: Requested resource not found
+[INFO]	2025-10-01T04:54:55.317Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	User preferences retrieved: 
+{}
+
+[INFO]	2025-10-01T04:54:55.317Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Creating meal prompt...
+[INFO]	2025-10-01T04:54:55.317Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Prompt created, length: 486
+[INFO]	2025-10-01T04:54:55.317Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Calling Bedrock API...
+[DEBUG]	2025-10-01T04:54:55.317Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Event before-parameter-build.bedrock-runtime.InvokeModel: calling handler <function generate_idempotent_uuid at 0x7f1668523560>
+[DEBUG]	2025-10-01T04:54:55.317Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Event before-parameter-build.bedrock-runtime.InvokeModel: calling handler <function _handle_request_validation_mode_member at 0x7f166854a0c0>
+[DEBUG]	2025-10-01T04:54:55.317Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Calling endpoint provider with parameters: {'Region': 'ap-northeast-1', 'UseDualStack': False, 'UseFIPS': False}
+[DEBUG]	2025-10-01T04:54:55.317Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Endpoint provider result: https://bedrock-runtime.ap-northeast-1.amazonaws.com
+[DEBUG]	2025-10-01T04:54:55.317Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Event before-call.bedrock-runtime.InvokeModel: calling handler <function add_recursion_detection_header at 0x7f1668521d00>
+[DEBUG]	2025-10-01T04:54:55.318Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Event before-call.bedrock-runtime.InvokeModel: calling handler <function inject_api_version_header_if_needed at 0x7f1668549080>
+[DEBUG]	2025-10-01T04:54:55.318Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Making request for OperationModel(name=InvokeModel) with params: {'url_path': '/model/amazon.titan-text-express-v1/invoke', 'query_string': {}, 'method': 'POST', 'headers': {'User-Agent': 'Boto3/1.40.4 md/Botocore#1.40.4 ua/2.1 os/linux#5.10.242-265.962.amzn2.x86_64 md/arch#x86_64 lang/python#3.11.13 md/pyimpl#CPython exec-env/AWS_Lambda_python3.11 m/b,D,Z cfg/retry-mode#legacy Botocore/1.40.4', 'X-Amzn-Trace-Id': 'Root=1-68dcb41f-3701d4b24144b5ec20b25026;Parent=135b0d3760af0646;Sampled=0;Lineage=1:2d4ee70a:0'}, 'body': b'{"inputText": "\\nJSON\\u5f62\\u5f0f\\u3067\\u732e\\u7acb\\u3092\\u63d0\\u6848\\u3057\\u3066\\u304f\\u3060\\u3055\\u3044\\u3002\\u4ee5\\u4e0b\\u306e\\u6761\\u4ef6\\u3067\\u732e\\u7acb\\u3092\\u4f5c\\u6210\\u3057\\u3066\\u304f\\u3060\\u3055\\u3044\\u3002\\n\\n\\u6761\\u4ef6:\\n- \\u7dcf\\u30ab\\u30ed\\u30ea\\u30fc: 2000kcal\\n- \\u671d\\u98df500kcal\\u3001\\u663c\\u98df700kcal\\u3001\\u5915\\u98df800kcal\\n- \\u65e5\\u672c\\u6599\\u7406\\u4e2d\\u5fc3\\n- \\u5177\\u4f53\\u7684\\u306a\\u6599\\u7406\\u540d\\u3092\\u4f7f\\u7528\\n\\n\\u5fc5\\u305a\\u4ee5\\u4e0b\\u306e\\u5f62\\u5f0f\\u3067JSON\\u306e\\u307f\\u3092\\u8fd4\\u3057\\u3066\\u304f\\u3060\\u3055\\u3044:\\n{\\n  \\"meals\\": [\\n    {\\n      \\"mealType\\": \\"\\u671d\\u98df\\",\\n      \\"calories\\": 500,\\n      \\"dishes\\": [\\"\\u7d0d\\u8c46\\u3054\\u306f\\u3093\\", \\"\\u5473\\u564c\\u6c41\\", \\"\\u7389\\u5b50\\u713c\\u304d\\"]\\n    },\\n    {\\n      \\"mealType\\": \\"\\u663c\\u98df\\",\\n      \\"calories\\": 700,\\n      \\"dishes\\": [\\"\\u3055\\u3070\\u306e\\u5473\\u564c\\u6c41\\", \\"\\u304a\\u306b\\u304e\\u308a\\", \\"\\u30b5\\u30e9\\u30c0\\"]\\n    },\\n    {\\n      \\"mealType\\": \\"\\u5915\\u98df\\",\\n      \\"calories\\": 800,\\n      \\"dishes\\": [\\"\\u713c\\u304d\\u9b5a\\", \\"\\u3054\\u306f\\u3093\\", \\"\\u91ce\\u83dc\\u7092\\u3081\\"]\\n    }\\n  ]\\n}\\n\\nJSON\\u4ee5\\u5916\\u306e\\u6587\\u5b57\\u306f\\u4e00\\u5207\\u8fd4\\u3055\\u306a\\u3044\\u3067\\u304f\\u3060\\u3055\\u3044\\u3002", "textGenerationConfig": {"maxTokenCount": 1500, "temperature": 0.7, "stopSequences": []}}', 'url': 'https://bedrock-runtime.ap-northeast-1.amazonaws.com/model/amazon.titan-text-express-v1/invoke', 'context': {'client_region': 'ap-northeast-1', 'client_config': <botocore.config.Config object at 0x7f1669d59210>, 'has_streaming_input': True, 'auth_type': None, 'unsigned_payload': None, 'auth_options': ['aws.auth#sigv4', 'smithy.api#httpBearerAuth']}}
+[DEBUG]	2025-10-01T04:54:55.318Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Event request-created.bedrock-runtime.InvokeModel: calling handler <bound method RequestSigner.handler of <botocore.signers.RequestSigner object at 0x7f1667b8df50>>
+[DEBUG]	2025-10-01T04:54:55.318Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Event choose-signer.bedrock-runtime.InvokeModel: calling handler <function set_operation_specific_signer at 0x7f16685232e0>
+[DEBUG]	2025-10-01T04:54:55.318Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Event choose-signer.bedrock-runtime.InvokeModel: calling handler <function _set_auth_scheme_preference_signer at 0x7f166854a200>
+[DEBUG]	2025-10-01T04:54:55.318Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Calculating signature using v4 auth.
+[DEBUG]	2025-10-01T04:54:55.318Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	CanonicalRequest:
+POST
+/model/amazon.titan-text-express-v1/invoke
+
+host:bedrock-runtime.ap-northeast-1.amazonaws.com
+x-amz-date:20251001T045455Z
+x-amz-security-token:IQoJb3JpZ2luX2VjEHUaDmFwLW5vcnRoZWFzdC0xIkYwRAIgZ/WV+s0iClbe7Ym+qJnseLk1H00UKMrJAs5DAHbZ2QgCIHBRersnTdjbwR20sSWClGcSIwv6gQzmegBcP3u09pTdKuEDCP7//////////wEQABoMNTM3MTI0OTczMjQ3IgzAcJxE8SySXUFHK24qtQOaKTfbyKtLGTNw9brlVhOxxuyPbSKjzp1Rb2DqtXaKYu0zpmjeO9BKlxefjoElbyyZ99gqIFz24n0Vnza+wz75CL8WB78D68grcM8frERPw41OepB8ORfs4zM51o9UWEIo/ouSnE62C2PvJ/YzSPFbjd98f18Zr9CJsrE/0VcJysWCi0LvvnFd1VGcCrDQFhjdP8Iwx/8XK1SqO4oTpJ0kvbOdeU0bBlIfcLdIaVKDCMJRK9/F4t7V/nkpm8CZQBbgMuByQesEXqZK1RiGXS9KGLtoufdF44aIc0rKAgd4gcK+QO6GNg2xTy+7fGhwRsPQTq6kiXGaEJ7bYpX3BL1VtzBUqqs8AcOxp3c6hTBU/aXyZi/qZWHWObgRNhTp6V2g9lmqx7OqFIF8jRt1H8hq/hgWscnQ/bQq+0gTkX51hN3I0hwRKJX7Pxw706aGguKr1K0zv1VzNjxEDyj6GB585ID0JP0zLHy6gt2pn6xIh+DAVHc20ggxzCVgRzlGj3xRtpQZzg1z7dvolvLsDSneI7SVe8hYlfw5aShW81ZgedVLVMM75DJ3gOZOsnr2fKSsr7+kMDC85/LGBjqfAV/3EKCRuErM2NX1vpJ54Lbga+ypzGUEuh0nbKgWdctItl1kG/2tFbe2+0YSY8w01LwAncvZ6ICXQhXSRVHunCYF7PHApwJkMdDA71KO7ztrLLuOW2URvQgOpbEkPIs7Cu+zHvHngRxX+aEcRoNcWRU7lWhaM5Z9Kc0x4h4/WxzLRXHayO8KHjZZ0aL+F55j8gARyMmPRhX+RvrNX5b/Uw==
+
+host;x-amz-date;x-amz-security-token
+af634e4f8c90a65c4c54d4edcce343a3d36fb05faebf0f567947bdbb4f47c350
+[DEBUG]	2025-10-01T04:54:55.318Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	StringToSign:
+AWS4-HMAC-SHA256
+20251001T045455Z
+20251001/ap-northeast-1/bedrock/aws4_request
+2c78b77d5467971f01336a0c37bc20598302f24bb9e14a37dc399d31dc3c025f
+[DEBUG]	2025-10-01T04:54:55.318Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Signature:
+dd32ca7183cdcc7d102aac550292aad53ee96ecd79b19daceb199eab91fb85a1
+[DEBUG]	2025-10-01T04:54:55.318Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Event request-created.bedrock-runtime.InvokeModel: calling handler <bound method UserAgentString.rebuild_and_replace_user_agent_handler of <botocore.useragent.UserAgentString object at 0x7f1667b8ed50>>
+[DEBUG]	2025-10-01T04:54:55.318Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Event request-created.bedrock-runtime.InvokeModel: calling handler <function add_retry_headers at 0x7f1668549940>
+[DEBUG]	2025-10-01T04:54:55.318Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Sending http request: <AWSPreparedRequest stream_output=True, method=POST, url=https://bedrock-runtime.ap-northeast-1.amazonaws.com/model/amazon.titan-text-express-v1/invoke, headers={'User-Agent': b'Boto3/1.40.4 md/Botocore#1.40.4 ua/2.1 os/linux#5.10.242-265.962.amzn2.x86_64 md/arch#x86_64 lang/python#3.11.13 md/pyimpl#CPython exec-env/AWS_Lambda_python3.11 m/b,D,Z cfg/retry-mode#legacy Botocore/1.40.4', 'X-Amzn-Trace-Id': b'Root=1-68dcb41f-3701d4b24144b5ec20b25026;Parent=135b0d3760af0646;Sampled=0;Lineage=1:2d4ee70a:0', 'X-Amz-Date': b'20251001T045455Z', 'X-Amz-Security-Token': b'IQoJb3JpZ2luX2VjEHUaDmFwLW5vcnRoZWFzdC0xIkYwRAIgZ/WV+s0iClbe7Ym+qJnseLk1H00UKMrJAs5DAHbZ2QgCIHBRersnTdjbwR20sSWClGcSIwv6gQzmegBcP3u09pTdKuEDCP7//////////wEQABoMNTM3MTI0OTczMjQ3IgzAcJxE8SySXUFHK24qtQOaKTfbyKtLGTNw9brlVhOxxuyPbSKjzp1Rb2DqtXaKYu0zpmjeO9BKlxefjoElbyyZ99gqIFz24n0Vnza+wz75CL8WB78D68grcM8frERPw41OepB8ORfs4zM51o9UWEIo/ouSnE62C2PvJ/YzSPFbjd98f18Zr9CJsrE/0VcJysWCi0LvvnFd1VGcCrDQFhjdP8Iwx/8XK1SqO4oTpJ0kvbOdeU0bBlIfcLdIaVKDCMJRK9/F4t7V/nkpm8CZQBbgMuByQesEXqZK1RiGXS9KGLtoufdF44aIc0rKAgd4gcK+QO6GNg2xTy+7fGhwRsPQTq6kiXGaEJ7bYpX3BL1VtzBUqqs8AcOxp3c6hTBU/aXyZi/qZWHWObgRNhTp6V2g9lmqx7OqFIF8jRt1H8hq/hgWscnQ/bQq+0gTkX51hN3I0hwRKJX7Pxw706aGguKr1K0zv1VzNjxEDyj6GB585ID0JP0zLHy6gt2pn6xIh+DAVHc20ggxzCVgRzlGj3xRtpQZzg1z7dvolvLsDSneI7SVe8hYlfw5aShW81ZgedVLVMM75DJ3gOZOsnr2fKSsr7+kMDC85/LGBjqfAV/3EKCRuErM2NX1vpJ54Lbga+ypzGUEuh0nbKgWdctItl1kG/2tFbe2+0YSY8w01LwAncvZ6ICXQhXSRVHunCYF7PHApwJkMdDA71KO7ztrLLuOW2URvQgOpbEkPIs7Cu+zHvHngRxX+aEcRoNcWRU7lWhaM5Z9Kc0x4h4/WxzLRXHayO8KHjZZ0aL+F55j8gARyMmPRhX+RvrNX5b/Uw==', 'Authorization': b'AWS4-HMAC-SHA256 Credential=ASIAX2DZEVK74DRC4HQS/20251001/ap-northeast-1/bedrock/aws4_request, SignedHeaders=host;x-amz-date;x-amz-security-token, Signature=dd32ca7183cdcc7d102aac550292aad53ee96ecd79b19daceb199eab91fb85a1', 'amz-sdk-invocation-id': b'cdabcba4-974d-44ef-a52c-65b921b1b613', 'amz-sdk-request': b'attempt=1', 'Content-Length': '1372'}>
+[DEBUG]	2025-10-01T04:54:55.319Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Certificate path: /var/lang/lib/python3.11/site-packages/botocore/cacert.pem
+PROMPT SENT TO BEDROCK: 
+JSON形式で献立を提案してください。以下の条件で献立を作成してください。
+条件:
+- 総カロリー: 2000kcal
+- 朝食500kcal、昼食700kcal、夕食800kcal
+- 日本料理中心
+- 具体的な料理名を使用
+必ず以下の形式でJSONのみを返してください:
+{
+"meals": [
+{
+"mealType": "朝食",
+"calories": 500,
+"dishes": ["納豆ごはん", "味噌汁", "玉子焼き"]
+},
+{
+"mealType": "昼食",
+"calories": 700,
+"dishes": ["さばの味噌汁", "おにぎり", "サラダ"]
+},
+{
+"mealType": "夕食",
+"calories": 800,
+"dishes": ["焼き魚", "ごはん", "野菜炒め"]
+}
+]
+}
+JSON以外の文字は一切返さないでください。
+[DEBUG]	2025-10-01T04:55:03.113Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	https://bedrock-runtime.ap-northeast-1.amazonaws.com:443 "POST /model/amazon.titan-text-express-v1/invoke HTTP/1.1" 200 695
+[DEBUG]	2025-10-01T04:55:03.113Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Response headers: {'Date': 'Wed, 01 Oct 2025 04:55:03 GMT', 'Content-Type': 'application/json', 'Content-Length': '695', 'Connection': 'keep-alive', 'x-amzn-RequestId': 'e2131b6c-519b-4b36-bc42-91be50ea45c3', 'X-Amzn-Bedrock-Invocation-Latency': '7790', 'X-Amzn-Bedrock-Output-Token-Count': '194', 'X-Amzn-Bedrock-Input-Token-Count': '243'}
+[DEBUG]	2025-10-01T04:55:03.113Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Response body:
+<botocore.response.StreamingBody object at 0x7f166734cac0>
+[DEBUG]	2025-10-01T04:55:03.113Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Event needs-retry.bedrock-runtime.InvokeModel: calling handler <botocore.retryhandler.RetryHandler object at 0x7f1667b9f450>
+[DEBUG]	2025-10-01T04:55:03.113Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	No retry needed.
+[INFO]	2025-10-01T04:55:03.114Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Parsing Bedrock response...
+[INFO]	2025-10-01T04:55:03.114Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Bedrock response: {'inputTextTokenCount': 243, 'results': [{'tokenCount': 194, 'outputText': '\n総カロリー: 2000kcal\n朝食500kcal、昼食700kcal、夕食800kcal\n日本料理中心\n具体的な料理名を使用\n{\n  "meals": [\n    {\n      "mealType": "朝食",\n      "calories": 500,\n      "dishes": ["納豆ごはん", "味噌汁", "玉子焼き"]\n    },\n    {\n      "mealType": "昼食",\n      "calories": 700,\n      "dishes": ["さばの味噌汁", "おにぎり", "サラダ"]\n    },\n    {\n      "mealType": "夕食",\n      "calories": 800,\n      "dishes": ["焼き魚", "ごはん", "野菜炒め"]\n    }\n  ]\n}', 'completionReason': 'FINISH'}]}
+[INFO]	2025-10-01T04:55:03.114Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Extracted text length: 386
+[INFO]	2025-10-01T04:55:03.114Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Parsing Bedrock response: 
+総カロリー: 2000kcal
+朝食500kcal、昼食700kcal、夕食800kcal
+日本料理中心
+具体的な料理名を使用
+{
+    "meals": [
+        {
+            "mealType": "朝食",
+            "calories": 500,
+            "dishes": [
+                "納豆ごはん",
+                "味噌汁",
+                "玉子焼き"
+            ]
+        },
+        {
+            "mealType": "昼食",
+            "calories": 700,
+            "dishes": [
+                "さばの味噌汁",
+                "おにぎり",
+                "サラダ"
+            ]
+        },
+        {
+            "mealType": "夕食",
+            "calories": 800,
+            "dishes": [
+                "焼き魚",
+                "ごはん",
+                "野菜炒め"
+            ]
+        }
+    ]
+}
+...
+[INFO]	2025-10-01T04:55:03.114Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Extracted JSON: 
+{
+    "meals": [
+        {
+            "mealType": "朝食",
+            "calories": 500,
+            "dishes": [
+                "納豆ごはん",
+                "味噌汁",
+                "玉子焼き"
+            ]
+        },
+        {
+            "mealType": "昼食",
+            "calories": 700,
+            "dishes": [
+                "さばの味噌汁",
+                "おにぎり",
+                "サラダ"
+            ]
+        },
+        {
+            "mealType": "夕食",
+            "calories": 800,
+            "dishes": [
+                "焼き魚",
+                "ごはん",
+                "野菜炒め"
+            ]
+        }
+    ]
+}
+
+[INFO]	2025-10-01T04:55:03.114Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Successfully parsed 3 meals
+[INFO]	2025-10-01T04:55:03.114Z	afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Generated meal data: [{'mealType': '朝食', 'calories': 500, 'dishes': ['納豆ごはん', '味噌汁', '玉子焼き']}, {'mealType': '昼食', 'calories': 700, 'dishes': ['さばの味噌汁', 'おにぎり', 'サラダ']}, {'mealType': '夕食', 'calories': 800, 'dishes': ['焼き魚', 'ごはん', '野菜炒め']}]
+DEBUG INFO: {'userId': '47148a78-90d1-700c-31cc-5fc3a69b7cc8', 'userPreferencesFound': False, 'mealsCount': 3, 'promptLength': 486, 'bedrockResponseReceived': True, 'textLength': 386}
+END RequestId: afa5f953-6248-426d-b0d7-cd6cdbeaca2a
+REPORT RequestId: afa5f953-6248-426d-b0d7-cd6cdbeaca2a	Duration: 7854.76 ms	Billed Duration: 7855 ms	Memory Size: 128 MB	Max Memory Used: 88 MB	

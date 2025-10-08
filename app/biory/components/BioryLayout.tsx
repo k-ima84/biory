@@ -2,6 +2,7 @@
  
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { handleSignOut } from "./function";
 import "./layout.css";
  
 interface LayoutProps {
@@ -31,13 +32,25 @@ export default function BioryLayout({ children }: LayoutProps) {
         router.push("/biory/meal");
         break;
       case "calendar":
-        console.log("カレンダー画面へ遷移"); // 今後実装
+        router.push("/biory/calendar");
         break;
       case "settings":
         router.push("/biory/settings");
         break;
       default:
         break;
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await handleSignOut();
+      // ログアウト後はログイン画面へリダイレクト
+      router.push("/biory/login");
+    } catch (error) {
+      console.error('ログアウト処理でエラーが発生しました:', error);
+      // エラーが発生してもログイン画面へリダイレクト
+      router.push("/biory/login");
     }
   };
  
@@ -49,6 +62,9 @@ export default function BioryLayout({ children }: LayoutProps) {
         break;
       case "meal":
         active = currentPath === "/biory/meal";
+        break;
+      case "calendar":
+        active = currentPath.startsWith("/biory/calendar");
         break;
       case "settings":
         active = currentPath.startsWith("/biory/settings");
@@ -66,6 +82,9 @@ export default function BioryLayout({ children }: LayoutProps) {
       {/* ヘッダー */}
       <header className="biory-header">
         <h1 className="biory-logo">biory</h1>
+        <button className="logout-button" onClick={handleLogout}>
+          ログアウト
+        </button>
       </header>
  
       {/* メインコンテンツ */}
@@ -90,7 +109,7 @@ export default function BioryLayout({ children }: LayoutProps) {
           <div className="nav-icon meal-icon"></div>
         </button>
         <button
-          className="nav-item"
+          className={`nav-item ${isActive("calendar") ? "active" : ""}`}
           onClick={() => handleNavClick("calendar")}
         >
           <div className="nav-icon calendar-icon"></div>

@@ -17,6 +17,29 @@ const schema = a.schema({
       fat: a.float(),
       carbs: a.float(),
     })
+    .authorization((allow) => [
+      allow.owner(),
+      allow.publicApiKey()
+    ]),
+
+  FoodNutrition: a
+    .model({
+      foodNumber: a.string(),
+      foodName: a.string(),
+      category: a.string(),
+      energyKcal: a.float(),
+      proteinG: a.float(),
+      fatG: a.float(),
+      carbohydrateG: a.float(),
+      sodiumMg: a.float(),
+      calciumMg: a.float(),
+      ironMg: a.float(),
+      vitaminAUg: a.float(),
+      vitaminB1Mg: a.float(),
+      vitaminB2Mg: a.float(),
+      vitaminCMg: a.float(),
+      cholesterolMg: a.float(),
+    })
     .authorization((allow) => [allow.publicApiKey()]),
 
   DailyRecord: a
@@ -29,7 +52,10 @@ const schema = a.schema({
       mood: a.string(), // 気分
       weight: a.float(), // 体重 (kg)
     })
-    .authorization((allow) => [allow.publicApiKey()]),
+    .authorization((allow) => [
+      allow.owner(),
+      allow.publicApiKey()
+    ]),
 
   UserProfile: a
     .model({
@@ -45,7 +71,10 @@ const schema = a.schema({
       exerciseFrequency: a.string(), // 運動頻度（選択式）
       exerciseFrequencyOther: a.string(), // その他を選択した場合の自由入力
     })
-    .authorization((allow) => [allow.publicApiKey()]),
+    .authorization((allow) => [
+      allow.owner(),
+      allow.publicApiKey()
+    ]),
 });
 
 export type Schema = ClientSchema<typeof schema>;
@@ -53,7 +82,7 @@ export type Schema = ClientSchema<typeof schema>;
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: "apiKey",
+    defaultAuthorizationMode: "userPool",
     apiKeyAuthorizationMode: {
       expiresInDays: 30,
     },
