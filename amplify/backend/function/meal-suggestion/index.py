@@ -49,10 +49,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             body=json.dumps({
                 "inputText": prompt,
                 "textGenerationConfig": {
-                    "maxTokenCount": 1500,
-                    "temperature": 0.9,
-                    "topP": 0.9,
-                    "stopSequences": []
+                    "maxTokenCount": 800,
+                    "temperature": 0.8
                 }
             })
         )
@@ -71,6 +69,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         logger.info(f"Generated meal data: {meal_data}")
         logger.info(f"Meal data type: {type(meal_data)}")
         logger.info(f"Meal data length: {len(meal_data) if meal_data else 0}")
+        
+        # 空の結果の場合はデフォルト献立を使用
+        if not meal_data or len(meal_data) == 0:
+            logger.warning("No meal data parsed, using default meals")
+            meal_data = create_default_meals(target_calories)
         
         # 各食事の詳細をログ出力
         if meal_data:
@@ -177,46 +180,39 @@ def create_meal_prompt(preferences: Dict, restrictions: list, target_calories: i
         "焼肉", "鍋料理", "グラタン", "リゾット", "パエリア", "タコス"
     ]
     
-    prompt = f"""あなたは創意豊かな料理研究家です。日本の10月の季節感を活かした、バラエティに富んだ1日の献立を提案してください。
-
-以下のJSON形式で回答してください：
+    prompt = f"""以下のJSON形式のみで回答してください。説明文や追加のテキストは一切不要です。
 
 {{
   "meals": [
     {{
       "mealType": "朝食",
       "calories": {breakfast_cal},
-      "dishes": ["メイン料理", "副菜", "汁物/飲み物"]
+      "dishes": ["具体的な料理名1", "具体的な料理名2", "具体的な料理名3"]
     }},
     {{
       "mealType": "昼食", 
       "calories": {lunch_cal},
-      "dishes": ["メイン料理", "副菜", "汁物/飲み物"]
+      "dishes": ["具体的な料理名1", "具体的な料理名2", "具体的な料理名3"]
     }},
     {{
       "mealType": "夕食",
       "calories": {dinner_cal}, 
-      "dishes": ["メイン料理", "副菜", "汁物/飲み物"]
+      "dishes": ["具体的な料理名1", "具体的な料理名2", "具体的な料理名3"]
     }}
   ]
 }}
 
-【必須条件】
+条件：
 - 総カロリー{target_calories}kcal以内
 - 朝{breakfast_cal}kcal、昼{lunch_cal}kcal、夕{dinner_cal}kcal程度
 {allergy_constraints}
-- 「ごはん」「白米」などの主食は最大1食まで
-- 毎食異なるジャンル・調理法の料理を組み合わせる
-- 10月の秋の食材（さつまいも、きのこ、柿など）を活用
-- 和食・洋食・中華・エスニックなど多様なジャンルから選択
+- 10月の秋の食材を活用
+- 多様なジャンル（和食・洋食・中華・エスニック）から選択
+- 毎食異なる料理を組み合わせる
 
-【参考料理】（これら以外も自由に提案してください）
-{', '.join(random.sample(creative_dishes, 8))}
+参考料理: {', '.join(random.sample(creative_dishes, 6))}
 
-【重要】創造性を最大限発揮し、予想外の美味しい組み合わせを提案してください。
-毎回まったく異なる献立になるよう工夫してください。
-
-JSON形式のみで回答してください。説明不要。
+上記JSON形式のみで回答し、他の文章は書かないでください。
 ID:{random_seed}"""
     return prompt
 
@@ -225,6 +221,7 @@ def parse_meal_suggestion(text: str, target_calories: int = 2000) -> list:
     Bedrockからの応答をパースして献立データを抽出
     """
     logger.info(f"Parsing Bedrock response: {text[:500]}...")  # 最初の500文字をログ出力
+    print(f"FULL BEDROCK RESPONSE: {text}")  # 完全な応答をprintで出力
     
     try:
         # JSON部分を抽出
@@ -234,34 +231,38 @@ def parse_meal_suggestion(text: str, target_calories: int = 2000) -> list:
         if start_idx != -1 and end_idx != -1:
             json_str = text[start_idx:end_idx]
             logger.info(f"Extracted JSON: {json_str}")
-            data = json.loads(json_str)
-            meals = data.get('meals', [])
-            if meals:
-                logger.info(f"Successfully parsed {len(meals)} meals")
-                # AIから返されたカロリーをそのまま使用（より柔軟性を持たせる）
-                return meals
+            print(f"EXTRACTED JSON: {json_str}")
+            try:
+                data = json.loads(json_str)
+                meals = data.get('meals', [])
+                if meals:
+                    logger.info(f"Successfully parsed {len(meals)} meals")
+                    # 各食事にcolorフィールドを追加
+                    for meal in meals:
+                        if 'color' not in meal:
+                            meal['color'] = '#FF8C42'
+                    return meals
+            except json.JSONDecodeError as json_err:
+                logger.error(f"JSON parsing failed: {json_err}")
+                print(f"JSON PARSE ERROR: {json_err}")
         
         # JSONがない場合はテキストからパース
         logger.warning("No valid JSON found, parsing text format")
         parsed_meals = parse_text_format(text, target_calories)
         if parsed_meals:
             return parsed_meals
-        else:
-            logger.error("Failed to parse any meal data")
-            return []
+        
+        # すべてのパースが失敗した場合はデフォルト献立を返す
+        logger.error("All parsing methods failed, returning default meals")
+        return create_default_meals(target_calories)
             
-    except json.JSONDecodeError as e:
-        logger.error(f"JSON decode error: {e}")
-        parsed_meals = parse_text_format(text, target_calories)
-        if parsed_meals:
-            return parsed_meals
-        else:
-            logger.error("Failed to parse meal data after JSON error")
-            return []
+    except Exception as e:
+        logger.error(f"General parsing error: {e}")
+        return create_default_meals(target_calories)
 
 def parse_text_format(text: str, target_calories: int = 2000) -> list:
     """
-    テキスト形式のレスポンスをパース
+    テキスト形式のレスポンスをパース（ログで見た実際の形式に対応）
     """
     try:
         # ターゲットカロリーに基づいた動的なカロリー配分
@@ -275,44 +276,105 @@ def parse_text_format(text: str, target_calories: int = 2000) -> list:
         
         for line in lines:
             line = line.strip()
-            if '朝食:' in line:
-                if current_meal:
+            
+            # 食事タイプの識別
+            if '朝食' in line and not line.startswith('-'):
+                if current_meal and len(current_meal['dishes']) > 0:
                     meals.append(current_meal)
                 current_meal = {'mealType': '朝食', 'calories': breakfast_cal, 'dishes': [], 'color': '#FF8C42'}
-            elif '昼食:' in line:
-                if current_meal:
+            elif '昼食' in line and not line.startswith('-'):
+                if current_meal and len(current_meal['dishes']) > 0:
                     meals.append(current_meal)
                 current_meal = {'mealType': '昼食', 'calories': lunch_cal, 'dishes': [], 'color': '#FF8C42'}
-            elif '夕食:' in line:
-                if current_meal:
+            elif '夕食' in line and not line.startswith('-'):
+                if current_meal and len(current_meal['dishes']) > 0:
                     meals.append(current_meal)
                 current_meal = {'mealType': '夕食', 'calories': dinner_cal, 'dishes': [], 'color': '#FF8C42'}
-            elif current_meal and ('主食:' in line or '主菜:' in line or '副菜:' in line):
-                dish = line.split(':')[-1].strip()
-                if dish:
-                    current_meal['dishes'].append(dish)
+            
+            # 料理の抽出（「- メイン料理：」「- 副菜：」「- 汁物/飲み物：」形式）
+            elif current_meal and line.startswith('- '):
+                if ':' in line:
+                    dish = line.split(':', 1)[-1].strip()
+                    if dish and dish not in current_meal['dishes']:
+                        current_meal['dishes'].append(dish)
         
-        if current_meal:
+        # 最後の食事を追加
+        if current_meal and len(current_meal['dishes']) > 0:
             meals.append(current_meal)
         
-        # 各食事に最低1つの料理があるかチェック
-        valid_meals = [meal for meal in meals if len(meal['dishes']) > 0]
+        if len(meals) >= 1:
+            logger.info(f"Successfully parsed {len(meals)} meals from text format")
+            return meals
         
-        if len(valid_meals) >= 1:  # 最低1食でもパースできればOK
-            logger.info(f"Successfully parsed {len(valid_meals)} meals from text")
-            return valid_meals
-        
-        # テキストから簡単なパースを試行
-        logger.warning("Trying simple text parsing as fallback")
-        simple_meals = create_simple_meals_from_text(text, target_calories)
-        if simple_meals:
-            return simple_meals
+        # 代替パース方法を試行
+        logger.warning("Trying alternative text parsing")
+        alternative_meals = parse_alternative_format(text, target_calories)
+        if alternative_meals:
+            return alternative_meals
         
         logger.warning("Failed to parse any valid meals from text format")
         return []
         
     except Exception as e:
         logger.error(f"Text parsing error: {e}")
+        return []
+
+def parse_alternative_format(text: str, target_calories: int = 2000) -> list:
+    """
+    代替のテキストパース方法
+    """
+    try:
+        breakfast_cal = int(target_calories * 0.25)
+        lunch_cal = int(target_calories * 0.35)  
+        dinner_cal = target_calories - breakfast_cal - lunch_cal
+        
+        meals = []
+        
+        # シンプルに行ごとに料理を抽出
+        lines = [line.strip() for line in text.split('\n') if line.strip()]
+        dishes = []
+        
+        for line in lines:
+            # 「- メイン料理：」「- 副菜：」などから料理名を抽出
+            if ':' in line and ('メイン' in line or '副菜' in line or '汁物' in line or '飲み物' in line):
+                dish = line.split(':', 1)[-1].strip()
+                if dish:
+                    dishes.append(dish)
+        
+        # 抽出した料理を3つずつ食事に分配
+        if len(dishes) >= 3:
+            meals = [
+                {
+                    'mealType': '朝食',
+                    'calories': breakfast_cal,
+                    'dishes': dishes[0:3] if len(dishes) >= 3 else dishes[0:len(dishes)],
+                    'color': '#FF8C42'
+                },
+                {
+                    'mealType': '昼食', 
+                    'calories': lunch_cal,
+                    'dishes': dishes[3:6] if len(dishes) >= 6 else dishes[min(3, len(dishes)):len(dishes)],
+                    'color': '#FF8C42'
+                },
+                {
+                    'mealType': '夕食',
+                    'calories': dinner_cal,
+                    'dishes': dishes[6:9] if len(dishes) >= 9 else dishes[min(6, len(dishes)):len(dishes)],
+                    'color': '#FF8C42'
+                }
+            ]
+            
+            # 空の食事を除外
+            meals = [meal for meal in meals if len(meal['dishes']) > 0]
+            
+            if meals:
+                logger.info(f"Alternative parsing successful: {len(meals)} meals")
+                return meals
+        
+        return []
+        
+    except Exception as e:
+        logger.error(f"Alternative parsing error: {e}")
         return []
 
 def create_simple_meals_from_text(text: str, target_calories: int = 2000) -> list:
@@ -362,6 +424,94 @@ def create_simple_meals_from_text(text: str, target_calories: int = 2000) -> lis
     except Exception as e:
         logger.error(f"Simple parsing error: {e}")
         return []
+
+def create_default_meals(target_calories: int = 2000) -> list:
+    """
+    パース失敗時のデフォルト献立を作成
+    """
+    try:
+        breakfast_cal = int(target_calories * 0.25)
+        lunch_cal = int(target_calories * 0.35)
+        dinner_cal = target_calories - breakfast_cal - lunch_cal
+        
+        import random
+        
+        # より多様なデフォルト献立パターン
+        breakfast_options = [
+            ["トースト", "目玉焼き", "コーヒー"],
+            ["おにぎり", "味噌汁", "焼き魚"],
+            ["パンケーキ", "ヨーグルト", "フルーツ"],
+            ["お粥", "梅干し", "緑茶"],
+            ["サンドイッチ", "サラダ", "牛乳"]
+        ]
+        
+        lunch_options = [
+            ["カレーライス", "サラダ", "スープ"],
+            ["ラーメン", "餃子", "チャーハン"],
+            ["パスタ", "パン", "野菜ジュース"],
+            ["うどん", "天ぷら", "おにぎり"],
+            ["丼物", "味噌汁", "漬物"]
+        ]
+        
+        dinner_options = [
+            ["ハンバーグ", "ライス", "野菜炒め"],
+            ["焼き魚", "ご飯", "煮物"],
+            ["ステーキ", "サラダ", "スープ"],
+            ["鍋料理", "ご飯", "お漬物"],
+            ["炒め物", "ライス", "中華スープ"]
+        ]
+        
+        selected_breakfast = random.choice(breakfast_options)
+        selected_lunch = random.choice(lunch_options) 
+        selected_dinner = random.choice(dinner_options)
+        
+        default_meals = [
+            {
+                'mealType': '朝食',
+                'calories': breakfast_cal,
+                'dishes': selected_breakfast,
+                'color': '#FF8C42'
+            },
+            {
+                'mealType': '昼食',
+                'calories': lunch_cal,
+                'dishes': selected_lunch,
+                'color': '#FF8C42'
+            },
+            {
+                'mealType': '夕食',
+                'calories': dinner_cal,
+                'dishes': selected_dinner,
+                'color': '#FF8C42'
+            }
+        ]
+        
+        logger.info(f"Created default meals: {default_meals}")
+        return default_meals
+        
+    except Exception as e:
+        logger.error(f"Failed to create default meals: {e}")
+        # 最終フォールバック
+        return [
+            {
+                'mealType': '朝食',
+                'calories': 500,
+                'dishes': ["パン", "卵", "コーヒー"],
+                'color': '#FF8C42'
+            },
+            {
+                'mealType': '昼食',
+                'calories': 700,
+                'dishes': ["定食", "ご飯", "味噌汁"],
+                'color': '#FF8C42'
+            },
+            {
+                'mealType': '夕食',
+                'calories': 800,
+                'dishes': ["メイン料理", "ご飯", "サラダ"],
+                'color': '#FF8C42'
+            }
+        ]
 
 def get_default_meals() -> list:
     """
