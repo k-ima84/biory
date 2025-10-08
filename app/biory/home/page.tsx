@@ -139,116 +139,166 @@ export default function HomePage() {
     setCurrentDate(formattedDate);
   };
 
-  // FoodNutritionデータベース確認用の関数
+
+  // より詳細な FoodNutrition データベースチェック関数
   const checkFoodNutritionData = async () => {
     try {
-      console.log('=== FoodNutrition データベース確認開始 ===');
-      const { data: foods } = await client.models.FoodNutrition.list();
+      console.log("🔍 FoodNutritionデータベースの詳細チェック開始...");
       
-      if (foods && foods.length > 0) {
-        console.log(`✅ FoodNutrition レコード数: ${foods.length}件`);
-        console.log('サンプルデータ（最初の3件）:');
-        foods.slice(0, 3).forEach((food, index) => {
-          console.log(`${index + 1}. ${food.foodName}: ${food.energyKcal}kcal, P:${food.protein}g, F:${food.fat}g, C:${food.carbs}g`);
+      // 全件数を取得（詳細ログ付き）
+      let totalCount = 0;
+      let nextToken: string | null = null;
+      let pageCount = 0;
+      
+      do {
+        pageCount++;
+        console.log(`📄 ページ ${pageCount} を取得中...`);
+        
+        const result: any = await client.models.FoodNutrition.list({
+          limit: 1000,
+          nextToken: nextToken || undefined
         });
         
-        // 検索テスト
-        const testSearch = foods.filter(f => f.foodName.includes('コッペパン'));
-        console.log(`"コッペパン"検索結果: ${testSearch.length}件`);
-        if (testSearch.length > 0) {
-          console.log(`例: ${testSearch[0].foodName} (${testSearch[0].energyKcal}kcal)`);
+        if (result.data) {
+          totalCount += result.data.length;
+          console.log(`📊 ページ ${pageCount}: ${result.data.length}件取得 (累計: ${totalCount}件)`);
+          
+          // 最初の5件のサンプルデータを表示
+          if (pageCount === 1) {
+            console.log("📋 サンプルデータ:", result.data.slice(0, 5).map((item: any) => ({
+              id: item.id,
+              foodId: item.foodId,
+              foodName: item.foodName,
+              calories: item.energyKcal
+            })));
+          }
+        } else {
+          console.log(`⚠️ ページ ${pageCount}: データが空です`);
         }
+        
+        nextToken = result.nextToken;
+        console.log(`🔗 NextToken: ${nextToken ? 'あり' : 'なし'}`);
+        
+        // 無限ループ防止（最大50ページまで）
+        if (pageCount >= 50) {
+          console.log("⚠️ 50ページに達したため処理を停止します");
+          break;
+        }
+        
+      } while (nextToken);
+
+      console.log(`🎯 最終データ件数: ${totalCount}件 (${pageCount}ページ取得)`);
+
+      if (totalCount >= 2538) {
+        console.log(`✅ FoodNutritionデータベースに十分なデータが存在します (${totalCount}件)`);
+        return true;
       } else {
-        console.log('❌ FoodNutrition データが見つかりません');
-        console.log('CSVインポートが必要です');
+        console.log(`⚠️ FoodNutritionデータベースのデータが不足しています (${totalCount}/2538件)`);
+        console.log("💡 CSVデータを自動取り込み中...");
+        
+        // CSV再取り込みを実行
+        await importCSVData();
+        return false;
       }
     } catch (error) {
-      console.error('❌ FoodNutrition データ確認エラー:', error);
+      console.error("❌ FoodNutritionデータベースチェックエラー:", error);
+      console.log("💡 データベース接続を確認してください");
+      return false;
     }
   };
 
-  // CSVインポート機能（開発用）
-  const handleCSVImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    
+  // CSV自動取り込み関数
+  const importCSVData = async () => {
     try {
-      console.log('CSVファイルインポート開始:', file.name);
+      console.log("📁 CSVファイルを読み込み中...");
       
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        try {
-          const csvData = e.target?.result as string;
-          const lines = csvData.split('\n').filter(line => line.trim() !== '');
-          const foods = [];
-          
-          // ヘッダー行をスキップ（1行目）
-          for (let i = 1; i < lines.length && i < 51; i++) { // 最初の50件のみテスト
-            const line = lines[i].trim();
-            if (line) {
-              const columns = line.split(',');
-              if (columns.length >= 6) {
-                const food = {
-                  foodName: columns[1].replace(/"/g, '').trim(),
-                  energyKcal: parseInt(columns[2]) || 0,
-                  protein: parseFloat(columns[3]) || 0,
-                  fat: parseFloat(columns[4]) || 0,
-                  carbs: parseFloat(columns[5]) || 0,
-                };
-                
-                if (food.foodName && food.energyKcal > 0) {
-                  foods.push(food);
-                }
-              }
-            }
-          }
-          
-          console.log(`テスト用に${foods.length}件のデータを処理`);
-          
-          // DynamoDBに保存
-          let successCount = 0;
-          let errorCount = 0;
-          
-          for (const food of foods) {
-            try {
+      // nutrition-data.csvファイルを読み込み
+      const response = await fetch('/nutrition-data.csv');
+      if (!response.ok) {
+        throw new Error('CSVファイルが見つかりません');
+      }
+      
+      const csvText = await response.text();
+      const lines = csvText.trim().split('\n');
+      
+      console.log(`📊 CSVファイル読み込み完了: ${lines.length}行`);
+      
+      let successCount = 0;
+      let errorCount = 0;
+      
+      // 100件ずつバッチ処理
+      const batchSize = 100;
+      for (let i = 0; i < lines.length; i += batchSize) {
+        const batch = lines.slice(i, i + batchSize);
+        const promises = batch.map(async (line, index) => {
+          try {
+            const columns = line.split(',');
+            if (columns.length >= 6) {
               await client.models.FoodNutrition.create({
-                foodName: food.foodName,
-                energyKcal: food.energyKcal,
-                protein: food.protein,
-                fat: food.fat,
-                carbs: food.carbs,
-                per100g: true,
+                foodId: parseInt(columns[0]) || (i + index + 1),
+                foodName: columns[1] || 'Unknown',
+                energyKcal: parseFloat(columns[2]) || 0,
+                protein: parseFloat(columns[3]) || 0,
+                fat: parseFloat(columns[4]) || 0,
+                carbs: parseFloat(columns[5]) || 0
               });
-              successCount++;
-              console.log(`✅ 保存成功: ${food.foodName}`);
-            } catch (error) {
-              errorCount++;
-              console.error(`❌ 保存エラー - ${food.foodName}:`, error);
+              return true;
             }
-            
-            // 進捗表示
-            if ((successCount + errorCount) % 10 === 0) {
-              console.log(`進捗: ${successCount + errorCount}/${foods.length} (成功: ${successCount}, エラー: ${errorCount})`);
-            }
+            return false;
+          } catch (error) {
+            console.error(`データ挿入エラー (行 ${i + index + 1}):`, error);
+            return false;
           }
-          
-          console.log(`インポート完了: 成功 ${successCount}件, エラー ${errorCount}件`);
-          alert(`CSVインポート完了\n成功: ${successCount}件\nエラー: ${errorCount}件`);
-          
-          // データ確認を再実行
-          await checkFoodNutritionData();
-          
-        } catch (error) {
-          console.error('CSVインポートエラー:', error);
-          const errorMessage = error instanceof Error ? error.message : String(error);
-          alert('CSVインポートでエラーが発生しました: ' + errorMessage);
-        }
-      };
+        });
+        
+        const results = await Promise.all(promises);
+        successCount += results.filter(r => r).length;
+        errorCount += results.filter(r => !r).length;
+        
+        // 進捗表示
+        const progress = Math.round(((i + batch.length) / lines.length) * 100);
+        console.log(`📈 インポート進捗: ${progress}% (${successCount}件成功, ${errorCount}件エラー)`);
+      }
       
-      reader.readAsText(file, 'utf-8');
+      console.log(`✅ CSVインポート完了: ${successCount}件成功, ${errorCount}件エラー`);
+      
+      // 最終件数確認
+      await checkFinalCount();
+      
     } catch (error) {
-      console.error('ファイル読み込みエラー:', error);
-      alert('ファイル読み込みでエラーが発生しました');
+      console.error("❌ CSV自動取り込みエラー:", error);
+      alert("栄養データの自動取り込みに失敗しました。管理者にお問い合わせください。");
+    }
+  };
+
+  // 最終件数確認関数
+  const checkFinalCount = async () => {
+    try {
+      let totalCount = 0;
+      let nextToken: string | null = null;
+      
+      do {
+        const result: any = await client.models.FoodNutrition.list({
+          limit: 1000,
+          nextToken: nextToken || undefined
+        });
+        
+        if (result.data) {
+          totalCount += result.data.length;
+        }
+        
+        nextToken = result.nextToken;
+      } while (nextToken);
+
+      console.log(`🎯 最終データ件数: ${totalCount}件`);
+      
+      if (totalCount >= 2538) {
+        console.log("🎉 栄養データベースの構築が完了しました！");
+      } else {
+        console.log(`⚠️ まだデータが不足しています (${totalCount}/2538件)`);
+      }
+    } catch (error) {
+      console.error("最終件数確認エラー:", error);
     }
   };
 
@@ -263,7 +313,7 @@ export default function HomePage() {
         email: userInfo.email
       });
       
-      // ユーザー認証成功後にデータベース確認を実行
+      // 初回ログイン時にFoodNutritionデータをチェック（2538件確認）
       await checkFoodNutritionData();
       
     } catch (error) {
@@ -497,14 +547,26 @@ export default function HomePage() {
 
   // 食事データを取得する関数
   const fetchMealData = async (dateString: string) => {
-    if (!cognitoUserId) return;
+    if (!cognitoUserId) {
+      console.log("fetchMealData: cognitoUserId がありません");
+      return;
+    }
     
     try {
+      console.log("=== fetchMealData 開始 ===");
+      console.log("検索条件 - dateString:", dateString, "cognitoUserId:", cognitoUserId);
+      
       const { data: dailyRecords } = await client.models.DailyRecord.list();
+      console.log("DailyRecord全件数:", dailyRecords?.length || 0);
+      console.log("DailyRecord全データ:", dailyRecords);
+      
       // 食事データ専用レコード
       const todayMeals = dailyRecords?.filter(m => 
         m.date === dateString && m.userId === cognitoUserId
       );
+      
+      console.log("フィルター後の今日の食事データ:", todayMeals);
+      console.log("フィルター後の件数:", todayMeals?.length || 0);
 
       const mealsByType = {
         breakfast: "—",
@@ -512,13 +574,29 @@ export default function HomePage() {
         dinner: "—",
       };
 
-      todayMeals?.forEach(meal => {
-        if (meal.breakfast) mealsByType.breakfast = meal.breakfast || "—";
-        if (meal.lunch) mealsByType.lunch = meal.lunch || "—";
-        if (meal.dinner) mealsByType.dinner = meal.dinner || "—";
+      todayMeals?.forEach((meal, index) => {
+        console.log(`食事レコード ${index}:`, meal);
+        console.log(`  breakfast: "${meal.breakfast}"`);
+        console.log(`  lunch: "${meal.lunch}"`);
+        console.log(`  dinner: "${meal.dinner}"`);
+        
+        if (meal.breakfast && meal.breakfast.trim() !== "") {
+          mealsByType.breakfast = meal.breakfast;
+          console.log(`  breakfast 設定: "${meal.breakfast}"`);
+        }
+        if (meal.lunch && meal.lunch.trim() !== "") {
+          mealsByType.lunch = meal.lunch;
+          console.log(`  lunch 設定: "${meal.lunch}"`);
+        }
+        if (meal.dinner && meal.dinner.trim() !== "") {
+          mealsByType.dinner = meal.dinner;
+          console.log(`  dinner 設定: "${meal.dinner}"`);
+        }
       });
 
+      console.log("最終的な食事データ:", mealsByType);
       setMealData(mealsByType);
+      console.log("=== fetchMealData 完了 ===");
     } catch (error) {
       console.error("食事データ取得エラー:", error);
     }
@@ -547,19 +625,24 @@ export default function HomePage() {
     fetchCognitoUserData();
   }, []);
 
-  // cognitoUserIdが取得できた後にプロフィールを取得
+  // cognitoUserIdが取得できた後にプロフィールと食事データを取得
   useEffect(() => {
     if (cognitoUserId) {
+      console.log("cognitoUserId が取得できました:", cognitoUserId);
       fetchUserProfile();
+      
+      // 食事データも取得
+      const dateString = getCurrentDateString();
+      console.log("食事データを取得します。日付:", dateString);
+      fetchMealData(dateString);
+      fetchHealthDataFromDailyRecord(dateString);
     }
   }, [cognitoUserId]);
 
   useEffect(() => {
-    // 今日の日付文字列を取得してデータを取得
+    // 初回は栄養データのみ取得（cognitoUserId依存のデータは別のuseEffectで取得）
     const dateString = getCurrentDateString();
     fetchNutritionData(dateString);
-    fetchMealData(dateString);
-    fetchHealthDataFromDailyRecord(dateString);
 
     // 1分ごとに日付を更新（日付が変わった場合のため）
     const dateUpdateInterval = setInterval(() => {
@@ -569,16 +652,22 @@ export default function HomePage() {
       // 日付が変わった場合はデータも再取得
       if (newDateString !== dateString) {
         fetchNutritionData(newDateString);
-        fetchMealData(newDateString);
-        fetchHealthDataFromDailyRecord(newDateString);
+        // cognitoUserIdが存在する場合のみ食事・健康データを取得
+        if (cognitoUserId) {
+          fetchMealData(newDateString);
+          fetchHealthDataFromDailyRecord(newDateString);
+        }
       }
     }, 60000); // 1分間隔
 
     // ページフォーカス時にユーザープロフィールと健康データを再取得
     const handleFocus = () => {
-      fetchUserProfile();
-      const currentDateString = getCurrentDateString();
-      fetchHealthDataFromDailyRecord(currentDateString);
+      if (cognitoUserId) {
+        fetchUserProfile();
+        const currentDateString = getCurrentDateString();
+        fetchHealthDataFromDailyRecord(currentDateString);
+        fetchMealData(currentDateString);
+      }
     };
     window.addEventListener('focus', handleFocus);
 
@@ -742,33 +831,64 @@ export default function HomePage() {
 
   const handleMealSave = async () => {
     try {
+      console.log("=== handleMealSave 開始 ===");
+      console.log("cognitoUserId:", cognitoUserId);
+      console.log("保存する食事データ:", mealEditData);
+      
       const dateString = getCurrentDateString();
+      console.log("保存対象日付:", dateString);
       
       // DailyRecordテーブルから今日の食事データを検索
       const { data: dailyRecords } = await client.models.DailyRecord.list();
+      console.log("DailyRecord検索結果:", dailyRecords?.length || 0, "件");
+      
       const todayMealRecord = dailyRecords?.find(record => 
         record.userId === cognitoUserId && record.date === dateString
       );
+      
+      console.log("既存レコード:", todayMealRecord);
 
       if (todayMealRecord) {
         // 既存のレコードを更新
-        await client.models.DailyRecord.update({
+        console.log("既存レコードを更新します:", {
           id: todayMealRecord.id,
           breakfast: mealEditData.breakfast,
           lunch: mealEditData.lunch,
           dinner: mealEditData.dinner,
         });
-        console.log("食事データを更新しました:", mealEditData);
+        
+        const { data: updatedRecord, errors } = await client.models.DailyRecord.update({
+          id: todayMealRecord.id,
+          breakfast: mealEditData.breakfast,
+          lunch: mealEditData.lunch,
+          dinner: mealEditData.dinner,
+        });
+        
+        if (errors) {
+          console.error("更新エラー:", errors);
+          throw new Error("更新に失敗しました");
+        }
+        
+        console.log("食事データを更新しました:", updatedRecord);
       } else {
         // 新しいレコードを作成
-        await client.models.DailyRecord.create({
+        const newRecord = {
           userId: cognitoUserId,
           date: dateString,
           breakfast: mealEditData.breakfast,
           lunch: mealEditData.lunch,
           dinner: mealEditData.dinner,
-        });
-        console.log("新しい食事データを作成しました:", mealEditData);
+        };
+        console.log("新規レコードを作成します:", newRecord);
+        
+        const { data: createdRecord, errors } = await client.models.DailyRecord.create(newRecord);
+        
+        if (errors) {
+          console.error("作成エラー:", errors);
+          throw new Error("作成に失敗しました");
+        }
+        
+        console.log("新しい食事データを作成しました:", createdRecord);
       }
 
       // 画面の状態を更新
@@ -778,10 +898,17 @@ export default function HomePage() {
       // 栄養価を再計算
       await fetchNutritionData(dateString);
       
+      // 食事データを再取得して表示を確実に更新
+      await fetchMealData(dateString);
+      
       console.log("「本日の食事」が保存されました:", mealEditData);
+      console.log("=== handleMealSave 完了 ===");
     } catch (error) {
-      console.error("食事データ保存エラー:", error);
-      alert("保存に失敗しました。もう一度お試しください。");
+      console.error("=== 食事データ保存エラー ===");
+      console.error("エラー詳細:", error);
+      console.error("cognitoUserId:", cognitoUserId);
+      console.error("mealEditData:", mealEditData);
+      alert(`保存に失敗しました: ${error instanceof Error ? error.message : "不明なエラー"}`);
     }
   };
 
@@ -1187,29 +1314,7 @@ export default function HomePage() {
         )}
       </section>
 
-      {/* 開発用CSVインポート機能 */}
-      <div style={{
-        position: 'fixed',
-        bottom: '90px',
-        right: '20px',
-        zIndex: 1000,
-        padding: '10px',
-        backgroundColor: '#f8f9fa',
-        border: '1px solid #dee2e6',
-        borderRadius: '8px',
-        fontSize: '12px'
-      }}>
-        <div style={{ marginBottom: '5px', fontWeight: 'bold' }}>開発用CSVインポート</div>
-        <input
-          type="file"
-          accept=".csv"
-          onChange={handleCSVImport}
-          style={{ fontSize: '12px' }}
-        />
-        <div style={{ marginTop: '5px', color: '#6c757d' }}>
-          nutrition-data.csvを選択してください
-        </div>
-      </div>
+
 
       {/* 編集ボタン */}
       {/*<button className="edit-button" onClick={handleEditClick}>
@@ -1221,4 +1326,3 @@ export default function HomePage() {
     </BioryLayout>
   );
 }
- 
