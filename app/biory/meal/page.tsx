@@ -203,9 +203,12 @@ export default function MealPage() {
       // ユーザープロファイル取得
       const userProfile = await getUserProfile();
       
+      // 推奨カロリーを計算
+      const recommendedCalories = userProfile ? calculateTDEE(userProfile) : 2000;
+      
       const requestBody = {
         userId: cognitoUserId,
-        targetCalories: 2000,
+        targetCalories: recommendedCalories,
         timestamp: new Date().toISOString()
       };
       
