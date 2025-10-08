@@ -112,10 +112,9 @@ export const schema = a.schema({
       // メタデータ
       createdAt: a.datetime(),
       updatedAt: a.datetime(),
-      // email: a.string(),
       name: a.string(),
       height: a.float(), // xxx.xx cm
-      weight: a.float(), // xx.xx kg
+      // weight: a.float(), // xx.xx kg
       age: a.integer(), // 年齢
       gender: a.string(), // 女・男・そのほか
       favoriteFoods: a.string(), // 好きな食べ物（自由入力）

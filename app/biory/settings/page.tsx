@@ -148,6 +148,7 @@ export default function SettingsPage() {
           name: "",
           height: "",
           weight: "",
+          age: "",
           gender: "",
           favoriteFoods: "",
           allergies: "",
@@ -155,6 +156,7 @@ export default function SettingsPage() {
           exerciseFrequency: "",
           exerciseFrequencyOther: "",
         // プロフィールがない場合はサンプルデータを表示
+        }
         const sampleData = {
           name: "未設定",
           height: "未設定",
