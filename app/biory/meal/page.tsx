@@ -237,6 +237,15 @@ export default function MealPage() {
             console.log('📝 AI RESPONSE:', data.debug.aiResponse);
             console.log('📊 MEAL SOURCE:', data.debug.mealSource || (data.debug.usingFallback ? 'FALLBACK' : 'AI_GENERATED'));
             console.log('🔍 DEBUG INFO:', data.debug);
+            
+            // 献立ソースによる警告表示
+            if (data.debug.usingFallback || data.debug.mealSource === 'FALLBACK') {
+              console.warn('⚠️ NOTICE: Using fallback meals (AI generation failed)');
+              alert('⚠️ 注意: AIによる献立生成に失敗しました。テンプレート献立を表示しています。');
+            } else {
+              console.log('✅ SUCCESS: Using AI-generated meals');
+            }
+            
             setDebugInfo(data.debug); // デバッグ情報を状態に保存
           }      if (response.ok) {
         // データ構造を詳細にチェック
@@ -246,15 +255,49 @@ export default function MealPage() {
         
         if (data.meals && Array.isArray(data.meals) && data.meals.length > 0) {
           console.log('Processing meals data:', data.meals);
+          // 料理名の詳細チェック
+          data.meals.forEach((meal: any, index: number) => {
+            console.log(`Meal ${index} dishes:`, meal.dishes);
+            if (meal.dishes) {
+              meal.dishes.forEach((dish: any, dishIndex: number) => {
+                console.log(`  Dish ${dishIndex}: "${dish}" (type: ${typeof dish})`);
+              });
+            }
+          });
+          
           // データを正規化
           const normalizedMeals = data.meals.map((meal: any, index: number) => {
             console.log(`Processing meal ${index}:`, meal);
+            
+            // dishesの処理を強化
+            let dishes: string[] = [];
+            if (Array.isArray(meal.dishes)) {
+              dishes = meal.dishes
+                .map((dish: any) => {
+                  if (typeof dish === 'string') {
+                    return dish.trim();
+                  } else if (dish && typeof dish === 'object') {
+                    return dish.dish || dish.name || String(dish);
+                  } else {
+                    return String(dish);
+                  }
+                })
+                .filter((dish: string) => dish && dish.length > 0);
+            } else if (meal.dishes) {
+              dishes = [String(meal.dishes)];
+            }
+            
+            // 抽象的な名前を検出して警告
+            const abstractNames = ['主菜', '副菜', '汁物', '主食'];
+            const hasAbstractNames = dishes.some(dish => abstractNames.includes(dish));
+            if (hasAbstractNames) {
+              console.warn(`⚠️ Abstract dish names found in meal ${index}:`, dishes);
+            }
+            
             return {
               mealType: meal.mealType || '食事',
               calories: meal.calories || 0,
-              dishes: Array.isArray(meal.dishes) 
-                ? meal.dishes.map((dish: any) => typeof dish === 'string' ? dish : dish.dish || dish.name || String(dish))
-                : meal.dishes ? [String(meal.dishes)] : [],
+              dishes: dishes.length > 0 ? dishes : ['和食'],
               color: meal.color || "#FF8C42"
             };
           });
@@ -423,15 +466,23 @@ export default function MealPage() {
             <div style={{ 
               marginTop: '20px', 
               padding: '15px', 
-              backgroundColor: '#f5f5f5', 
+              backgroundColor: debugInfo.usingFallback || debugInfo.mealSource === 'FALLBACK' ? '#ffebee' : '#e8f5e8',
+              borderLeft: `5px solid ${debugInfo.usingFallback || debugInfo.mealSource === 'FALLBACK' ? '#ff5722' : '#4caf50'}`,
               borderRadius: '8px',
               fontSize: '12px',
               color: '#666'
             }}>
-              <h4 style={{ margin: '0 0 10px 0', color: '#333' }}>🔍 デバッグ情報</h4>
-              <div><strong>献立ソース:</strong> {debugInfo.mealSource || (debugInfo.usingFallback ? 'フォールバック' : 'AI生成')}</div>
+              <h4 style={{ 
+                margin: '0 0 10px 0', 
+                color: debugInfo.usingFallback || debugInfo.mealSource === 'FALLBACK' ? '#d32f2f' : '#2e7d32' 
+              }}>
+                {debugInfo.usingFallback || debugInfo.mealSource === 'FALLBACK' ? '⚠️ フォールバック献立' : '✅ AI生成献立'} - デバッグ情報
+              </h4>
+              <div><strong>献立ソース:</strong> <span style={{fontWeight: 'bold', color: debugInfo.usingFallback || debugInfo.mealSource === 'FALLBACK' ? '#d32f2f' : '#2e7d32'}}>{debugInfo.mealSource || (debugInfo.usingFallback ? 'FALLBACK' : 'AI_GENERATED')}</span></div>
+              <div><strong>Bedrock状態:</strong> {debugInfo.bedrockStatus || 'UNKNOWN'}</div>
               <div><strong>AI応答長:</strong> {debugInfo.textLength || 0} 文字</div>
               <div><strong>プロンプト長:</strong> {debugInfo.promptLength || 0} 文字</div>
+              <div><strong>献立数:</strong> {debugInfo.mealsCount || 0} 件</div>
               {debugInfo.aiResponse && (
                 <details style={{ marginTop: '10px' }}>
                   <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>AI応答を表示</summary>

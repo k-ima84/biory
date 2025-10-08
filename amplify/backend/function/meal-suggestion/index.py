@@ -224,49 +224,24 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 print(f"🎯 BEDROCK RAW RESPONSE: {meal_suggestion_text}")
                 print(f"📝 RESPONSE LENGTH: {len(meal_suggestion_text)} characters")
                 
-                # AIの応答が短すぎる場合は警告
-                if len(meal_suggestion_text) < 50:
-                    print(f"⚠️ WARNING: AI response too short ({len(meal_suggestion_text)} chars) - may indicate error")
-                    print(f"🔄 ATTEMPTING FALLBACK DUE TO SHORT RESPONSE")
-                    meal_data = create_default_meals(target_calories)
-                    is_using_fallback = True
-                else:
-                    # JSON形式かどうかチェック
-                    has_json_start = '{' in meal_suggestion_text
-                    has_meals_key = 'meals' in meal_suggestion_text
-                    print(f"🔍 JSON CHECK: has_bracket={has_json_start}, has_meals={has_meals_key}")
-                    
-                    if not has_json_start or not has_meals_key:
-                        print(f"🔄 ATTEMPTING FALLBACK DUE TO INVALID JSON FORMAT")
+                # AIの応答を常にパースを試行
+                try:
+                    meal_data = parse_meal_suggestion(meal_suggestion_text, target_calories)
+                    if meal_data and len(meal_data) > 0:
+                        print(f"✅ AI PARSING SUCCESS: {len(meal_data)} meals found")
+                        is_using_fallback = False
+                        # 各食事の詳細を表示
+                        for i, meal in enumerate(meal_data):
+                            print(f"   Meal {i+1}: {meal.get('mealType', 'Unknown')} - {meal.get('calories', 0)}kcal - {meal.get('dishes', [])}")
+                    else:
+                        print(f"🔄 AI PARSING RETURNED EMPTY: Using fallback")
                         meal_data = create_default_meals(target_calories)
                         is_using_fallback = True
-                    else:
-                        # JSON形式の献立データを抽出
-                        print(f"🔄 STARTING MEAL PARSING...")
-                        meal_data = parse_meal_suggestion(meal_suggestion_text, target_calories)
-                        print(f"📊 PARSE RESULT: {type(meal_data)} with {len(meal_data) if meal_data else 0} meals")
-                        
-                        # AI成功かフォールバック使用かを判定
-                        fallback_meals = create_default_meals(target_calories)
-                        is_using_fallback = False
-                        
-                        # パース成功かどうかを明確にチェック
-                        if meal_data and len(meal_data) > 0:
-                            print(f"✅ AI PARSING SUCCESS: Generated {len(meal_data)} meals")
-                            for i, meal in enumerate(meal_data):
-                                print(f"   Meal {i+1}: {meal.get('mealType', 'Unknown')} - {meal.get('calories', 0)}kcal")
-                            
-                            # フォールバック献立と同じかチェック
-                            if meal_data == fallback_meals:
-                                is_using_fallback = True
-                                print(f"🔄 USING FALLBACK: AI returned fallback meals")
-                            else:
-                                print(f"✅ USING AI MEALS: Successfully generated {len(meal_data)} unique meals")
-                        else:
-                            print(f"❌ AI PARSING FAILED: No valid meals found")
-                            print(f"🔄 SWITCHING TO FALLBACK MEALS")
-                            meal_data = fallback_meals
-                            is_using_fallback = True
+                except Exception as parse_error:
+                    print(f"🔄 AI PARSING FAILED: {parse_error}")
+                    print(f"🔄 Using fallback meals")
+                    meal_data = create_default_meals(target_calories)
+                    is_using_fallback = True
             
             print(f"📊 MEAL SOURCE: {'FALLBACK' if is_using_fallback else 'AI_GENERATED'}")
             
@@ -355,114 +330,126 @@ def create_meal_prompt(preferences: Dict, restrictions: list, target_calories: i
     target_min = max(1200, target_calories - 150)
     target_max = target_calories + 150
     
-    prompt = f"""Create Japanese meal plan JSON:
+    prompt = f"""あなたは経験豊富な管理栄養士です。以下の条件で1日の献立を作成してください。
 
+目標カロリー: {target_min}-{target_max}kcal{allergy_constraints}
+
+以下のJSON形式で回答してください：
 {{
   "meals": [
     {{
       "mealType": "朝食",
-      "calories": 350,
-      "dishes": ["ご飯", "主菜", "副菜"]
+      "calories": [朝食のカロリー],
+      "dishes": ["具体的な料理名1", "具体的な料理名2", "具体的な料理名3"]
     }},
     {{
-      "mealType": "昼食", 
-      "calories": 700,
-      "dishes": ["ご飯", "主菜", "副菜", "汁物"]
+      "mealType": "昼食",
+      "calories": [昼食のカロリー],
+      "dishes": ["具体的な料理名1", "具体的な料理名2", "具体的な料理名3", "具体的な料理名4"]
     }},
     {{
       "mealType": "夕食",
-      "calories": 600,
-      "dishes": ["ご飯", "主菜", "副菜", "汁物"]
+      "calories": [夕食のカロリー],
+      "dishes": ["具体的な料理名1", "具体的な料理名2", "具体的な料理名3", "具体的な料理名4"]
     }}
   ]
 }}
 
-Total: {target_min}-{target_max}kcal
-Japanese dishes: 鶏の照り焼き, きんぴらごぼう, わかめの味噌汁
-{allergy_constraints}
+重要な制約:
+- 必ず具体的な日本料理名を使用（例：鶏の照り焼き、きんぴらごぼう、わかめの味噌汁）
+- 「主菜」「副菜」「汁物」などの抽象的な名称は禁止
+- 一汁三菜の構成を基本とする
+- 栄養バランスを考慮した献立
+- 季節感のある食材を使用
 
-JSON only."""
+回答はJSONのみ出力してください。"""
     return prompt
 
 def parse_meal_suggestion(text: str, target_calories: int = 2000) -> list:
     """
-    Bedrockからの応答をパースして献立データを抽出（強化版）
+    Bedrockからの応答をパースして献立データを抽出（改良版）
     """
     logger.info(f"Parsing Bedrock response: {text[:200]}...")
-    print(f"BEDROCK RESPONSE: {text}")
+    print(f"🔍 BEDROCK RESPONSE FULL TEXT: {text}")
     
     try:
-        # 複数の方法でJSONを抽出
+        # テキストのクリーニング
         cleaned_text = text.strip()
         
-        # 方法1: 標準的なJSON抽出
-        start_idx = cleaned_text.find('{')
-        end_idx = cleaned_text.rfind('}') + 1
+        # JSONブロックの抽出（複数の方法を試行）
+        json_candidates = []
         
-        if start_idx != -1 and end_idx > start_idx:
-            json_str = cleaned_text[start_idx:end_idx]
-            logger.info(f"Extracted JSON: {json_str[:100]}...")
-            
+        # 方法1: 通常のJSONブロック抽出
+        if '{' in cleaned_text and '}' in cleaned_text:
+            start_idx = cleaned_text.find('{')
+            end_idx = cleaned_text.rfind('}') + 1
+            if start_idx != -1 and end_idx > start_idx:
+                json_candidates.append(cleaned_text[start_idx:end_idx])
+        
+        # 方法2: ```json ブロックの抽出
+        import re
+        json_block_matches = re.findall(r'```(?:json)?\s*(\{.*?\})\s*```', cleaned_text, re.DOTALL | re.IGNORECASE)
+        json_candidates.extend(json_block_matches)
+        
+        # 方法3: mealsキーを含むJSONパターン
+        meals_pattern = re.findall(r'\{[^{}]*"meals"[^{}]*\[[^\]]*\][^{}]*\}', cleaned_text, re.DOTALL)
+        json_candidates.extend(meals_pattern)
+        
+        # 各JSON候補をパース
+        for i, json_str in enumerate(json_candidates):
+            print(f"🔍 Trying JSON candidate {i+1}: {json_str[:100]}...")
             try:
                 data = json.loads(json_str)
                 meals = data.get('meals', [])
                 
                 if meals and isinstance(meals, list) and len(meals) > 0:
+                    print(f"✅ JSON candidate {i+1} parsed successfully: {len(meals)} meals")
+                    
                     # データを正規化
                     valid_meals = []
-                    for meal in meals:
-                        if isinstance(meal, dict) and 'mealType' in meal:
+                    for meal_idx, meal in enumerate(meals):
+                        if isinstance(meal, dict):
                             # 必要な要素を確保
                             normalized_meal = {
-                                'mealType': meal.get('mealType', '昼食'),
-                                'calories': int(meal.get('calories', 400)),
-                                'color': '#FF8C42'
+                                'mealType': meal.get('mealType', f'食事{meal_idx+1}'),
+                                'calories': int(meal.get('calories', 400)) if isinstance(meal.get('calories'), (int, float, str)) and str(meal.get('calories')).isdigit() else 400,
+                                'color': '#FF8C42',
+                                'isFallback': False  # AI生成献立であることを明示
                             }
                             
-                            # dishesの処理（カロリー表記削除）
+                            # dishesの処理
                             dishes = meal.get('dishes', [])
                             if isinstance(dishes, list):
                                 cleaned_dishes = []
                                 for dish in dishes:
                                     if isinstance(dish, str) and dish.strip():
-                                        # カロリー表記を削除
-                                        import re
-                                        clean_dish = re.sub(r'\(\d+kcal\)', '', dish).strip()
-                                        if clean_dish:
+                                        # カロリー表記などを削除
+                                        clean_dish = re.sub(r'\(\d+kcal\)', '', str(dish)).strip()
+                                        clean_dish = re.sub(r'\d+kcal', '', clean_dish).strip()
+                                        if clean_dish and clean_dish not in ['主菜', '副菜', '汁物', '主食']:
                                             cleaned_dishes.append(clean_dish)
-                                normalized_meal['dishes'] = cleaned_dishes if cleaned_dishes else ["和食"]
+                                normalized_meal['dishes'] = cleaned_dishes if cleaned_dishes else [f"和食{meal_idx+1}"]
                             else:
-                                normalized_meal['dishes'] = ["和食"]
+                                normalized_meal['dishes'] = [f"和食{meal_idx+1}"]
                             
                             valid_meals.append(normalized_meal)
+                            print(f"   - {normalized_meal['mealType']}: {normalized_meal['dishes']}")
                     
                     if valid_meals:
-                        logger.info(f"Successfully parsed {len(valid_meals)} valid meals")
+                        print(f"✅ Successfully parsed {len(valid_meals)} valid meals from AI")
                         return valid_meals
                         
             except json.JSONDecodeError as e:
-                logger.error(f"JSON parsing failed: {e}")
-                
-        # 方法2: より寛容なJSON抽出
-        import re
-        json_pattern = r'\{[^{}]*"meals"[^{}]*\[[^\]]*\][^{}]*\}'
-        json_matches = re.findall(json_pattern, cleaned_text, re.DOTALL)
-        
-        for match in json_matches:
-            try:
-                data = json.loads(match)
-                meals = data.get('meals', [])
-                if meals:
-                    logger.info("Successfully parsed with pattern matching")
-                    return meals
-            except:
+                print(f"❌ JSON candidate {i+1} parsing failed: {e}")
                 continue
         
-        # JSONパースが完全に失敗した場合はデフォルト献立
-        logger.warning("All JSON parsing methods failed, using default meals")
+        # すべてのパースが失敗した場合
+        print(f"❌ All JSON parsing attempts failed")
+        print(f"🔄 Falling back to default meals")
         return create_default_meals(target_calories)
         
     except Exception as e:
+        print(f"❌ Parse error: {e}")
         logger.error(f"Parse error: {e}")
         return create_default_meals(target_calories)
 
@@ -478,29 +465,67 @@ def create_default_meals(target_calories: int = 2000) -> list:
         lunch_cal = int(target_calories * 0.4)
         dinner_cal = target_calories - breakfast_cal - lunch_cal
         
+        # バリエーション豊かなフォールバック献立（具体的料理名）
+        import random
+        
+        # 朝食のオプション
+        breakfast_options = [
+            ["ご飯", "納豆", "ほうれん草のお浸し"],
+            ["食パン", "目玉焼き", "野菜サラダ"],
+            ["ご飯", "焼き鮭", "きんぴらごぼう"],
+            ["オートミール", "ヨーグルト", "バナナ"]
+        ]
+        
+        # 昼食のオプション
+        lunch_options = [
+            ["ご飯", "鶏の照り焼き", "野菜炒め", "わかめの味噌汁"],
+            ["ご飯", "豚の生姜焼き", "きゅうりの酢の物", "豆腐の味噌汁"],
+            ["ご飯", "鮭の塩焼き", "ひじきの煮物", "卵スープ"],
+            ["ご飯", "ハンバーグ", "コールスロー", "コンソメスープ"]
+        ]
+        
+        # 夕食のオプション
+        dinner_options = [
+            ["ご飯", "鮭の西京焼き", "きんぴらごぼう", "わかめの味噌汁"],
+            ["ご飯", "鶏肉と野菜の煮物", "切り干し大根", "豆腐の味噌汁"],
+            ["ご飯", "ぶりの照り焼き", "ほうれん草のごま和え", "なめこの味噌汁"],
+            ["ご飯", "豚肉と茄子の味噌炒め", "もやしのナムル", "わかめスープ"]
+        ]
+        
+        # ランダムに選択
+        selected_breakfast = random.choice(breakfast_options)
+        selected_lunch = random.choice(lunch_options)
+        selected_dinner = random.choice(dinner_options)
+        
         # 最小限のシンプルなフォールバック（AIが優先）
         simple_meals = [
             {
                 'mealType': '朝食',
                 'calories': breakfast_cal,
-                'dishes': ["ご飯", "納豆", "野菜サラダ"],
-                'color': '#FF8C42'
+                'dishes': selected_breakfast,
+                'color': '#FF8C42',
+                'isFallback': True  # フォールバック献立であることを明示
             },
             {
                 'mealType': '昼食',
                 'calories': lunch_cal,
-                'dishes': ["ご飯", "鶏の照り焼き", "野菜炒め", "味噌汁"],
-                'color': '#FF8C42'
+                'dishes': selected_lunch,
+                'color': '#FF8C42',
+                'isFallback': True  # フォールバック献立であることを明示
             },
             {
                 'mealType': '夕食',
                 'calories': dinner_cal,
-                'dishes': ["ご飯", "鮭の塩焼き", "きんぴらごぼう", "わかめの味噌汁"],
-                'color': '#FF8C42'
+                'dishes': selected_dinner,
+                'color': '#FF8C42',
+                'isFallback': True  # フォールバック献立であることを明示
             }
         ]
         
         logger.warning(f"Using fallback meals (AI failed) - total {sum(meal['calories'] for meal in simple_meals)}kcal")
+        print(f"🔄 FALLBACK MEALS GENERATED: {len(simple_meals)} meals with specific dishes")
+        for i, meal in enumerate(simple_meals):
+            print(f"   Fallback Meal {i+1}: {meal['mealType']} - {meal['dishes']}")
         return simple_meals
         
     except Exception as e:
