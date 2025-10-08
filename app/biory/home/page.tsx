@@ -165,7 +165,7 @@ export default function HomePage() {
           
           // 最初の5件のサンプルデータを表示
           if (pageCount === 1) {
-            console.log("📋 サンプルデータ:", result.data.slice(0, 5).map(item => ({
+            console.log("📋 サンプルデータ:", result.data.slice(0, 5).map((item: any) => ({
               id: item.id,
               foodId: item.foodId,
               foodName: item.foodName,
@@ -235,13 +235,12 @@ export default function HomePage() {
             const columns = line.split(',');
             if (columns.length >= 6) {
               await client.models.FoodNutrition.create({
-                foodId: columns[0] || `auto_${i + index + 1}`,
+                foodId: parseInt(columns[0]) || (i + index + 1),
                 foodName: columns[1] || 'Unknown',
                 energyKcal: parseFloat(columns[2]) || 0,
                 protein: parseFloat(columns[3]) || 0,
                 fat: parseFloat(columns[4]) || 0,
-                carbs: parseFloat(columns[5]) || 0,
-                category: columns[6] || '00'
+                carbs: parseFloat(columns[5]) || 0
               });
               return true;
             }
