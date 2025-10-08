@@ -2,6 +2,7 @@
  
 import { useState, useEffect } from "react";
 import { generateClient } from "aws-amplify/data";
+import { getCurrentUser } from "aws-amplify/auth";
 import type { Schema } from "@/amplify/data/resource";
 import BioryLayout from "../components/BioryLayout";
 import styles from "./meal.module.css";
@@ -83,6 +84,7 @@ export default function MealPage() {
  
   useEffect(() => {
     loadUserInfo();
+    loadMealsFromStorage(); // 保存された献立データを復元
 
     // ページフォーカス時にユーザー情報を再取得（セッション維持のため）
     const handleFocus = () => {
@@ -94,6 +96,65 @@ export default function MealPage() {
       window.removeEventListener('focus', handleFocus);
     };
   }, []);
+
+  // localStorageから献立データを復元する関数
+  const loadMealsFromStorage = () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const storageKey = `meals_${today}`;
+      
+      // 古いデータをクリア（過去3日より古いデータを削除）
+      clearOldMealData();
+      
+      const savedMeals = localStorage.getItem(storageKey);
+      
+      if (savedMeals) {
+        const parsedMeals = JSON.parse(savedMeals);
+        setMeals(parsedMeals);
+        setShowMeals(true);
+        console.log('保存された献立データを復元しました:', parsedMeals);
+      }
+    } catch (error) {
+      console.error('献立データの復元エラー:', error);
+    }
+  };
+
+  // localStorageに献立データを保存する関数
+  const saveMealsToStorage = (mealsData: MealData[]) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const storageKey = `meals_${today}`;
+      localStorage.setItem(storageKey, JSON.stringify(mealsData));
+      console.log('献立データをlocalStorageに保存しました');
+    } catch (error) {
+      console.error('献立データの保存エラー:', error);
+    }
+  };
+
+  // 古い献立データをlocalStorageから削除する関数
+  const clearOldMealData = () => {
+    try {
+      const today = new Date();
+      const threeDaysAgo = new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000);
+      
+      // localStorageの全キーをチェック
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('meals_')) {
+          const dateStr = key.replace('meals_', '');
+          const itemDate = new Date(dateStr);
+          
+          // 3日より古いデータは削除
+          if (itemDate < threeDaysAgo) {
+            localStorage.removeItem(key);
+            console.log('古い献立データを削除しました:', key);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('古いデータの削除エラー:', error);
+    }
+  };
  
 
 
@@ -195,6 +256,91 @@ export default function MealPage() {
     }
   };
 
+  // 献立を保存する関数
+  const saveMealPlan = async () => {
+    if (!meals || meals.length === 0) {
+      alert('保存する献立がありません');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      // 現在の日付を取得
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD形式
+      
+      // 現在のユーザーIDを取得
+      const user = await getCurrentUser();
+      const currentUserId = user.userId;
+
+      console.log('献立保存開始:', { userId: currentUserId, date: today, meals });
+
+      // 既存の記録があるかチェック
+      const { data: existingRecords } = await client.models.DailyRecord.list({
+        filter: {
+          and: [
+            { userId: { eq: currentUserId } },
+            { date: { eq: today } }
+          ]
+        }
+      });
+
+      // 各食事の内容を準備（カロリー情報は含めない）
+      const mealData: any = {
+        breakfast: '',
+        lunch: '',
+        dinner: ''
+      };
+
+      meals.forEach((meal) => {
+        const dishesText = meal.dishes.join(', ');
+        
+        switch (meal.mealType) {
+          case '朝食':
+            mealData.breakfast = dishesText;
+            break;
+          case '昼食':
+            mealData.lunch = dishesText;
+            break;
+          case '夕食':
+            mealData.dinner = dishesText;
+            break;
+        }
+      });
+
+      if (existingRecords && existingRecords.length > 0) {
+        // 既存記録を更新
+        const updateData: any = { id: existingRecords[0].id };
+        
+        // 空でない食事データのみを更新
+        if (mealData.breakfast) updateData.breakfast = mealData.breakfast;
+        if (mealData.lunch) updateData.lunch = mealData.lunch;
+        if (mealData.dinner) updateData.dinner = mealData.dinner;
+        
+        await client.models.DailyRecord.update(updateData);
+        console.log('既存の記録を更新しました:', updateData);
+      } else {
+        // 新規記録を作成
+        const newRecord = {
+          userId: currentUserId,
+          date: today,
+          ...mealData
+        };
+        
+        await client.models.DailyRecord.create(newRecord);
+        console.log('新規記録を作成しました:', newRecord);
+      }
+
+      alert('献立を保存しました！');
+      
+    } catch (error) {
+      console.error('献立保存エラー:', error);
+      alert('献立の保存に失敗しました');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // 献立再生成ボタン押下時の処理
   const generateMeals = async () => {
     setLoading(true);
@@ -254,6 +400,7 @@ export default function MealPage() {
           console.log('Normalized meals:', normalizedMeals);
           setMeals(normalizedMeals);
           setShowMeals(true);
+          saveMealsToStorage(normalizedMeals); // localStorageに保存
         }
         else if (data.suggestion) {
           console.log('Parsing suggestion:', data.suggestion);
@@ -261,6 +408,7 @@ export default function MealPage() {
           if (newMeals.length > 0) {
             setMeals(newMeals);
             setShowMeals(true);
+            saveMealsToStorage(newMeals); // localStorageに保存
           } else {
             console.error('パースされた献立が空です');
             alert('AIからの献立提案が取得できませんでした。もう一度お試しください。');
@@ -405,7 +553,11 @@ export default function MealPage() {
               <span className={styles.buttonIcon}>↻</span>
               {loading ? '生成中...' : '献立を生成！'}
             </button>
-            <button className={styles.saveButton}>
+            <button 
+              className={styles.saveButton}
+              onClick={saveMealPlan}
+              disabled={!meals || meals.length === 0 || loading}
+            >
               💾 献立を保存
             </button>
           </div>
