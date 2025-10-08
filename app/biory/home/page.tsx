@@ -139,116 +139,30 @@ export default function HomePage() {
     setCurrentDate(formattedDate);
   };
 
-  // FoodNutritionデータベース確認用の関数
+
+  // FoodNutritionデータベースの存在確認関数
   const checkFoodNutritionData = async () => {
     try {
-      console.log('=== FoodNutrition データベース確認開始 ===');
-      const { data: foods } = await client.models.FoodNutrition.list();
+      console.log("FoodNutritionデータベースをチェック中...");
       
-      if (foods && foods.length > 0) {
-        console.log(`✅ FoodNutrition レコード数: ${foods.length}件`);
-        console.log('サンプルデータ（最初の3件）:');
-        foods.slice(0, 3).forEach((food, index) => {
-          console.log(`${index + 1}. ${food.foodName}: ${food.energyKcal}kcal, P:${food.protein}g, F:${food.fat}g, C:${food.carbs}g`);
-        });
-        
-        // 検索テスト
-        const testSearch = foods.filter(f => f.foodName.includes('コッペパン'));
-        console.log(`"コッペパン"検索結果: ${testSearch.length}件`);
-        if (testSearch.length > 0) {
-          console.log(`例: ${testSearch[0].foodName} (${testSearch[0].energyKcal}kcal)`);
-        }
+      const { data: foodData } = await client.models.FoodNutrition.list({
+        limit: 10  // 最初の10件だけチェック
+      });
+
+      if (foodData && foodData.length > 0) {
+        console.log(`✅ FoodNutritionデータベースにデータが存在します (${foodData.length}件以上)`);
+        console.log("サンプルデータ:", foodData.slice(0, 3).map(item => ({
+          name: item.foodName,
+          calories: item.energyKcal,
+          protein: item.protein
+        })));
       } else {
-        console.log('❌ FoodNutrition データが見つかりません');
-        console.log('CSVインポートが必要です');
+        console.log("⚠️ FoodNutritionデータベースが空です");
+        console.log("💡 import-csv-nutrition.tsを実行して栄養データをインポートしてください");
       }
     } catch (error) {
-      console.error('❌ FoodNutrition データ確認エラー:', error);
-    }
-  };
-
-  // CSVインポート機能（開発用）
-  const handleCSVImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    
-    try {
-      console.log('CSVファイルインポート開始:', file.name);
-      
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        try {
-          const csvData = e.target?.result as string;
-          const lines = csvData.split('\n').filter(line => line.trim() !== '');
-          const foods = [];
-          
-          // ヘッダー行をスキップ（1行目）
-          for (let i = 1; i < lines.length && i < 51; i++) { // 最初の50件のみテスト
-            const line = lines[i].trim();
-            if (line) {
-              const columns = line.split(',');
-              if (columns.length >= 6) {
-                const food = {
-                  foodName: columns[1].replace(/"/g, '').trim(),
-                  energyKcal: parseInt(columns[2]) || 0,
-                  protein: parseFloat(columns[3]) || 0,
-                  fat: parseFloat(columns[4]) || 0,
-                  carbs: parseFloat(columns[5]) || 0,
-                };
-                
-                if (food.foodName && food.energyKcal > 0) {
-                  foods.push(food);
-                }
-              }
-            }
-          }
-          
-          console.log(`テスト用に${foods.length}件のデータを処理`);
-          
-          // DynamoDBに保存
-          let successCount = 0;
-          let errorCount = 0;
-          
-          for (const food of foods) {
-            try {
-              await client.models.FoodNutrition.create({
-                foodName: food.foodName,
-                energyKcal: food.energyKcal,
-                protein: food.protein,
-                fat: food.fat,
-                carbs: food.carbs,
-                per100g: true,
-              });
-              successCount++;
-              console.log(`✅ 保存成功: ${food.foodName}`);
-            } catch (error) {
-              errorCount++;
-              console.error(`❌ 保存エラー - ${food.foodName}:`, error);
-            }
-            
-            // 進捗表示
-            if ((successCount + errorCount) % 10 === 0) {
-              console.log(`進捗: ${successCount + errorCount}/${foods.length} (成功: ${successCount}, エラー: ${errorCount})`);
-            }
-          }
-          
-          console.log(`インポート完了: 成功 ${successCount}件, エラー ${errorCount}件`);
-          alert(`CSVインポート完了\n成功: ${successCount}件\nエラー: ${errorCount}件`);
-          
-          // データ確認を再実行
-          await checkFoodNutritionData();
-          
-        } catch (error) {
-          console.error('CSVインポートエラー:', error);
-          const errorMessage = error instanceof Error ? error.message : String(error);
-          alert('CSVインポートでエラーが発生しました: ' + errorMessage);
-        }
-      };
-      
-      reader.readAsText(file, 'utf-8');
-    } catch (error) {
-      console.error('ファイル読み込みエラー:', error);
-      alert('ファイル読み込みでエラーが発生しました');
+      console.error("❌ FoodNutritionデータベースチェックエラー:", error);
+      console.log("💡 データベース接続を確認してください");
     }
   };
 
@@ -263,7 +177,7 @@ export default function HomePage() {
         email: userInfo.email
       });
       
-      // ユーザー認証成功後にデータベース確認を実行
+      // 初回ログイン時にFoodNutritionデータをチェック
       await checkFoodNutritionData();
       
     } catch (error) {
@@ -1187,29 +1101,7 @@ export default function HomePage() {
         )}
       </section>
 
-      {/* 開発用CSVインポート機能 */}
-      <div style={{
-        position: 'fixed',
-        bottom: '90px',
-        right: '20px',
-        zIndex: 1000,
-        padding: '10px',
-        backgroundColor: '#f8f9fa',
-        border: '1px solid #dee2e6',
-        borderRadius: '8px',
-        fontSize: '12px'
-      }}>
-        <div style={{ marginBottom: '5px', fontWeight: 'bold' }}>開発用CSVインポート</div>
-        <input
-          type="file"
-          accept=".csv"
-          onChange={handleCSVImport}
-          style={{ fontSize: '12px' }}
-        />
-        <div style={{ marginTop: '5px', color: '#6c757d' }}>
-          nutrition-data.csvを選択してください
-        </div>
-      </div>
+
 
       {/* 編集ボタン */}
       {/*<button className="edit-button" onClick={handleEditClick}>
@@ -1221,4 +1113,3 @@ export default function HomePage() {
     </BioryLayout>
   );
 }
- 
