@@ -19,7 +19,9 @@
     "check:env": "tsx amplify/seed/check-env.ts",
     "import:nutrition": "tsx scripts/import-nutrition-data.ts",
     "check:nutrition": "tsx scripts/check-nutrition-data.ts",
-    "clear:nutrition": "tsx scripts/clear-nutrition-data.ts"
+    "clear:nutrition": "tsx scripts/clear-nutrition-data.ts",
+    "init:nutrition": "tsx scripts/check-environment.ts",
+    "setup:complete": "npm run init:nutrition && npm run dev"
   },
   "dependencies": {
     "@aws-amplify/seed": "^1.0.1",

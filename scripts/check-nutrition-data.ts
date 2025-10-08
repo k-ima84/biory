@@ -19,20 +19,6 @@ async function checkNutritionData() {
       return;
     }
     
-    // カテゴリ別集計
-    const categoryCount = allFoods.reduce((acc: Record<string, number>, food) => {
-      const category = food.category || "未分類";
-      acc[category] = (acc[category] || 0) + 1;
-      return acc;
-    }, {});
-    
-    console.log("\n=== カテゴリ別件数 ===");
-    Object.entries(categoryCount)
-      .sort((a, b) => b[1] - a[1])
-      .forEach(([category, count]) => {
-        console.log(`${category}: ${count}件`);
-      });
-    
     // 高カロリー食品トップ10
     console.log("\n=== 高カロリー食品トップ10 ===");
     const highCalorieFoods = allFoods
@@ -47,7 +33,7 @@ async function checkNutritionData() {
     // サンプルデータ表示
     console.log("\n=== サンプルデータ（最初の5件） ===");
     allFoods.slice(0, 5).forEach((food, index) => {
-      console.log(`${index + 1}. ${food.foodName}: ${food.energyKcal}kcal, P:${food.proteinG}g, F:${food.fatG}g, C:${food.carbohydrateG}g`);
+      console.log(`${index + 1}. ${food.foodName}: ${food.energyKcal}kcal, P:${food.protein}g, F:${food.fat}g, C:${food.carbs}g`);
     });
     
   } catch (error) {
