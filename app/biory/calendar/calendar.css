@@ -458,7 +458,7 @@
     bottom: 1px;
   }
   
-  .meal-icon {
+  .calendar-meal-icon {
     width: 14px;
     height: 14px;
     mask-size: 12px 12px;
@@ -468,7 +468,7 @@
 
 /* より小さなモバイル画面対応 */
 @media (max-width: 480px) {
-  .meal-icon {
+  .calendar-meal-icon {
     width: 12px;
     height: 12px;
     mask-size: 10px 10px;
@@ -485,7 +485,7 @@
   z-index: 1;
 }
 
-.meal-icon {
+.calendar-meal-icon {
   width: 16px;              /* SVGアイコンのサイズ */
   height: 16px;
   background-color: #70472B;
@@ -501,7 +501,7 @@
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2'/%3E%3Cpath d='M7 2v20'/%3E%3Cpath d='M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7'/%3E%3C/svg%3E");
 }
 
-.calendar-day:hover .meal-icon {
+.calendar-day:hover .calendar-meal-icon {
   background-color: #70472B; 
   transform: scale(1.1);     /* 少し拡大 */
 }

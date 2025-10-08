@@ -509,7 +509,7 @@ export default function CalendarPage() {
                 {/* 食事記録があるかチェックしてアイコン表示 */}
                 {hasMealRecord(dayData.date) && (
                   <div className="meal-indicator">
-                    <div className="meal-icon" title="食事記録あり"></div>
+                    <div className="calendar-meal-icon" title="食事記録あり"></div>
                   </div>
                 )}
               </div>
