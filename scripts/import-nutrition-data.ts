@@ -127,9 +127,10 @@ const saveToDatabase = async (nutritionData: NutritionItem[]) => {
       await client.models.FoodNutrition.create({
         foodName: item.foodName,
         energyKcal: item.calories,
-        proteinG: item.protein,
-        fatG: item.fat,
-        carbohydrateG: item.carbs,
+        protein: item.protein,
+        fat: item.fat,
+        carbs: item.carbs,
+        per100g: true,
       });
       
       successCount++;
