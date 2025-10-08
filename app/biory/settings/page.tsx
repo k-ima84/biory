@@ -178,8 +178,8 @@ export default function SettingsPage() {
       newErrors.height = "身長は正しい形式で入力してください（例：170.50）";
     } else {
       const heightValue = parseFloat(formData.height);
-      if (heightValue < 50 || heightValue > 300) {
-        newErrors.height = "身長は50～300cmの範囲で入力してください";
+      if (heightValue < 0 || heightValue > 300) {
+        newErrors.height = "身長は0～300cmの範囲で入力してください";
       }
     }
  
@@ -190,8 +190,8 @@ export default function SettingsPage() {
       newErrors.weight = "体重は正しい形式で入力してください（例：65.50）";
     } else {
       const weightValue = parseFloat(formData.weight);
-      if (weightValue < 20 || weightValue > 300) {
-        newErrors.weight = "体重は20～300kgの範囲で入力してください";
+      if (weightValue < 0 || weightValue > 300) {
+        newErrors.weight = "体重は0～300kgの範囲で入力してください";
       }
     }
 
@@ -245,6 +245,51 @@ export default function SettingsPage() {
       }
     }
   };
+
+  // 今日の日付文字列を取得するヘルパー関数
+  const getCurrentDateString = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const date = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${date}`;
+  };
+
+  // DailyRecordの体重を更新する関数
+  const updateDailyRecordWeight = async (newWeight: number) => {
+    try {
+      const dateString = getCurrentDateString();
+      
+      // DailyRecordテーブルから今日の健康データを検索
+      const { data: dailyRecords } = await client.models.DailyRecord.list();
+      const existingHealthRecord = dailyRecords?.find(record => 
+        record.userId === currentUserId && record.date === dateString && !record.mealType
+      );
+
+      if (existingHealthRecord) {
+        // 既存のレコードを更新
+        await client.models.DailyRecord.update({
+          id: existingHealthRecord.id,
+          weight: newWeight,
+        });
+        console.log("DailyRecordの体重を更新しました:", newWeight);
+      } else {
+        // 新しいレコードを作成（健康データ専用）
+        await client.models.DailyRecord.create({
+          userId: currentUserId,
+          date: dateString,
+          condition: "とても良い 😊", // デフォルト値
+          mood: "ポジティブ", // デフォルト値
+          weight: newWeight,
+          content: "", // 健康データ専用レコードなのでcontentは空
+          mealType: null, // 健康データ専用レコードなのでmealTypeはnull
+        });
+        console.log("新しいDailyRecord健康データを作成しました（体重のみ）:", newWeight);
+      }
+    } catch (error) {
+      console.error("DailyRecord体重更新エラー:", error);
+    }
+  };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
    
@@ -279,6 +324,11 @@ export default function SettingsPage() {
         exerciseFrequency: formData.exerciseFrequency,
         exerciseFrequencyOther: formData.exerciseFrequency === "そのほか" ? formData.exerciseFrequencyOther : "",
       };
+
+      // 体重が変更されたかチェック
+      const oldWeight = userProfile?.weight ? parseFloat(userProfile.weight) : 0;
+      const newWeight = parseFloat(formData.weight);
+      const weightChanged = oldWeight !== newWeight;
  
       if (existingProfiles && existingProfiles.length > 0) {
         // 更新
@@ -289,6 +339,12 @@ export default function SettingsPage() {
       } else {
         // 新規作成
         await client.models.UserProfile.create(profileData);
+      }
+
+      // 体重が変更された場合、DailyRecordも更新
+      if (weightChanged) {
+        await updateDailyRecordWeight(newWeight);
+        console.log(`体重が変更されました: ${oldWeight}kg → ${newWeight}kg`);
       }
  
       // 保存完了後は編集モードを終了して設定画面に留まる
