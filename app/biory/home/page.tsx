@@ -38,6 +38,7 @@ export default function HomePage() {
   const [currentDate, setCurrentDate] = useState("");
   const [userName, setUserName] = useState("");
   const [cognitoUserId, setCognitoUserId] = useState("");
+  const [userProfile, setUserProfile] = useState<any>(null); // ユーザープロファイル
   const [nutritionData, setNutritionData] = useState<NutritionData>({
     calories: 0,
     protein: { value: 0, percentage: 0 },
@@ -78,6 +79,55 @@ export default function HomePage() {
 
   // 日本語の曜日配列
   const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
+
+  // BMR計算（基礎代謝率）
+  const calculateBMR = (profile: any) => {
+    if (!profile || !profile.weight || !profile.height || !profile.age || !profile.gender) {
+      return 2000; // デフォルト値
+    }
+    
+    if (profile.gender === "男") {
+      return Math.round(88.362 + (13.397 * profile.weight) + (4.799 * profile.height) - (5.677 * profile.age));
+    } else if (profile.gender === "女") {
+      return Math.round(447.593 + (9.247 * profile.weight) + (3.098 * profile.height) - (4.330 * profile.age));
+    } else {
+      // その他の場合は平均値を使用
+      return Math.round(((88.362 + (13.397 * profile.weight) + (4.799 * profile.height) - (5.677 * profile.age)) + 
+                        (447.593 + (9.247 * profile.weight) + (3.098 * profile.height) - (4.330 * profile.age))) / 2);
+    }
+  };
+
+  // 活動係数を取得
+  const getActivityFactor = (exerciseFrequency: string) => {
+    switch (exerciseFrequency) {
+      case "ほとんど運動しない":
+        return 1.2;
+      case "週1〜3回の軽い運動":
+        return 1.375;
+      case "週3〜5回の中程度の運動":
+        return 1.55;
+      case "週6〜7回の激しい運動":
+        return 1.725;
+      case "毎日2回の運動や肉体労働":
+        return 1.9;
+      default:
+        return 1.2; // デフォルト値（ほとんど運動しない）
+    }
+  };
+
+  // TDEE計算（BMR × 活動係数）
+  const calculateTDEE = (profile: any) => {
+    if (!profile) {
+      return 2000; // デフォルト値
+    }
+    
+    const bmr = calculateBMR(profile);
+    const activityFactor = getActivityFactor(profile.exerciseFrequency || "ほとんど運動しない");
+    return Math.round(bmr * activityFactor);
+  };
+
+  // 推奨カロリーを計算
+  const recommendedCalories = userProfile ? calculateTDEE(userProfile) : 2000;
 
   // 現在の日付を取得して設定する関数
   const updateCurrentDate = () => {
@@ -120,6 +170,8 @@ export default function HomePage() {
 
       if (profiles && profiles.length > 0) {
         const profile = profiles[0];
+        // ユーザープロファイルを設定
+        setUserProfile(profile);
         // データベースに名前があればそれを使用
         setUserName(profile.name || "ユーザー");
 
@@ -131,18 +183,22 @@ export default function HomePage() {
       } else {
         // 該当するUserProfileがない場合はデフォルト名を使用
         setUserName("ユーザー");
+
         setHealthData(prev => ({
           ...prev,
           weight: 0
         }));
+
       }
     } catch (error) {
       console.error("ユーザープロフィール取得エラー:", error);
       setUserName("ゲスト");
+
       setHealthData(prev => ({
         ...prev,
         weight: 0
       }));
+
     }
   };
 
@@ -651,7 +707,7 @@ export default function HomePage() {
         <h3 className="section-title-highlight">食事バランス</h3>
         <div className="nutrition-header">
           <span className="nutrition-label">カロリー</span>
-          <span className="calories-value">{nutritionData.calories} kcal</span>
+          <span className="calories-value">{nutritionData.calories} kcal / {recommendedCalories} kcal</span>
         </div>
         <div className="nutrition-details">
           <div className="nutrition-row">

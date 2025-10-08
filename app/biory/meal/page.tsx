@@ -27,11 +27,58 @@ export default function MealPage() {
   const [meals, setMeals] = useState<MealData[]>([]); // 初期値は空
   const [showMeals, setShowMeals] = useState(false); // 献立表示フラグ
   const [cognitoUserId, setCognitoUserId] = useState("");
+  const [userProfile, setUserProfile] = useState<any>(null); // ユーザープロファイル
   
+
+  // BMR計算（基礎代謝率）
+  const calculateBMR = (profile: any) => {
+    if (!profile || !profile.weight || !profile.height || !profile.age || !profile.gender) {
+      return 2000; // デフォルト値
+    }
+    
+    if (profile.gender === "男") {
+      return Math.round(88.362 + (13.397 * profile.weight) + (4.799 * profile.height) - (5.677 * profile.age));
+    } else if (profile.gender === "女") {
+      return Math.round(447.593 + (9.247 * profile.weight) + (3.098 * profile.height) - (4.330 * profile.age));
+    } else {
+      // その他の場合は平均値を使用
+      return Math.round(((88.362 + (13.397 * profile.weight) + (4.799 * profile.height) - (5.677 * profile.age)) + 
+                        (447.593 + (9.247 * profile.weight) + (3.098 * profile.height) - (4.330 * profile.age))) / 2);
+    }
+  };
+
+  // 活動係数を取得
+  const getActivityFactor = (exerciseFrequency: string) => {
+    switch (exerciseFrequency) {
+      case "ほとんど運動しない":
+        return 1.2;
+      case "週1〜3回の軽い運動":
+        return 1.375;
+      case "週3〜5回の中程度の運動":
+        return 1.55;
+      case "週6〜7回の激しい運動":
+        return 1.725;
+      case "毎日2回の運動や肉体労働":
+        return 1.9;
+      default:
+        return 1.2; // デフォルト値（ほとんど運動しない）
+    }
+  };
+
+  // TDEE計算（BMR × 活動係数）
+  const calculateTDEE = (profile: any) => {
+    if (!profile) {
+      return 2000; // デフォルト値
+    }
+    
+    const bmr = calculateBMR(profile);
+    const activityFactor = getActivityFactor(profile.exerciseFrequency || "ほとんど運動しない");
+    return Math.round(bmr * activityFactor);
+  };
 
   // カロリー計算
   const currentCalories = meals.reduce((total, meal) => total + meal.calories, 0);
-  const maxCalories = 2500; // 一日の推奨摂取カロリー
+  const maxCalories = userProfile ? calculateTDEE(userProfile) : 2000; // TDEEに基づく推奨カロリー
   const percentage = Math.min((currentCalories / maxCalories) * 100, 100);
  
   useEffect(() => {
@@ -57,6 +104,10 @@ export default function MealPage() {
       setCognitoUserId(userInfo.userId);
       
       console.log('Meal Page - Cognito User ID:', userInfo.userId);
+
+      // ユーザープロファイルを取得
+      const profile = await getUserProfile(userInfo.userId);
+      setUserProfile(profile);
 
     } catch (error) {
       console.error('Meal画面でのCognitoユーザー情報取得エラー:', error);
@@ -109,10 +160,10 @@ export default function MealPage() {
   }
 
   // ユーザープロファイル取得または作成
-  const getUserProfile = async () => {
+  const getUserProfile = async (userId = cognitoUserId) => {
     try {
       const { data: profiles } = await client.models.UserProfile.list({
-        filter: { userId: { eq: cognitoUserId } }
+        filter: { userId: { eq: userId } }
       });
       
       if (profiles.length > 0) {
@@ -122,10 +173,11 @@ export default function MealPage() {
       // プロファイルが存在しない場合は基本プロファイルを作成
       console.log('ユーザープロファイルが見つからないため、基本プロファイルを作成します');
       const newProfile = await client.models.UserProfile.create({
-        userId: cognitoUserId,
+        userId: userId,
         name: "ユーザー",
         height: 170.0,
         weight: 65.0,
+        age: 30,
         gender: "未設定",
         favoriteFoods: "和食",
         allergies: "なし",
@@ -151,9 +203,12 @@ export default function MealPage() {
       // ユーザープロファイル取得
       const userProfile = await getUserProfile();
       
+      // 推奨カロリーを計算
+      const recommendedCalories = userProfile ? calculateTDEE(userProfile) : 2000;
+      
       const requestBody = {
         userId: cognitoUserId,
-        targetCalories: 2000,
+        targetCalories: recommendedCalories,
         timestamp: new Date().toISOString()
       };
       
@@ -293,7 +348,7 @@ export default function MealPage() {
                   {Array.isArray(meal.dishes) ? (
                     meal.dishes.map((dish, dishIndex) => (
                       <div key={dishIndex} className={styles.dishItem}>
-                        {typeof dish === 'string' ? dish : dish.dish || dish.name || JSON.stringify(dish)}
+                        {typeof dish === 'string' ? dish : (dish as any).dish || (dish as any).name || JSON.stringify(dish)}
                       </div>
                     ))
                   ) : (
