@@ -28,6 +28,7 @@ export default function MealPage() {
   const [showMeals, setShowMeals] = useState(false); // 献立表示フラグ
   const [cognitoUserId, setCognitoUserId] = useState("");
   const [userProfile, setUserProfile] = useState<any>(null); // ユーザープロファイル
+  const [debugInfo, setDebugInfo] = useState<any>(null); // デバッグ情報
   
 
   // BMR計算（基礎代謝率）
@@ -228,9 +229,16 @@ export default function MealPage() {
       console.log('Response status:', response.status);
       console.log('Response data:', data);
       
-      console.log('Full API response:', data); // デバッグ用
-      
-      if (response.ok) {
+          console.log('Full API response:', data); // デバッグ用
+          
+          // AI質問内容とレスポンスをコンソールに表示
+          if (data.debug) {
+            console.log('🤖 AI PROMPT SENT:', data.debug.promptSent);
+            console.log('📝 AI RESPONSE:', data.debug.aiResponse);
+            console.log('📊 MEAL SOURCE:', data.debug.mealSource || (data.debug.usingFallback ? 'FALLBACK' : 'AI_GENERATED'));
+            console.log('🔍 DEBUG INFO:', data.debug);
+            setDebugInfo(data.debug); // デバッグ情報を状態に保存
+          }      if (response.ok) {
         // データ構造を詳細にチェック
         console.log('data.meals:', data.meals);
         console.log('data.meals type:', typeof data.meals);
@@ -409,6 +417,55 @@ export default function MealPage() {
               💾 献立を保存
             </button>
           </div>
+
+          {/* デバッグ情報表示エリア（開発時のみ） */}
+          {debugInfo && (
+            <div style={{ 
+              marginTop: '20px', 
+              padding: '15px', 
+              backgroundColor: '#f5f5f5', 
+              borderRadius: '8px',
+              fontSize: '12px',
+              color: '#666'
+            }}>
+              <h4 style={{ margin: '0 0 10px 0', color: '#333' }}>🔍 デバッグ情報</h4>
+              <div><strong>献立ソース:</strong> {debugInfo.mealSource || (debugInfo.usingFallback ? 'フォールバック' : 'AI生成')}</div>
+              <div><strong>AI応答長:</strong> {debugInfo.textLength || 0} 文字</div>
+              <div><strong>プロンプト長:</strong> {debugInfo.promptLength || 0} 文字</div>
+              {debugInfo.aiResponse && (
+                <details style={{ marginTop: '10px' }}>
+                  <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>AI応答を表示</summary>
+                  <pre style={{ 
+                    backgroundColor: '#fff', 
+                    padding: '10px', 
+                    margin: '5px 0', 
+                    borderRadius: '4px',
+                    fontSize: '11px',
+                    overflow: 'auto',
+                    maxHeight: '200px'
+                  }}>
+                    {debugInfo.aiResponse}
+                  </pre>
+                </details>
+              )}
+              {debugInfo.promptSent && (
+                <details style={{ marginTop: '10px' }}>
+                  <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>AIへの質問を表示</summary>
+                  <pre style={{ 
+                    backgroundColor: '#fff', 
+                    padding: '10px', 
+                    margin: '5px 0', 
+                    borderRadius: '4px',
+                    fontSize: '11px',
+                    overflow: 'auto',
+                    maxHeight: '300px'
+                  }}>
+                    {debugInfo.promptSent}
+                  </pre>
+                </details>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </BioryLayout>
