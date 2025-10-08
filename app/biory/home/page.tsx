@@ -497,14 +497,26 @@ export default function HomePage() {
 
   // 食事データを取得する関数
   const fetchMealData = async (dateString: string) => {
-    if (!cognitoUserId) return;
+    if (!cognitoUserId) {
+      console.log("fetchMealData: cognitoUserId がありません");
+      return;
+    }
     
     try {
+      console.log("=== fetchMealData 開始 ===");
+      console.log("検索条件 - dateString:", dateString, "cognitoUserId:", cognitoUserId);
+      
       const { data: dailyRecords } = await client.models.DailyRecord.list();
+      console.log("DailyRecord全件数:", dailyRecords?.length || 0);
+      console.log("DailyRecord全データ:", dailyRecords);
+      
       // 食事データ専用レコード
       const todayMeals = dailyRecords?.filter(m => 
         m.date === dateString && m.userId === cognitoUserId
       );
+      
+      console.log("フィルター後の今日の食事データ:", todayMeals);
+      console.log("フィルター後の件数:", todayMeals?.length || 0);
 
       const mealsByType = {
         breakfast: "—",
@@ -512,13 +524,29 @@ export default function HomePage() {
         dinner: "—",
       };
 
-      todayMeals?.forEach(meal => {
-        if (meal.breakfast) mealsByType.breakfast = meal.breakfast || "—";
-        if (meal.lunch) mealsByType.lunch = meal.lunch || "—";
-        if (meal.dinner) mealsByType.dinner = meal.dinner || "—";
+      todayMeals?.forEach((meal, index) => {
+        console.log(`食事レコード ${index}:`, meal);
+        console.log(`  breakfast: "${meal.breakfast}"`);
+        console.log(`  lunch: "${meal.lunch}"`);
+        console.log(`  dinner: "${meal.dinner}"`);
+        
+        if (meal.breakfast && meal.breakfast.trim() !== "") {
+          mealsByType.breakfast = meal.breakfast;
+          console.log(`  breakfast 設定: "${meal.breakfast}"`);
+        }
+        if (meal.lunch && meal.lunch.trim() !== "") {
+          mealsByType.lunch = meal.lunch;
+          console.log(`  lunch 設定: "${meal.lunch}"`);
+        }
+        if (meal.dinner && meal.dinner.trim() !== "") {
+          mealsByType.dinner = meal.dinner;
+          console.log(`  dinner 設定: "${meal.dinner}"`);
+        }
       });
 
+      console.log("最終的な食事データ:", mealsByType);
       setMealData(mealsByType);
+      console.log("=== fetchMealData 完了 ===");
     } catch (error) {
       console.error("食事データ取得エラー:", error);
     }
@@ -547,19 +575,24 @@ export default function HomePage() {
     fetchCognitoUserData();
   }, []);
 
-  // cognitoUserIdが取得できた後にプロフィールを取得
+  // cognitoUserIdが取得できた後にプロフィールと食事データを取得
   useEffect(() => {
     if (cognitoUserId) {
+      console.log("cognitoUserId が取得できました:", cognitoUserId);
       fetchUserProfile();
+      
+      // 食事データも取得
+      const dateString = getCurrentDateString();
+      console.log("食事データを取得します。日付:", dateString);
+      fetchMealData(dateString);
+      fetchHealthDataFromDailyRecord(dateString);
     }
   }, [cognitoUserId]);
 
   useEffect(() => {
-    // 今日の日付文字列を取得してデータを取得
+    // 初回は栄養データのみ取得（cognitoUserId依存のデータは別のuseEffectで取得）
     const dateString = getCurrentDateString();
     fetchNutritionData(dateString);
-    fetchMealData(dateString);
-    fetchHealthDataFromDailyRecord(dateString);
 
     // 1分ごとに日付を更新（日付が変わった場合のため）
     const dateUpdateInterval = setInterval(() => {
@@ -569,16 +602,22 @@ export default function HomePage() {
       // 日付が変わった場合はデータも再取得
       if (newDateString !== dateString) {
         fetchNutritionData(newDateString);
-        fetchMealData(newDateString);
-        fetchHealthDataFromDailyRecord(newDateString);
+        // cognitoUserIdが存在する場合のみ食事・健康データを取得
+        if (cognitoUserId) {
+          fetchMealData(newDateString);
+          fetchHealthDataFromDailyRecord(newDateString);
+        }
       }
     }, 60000); // 1分間隔
 
     // ページフォーカス時にユーザープロフィールと健康データを再取得
     const handleFocus = () => {
-      fetchUserProfile();
-      const currentDateString = getCurrentDateString();
-      fetchHealthDataFromDailyRecord(currentDateString);
+      if (cognitoUserId) {
+        fetchUserProfile();
+        const currentDateString = getCurrentDateString();
+        fetchHealthDataFromDailyRecord(currentDateString);
+        fetchMealData(currentDateString);
+      }
     };
     window.addEventListener('focus', handleFocus);
 
@@ -742,33 +781,64 @@ export default function HomePage() {
 
   const handleMealSave = async () => {
     try {
+      console.log("=== handleMealSave 開始 ===");
+      console.log("cognitoUserId:", cognitoUserId);
+      console.log("保存する食事データ:", mealEditData);
+      
       const dateString = getCurrentDateString();
+      console.log("保存対象日付:", dateString);
       
       // DailyRecordテーブルから今日の食事データを検索
       const { data: dailyRecords } = await client.models.DailyRecord.list();
+      console.log("DailyRecord検索結果:", dailyRecords?.length || 0, "件");
+      
       const todayMealRecord = dailyRecords?.find(record => 
         record.userId === cognitoUserId && record.date === dateString
       );
+      
+      console.log("既存レコード:", todayMealRecord);
 
       if (todayMealRecord) {
         // 既存のレコードを更新
-        await client.models.DailyRecord.update({
+        console.log("既存レコードを更新します:", {
           id: todayMealRecord.id,
           breakfast: mealEditData.breakfast,
           lunch: mealEditData.lunch,
           dinner: mealEditData.dinner,
         });
-        console.log("食事データを更新しました:", mealEditData);
+        
+        const { data: updatedRecord, errors } = await client.models.DailyRecord.update({
+          id: todayMealRecord.id,
+          breakfast: mealEditData.breakfast,
+          lunch: mealEditData.lunch,
+          dinner: mealEditData.dinner,
+        });
+        
+        if (errors) {
+          console.error("更新エラー:", errors);
+          throw new Error("更新に失敗しました");
+        }
+        
+        console.log("食事データを更新しました:", updatedRecord);
       } else {
         // 新しいレコードを作成
-        await client.models.DailyRecord.create({
+        const newRecord = {
           userId: cognitoUserId,
           date: dateString,
           breakfast: mealEditData.breakfast,
           lunch: mealEditData.lunch,
           dinner: mealEditData.dinner,
-        });
-        console.log("新しい食事データを作成しました:", mealEditData);
+        };
+        console.log("新規レコードを作成します:", newRecord);
+        
+        const { data: createdRecord, errors } = await client.models.DailyRecord.create(newRecord);
+        
+        if (errors) {
+          console.error("作成エラー:", errors);
+          throw new Error("作成に失敗しました");
+        }
+        
+        console.log("新しい食事データを作成しました:", createdRecord);
       }
 
       // 画面の状態を更新
@@ -778,10 +848,17 @@ export default function HomePage() {
       // 栄養価を再計算
       await fetchNutritionData(dateString);
       
+      // 食事データを再取得して表示を確実に更新
+      await fetchMealData(dateString);
+      
       console.log("「本日の食事」が保存されました:", mealEditData);
+      console.log("=== handleMealSave 完了 ===");
     } catch (error) {
-      console.error("食事データ保存エラー:", error);
-      alert("保存に失敗しました。もう一度お試しください。");
+      console.error("=== 食事データ保存エラー ===");
+      console.error("エラー詳細:", error);
+      console.error("cognitoUserId:", cognitoUserId);
+      console.error("mealEditData:", mealEditData);
+      alert(`保存に失敗しました: ${error instanceof Error ? error.message : "不明なエラー"}`);
     }
   };
 
