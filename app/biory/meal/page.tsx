@@ -84,6 +84,7 @@ export default function MealPage() {
  
   useEffect(() => {
     loadUserInfo();
+    loadMealsFromStorage(); // 保存された献立データを復元
 
     // ページフォーカス時にユーザー情報を再取得（セッション維持のため）
     const handleFocus = () => {
@@ -95,6 +96,65 @@ export default function MealPage() {
       window.removeEventListener('focus', handleFocus);
     };
   }, []);
+
+  // localStorageから献立データを復元する関数
+  const loadMealsFromStorage = () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const storageKey = `meals_${today}`;
+      
+      // 古いデータをクリア（過去3日より古いデータを削除）
+      clearOldMealData();
+      
+      const savedMeals = localStorage.getItem(storageKey);
+      
+      if (savedMeals) {
+        const parsedMeals = JSON.parse(savedMeals);
+        setMeals(parsedMeals);
+        setShowMeals(true);
+        console.log('保存された献立データを復元しました:', parsedMeals);
+      }
+    } catch (error) {
+      console.error('献立データの復元エラー:', error);
+    }
+  };
+
+  // localStorageに献立データを保存する関数
+  const saveMealsToStorage = (mealsData: MealData[]) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const storageKey = `meals_${today}`;
+      localStorage.setItem(storageKey, JSON.stringify(mealsData));
+      console.log('献立データをlocalStorageに保存しました');
+    } catch (error) {
+      console.error('献立データの保存エラー:', error);
+    }
+  };
+
+  // 古い献立データをlocalStorageから削除する関数
+  const clearOldMealData = () => {
+    try {
+      const today = new Date();
+      const threeDaysAgo = new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000);
+      
+      // localStorageの全キーをチェック
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('meals_')) {
+          const dateStr = key.replace('meals_', '');
+          const itemDate = new Date(dateStr);
+          
+          // 3日より古いデータは削除
+          if (itemDate < threeDaysAgo) {
+            localStorage.removeItem(key);
+            console.log('古い献立データを削除しました:', key);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('古いデータの削除エラー:', error);
+    }
+  };
  
 
 
@@ -225,7 +285,7 @@ export default function MealPage() {
         }
       });
 
-      // 各食事の内容を準備
+      // 各食事の内容を準備（カロリー情報は含めない）
       const mealData: any = {
         breakfast: '',
         lunch: '',
@@ -234,17 +294,16 @@ export default function MealPage() {
 
       meals.forEach((meal) => {
         const dishesText = meal.dishes.join(', ');
-        const mealContent = `${dishesText} (${meal.calories}kcal)`;
         
         switch (meal.mealType) {
           case '朝食':
-            mealData.breakfast = mealContent;
+            mealData.breakfast = dishesText;
             break;
           case '昼食':
-            mealData.lunch = mealContent;
+            mealData.lunch = dishesText;
             break;
           case '夕食':
-            mealData.dinner = mealContent;
+            mealData.dinner = dishesText;
             break;
         }
       });
@@ -341,6 +400,7 @@ export default function MealPage() {
           console.log('Normalized meals:', normalizedMeals);
           setMeals(normalizedMeals);
           setShowMeals(true);
+          saveMealsToStorage(normalizedMeals); // localStorageに保存
         }
         else if (data.suggestion) {
           console.log('Parsing suggestion:', data.suggestion);
@@ -348,6 +408,7 @@ export default function MealPage() {
           if (newMeals.length > 0) {
             setMeals(newMeals);
             setShowMeals(true);
+            saveMealsToStorage(newMeals); // localStorageに保存
           } else {
             console.error('パースされた献立が空です');
             alert('AIからの献立提案が取得できませんでした。もう一度お試しください。');
