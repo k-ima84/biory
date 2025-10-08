@@ -2,7 +2,9 @@ import json
 import boto3
 import logging
 import os
-from typing import Dict, Any
+import csv
+import io
+from typing import Dict, Any, List
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -10,6 +12,63 @@ logging.basicConfig(level=logging.DEBUG)
 
 bedrock = boto3.client('bedrock-runtime', region_name='ap-northeast-1')
 dynamodb = boto3.resource('dynamodb', region_name='ap-northeast-1')
+
+# 栄養データベースをグローバル変数として保持
+NUTRITION_DB = None
+
+def load_nutrition_data() -> Dict[str, Dict]:
+    """
+    栄養データCSVを読み込んで辞書形式で返す
+    """
+    global NUTRITION_DB
+    if NUTRITION_DB is not None:
+        return NUTRITION_DB
+    
+    try:
+        # S3やローカルファイルから読み込む（ここではサンプルデータを作成）
+        nutrition_data = {
+            # 主食類 (category 01)
+            "白米": {"calories": 156, "protein": 2.5, "fat": 0.3, "carbs": 35.6, "category": "主食"},
+            "玄米": {"calories": 165, "protein": 2.8, "fat": 1.0, "carbs": 35.6, "category": "主食"},
+            "食パン": {"calories": 260, "protein": 9.3, "fat": 4.4, "carbs": 46.7, "category": "主食"},
+            "うどん": {"calories": 105, "protein": 2.6, "fat": 0.4, "carbs": 21.6, "category": "主食"},
+            "そば": {"calories": 132, "protein": 4.8, "fat": 1.9, "carbs": 26.0, "category": "主食"},
+            "パスタ": {"calories": 149, "protein": 5.2, "fat": 0.9, "carbs": 30.3, "category": "主食"},
+            
+            # タンパク質源 (category 04, 05, 06)
+            "鶏むね肉": {"calories": 191, "protein": 19.5, "fat": 11.6, "carbs": 0, "category": "肉類"},
+            "豚ロース": {"calories": 263, "protein": 19.3, "fat": 19.2, "carbs": 0.2, "category": "肉類"},
+            "牛もも肉": {"calories": 182, "protein": 21.2, "fat": 9.6, "carbs": 0.5, "category": "肉類"},
+            "鮭": {"calories": 138, "protein": 22.3, "fat": 4.1, "carbs": 0.1, "category": "魚類"},
+            "さば": {"calories": 202, "protein": 20.6, "fat": 12.1, "carbs": 0.3, "category": "魚類"},
+            "卵": {"calories": 151, "protein": 12.3, "fat": 10.3, "carbs": 0.3, "category": "卵類"},
+            "豆腐": {"calories": 56, "protein": 4.9, "fat": 3.0, "carbs": 1.6, "category": "豆類"},
+            "納豆": {"calories": 200, "protein": 16.5, "fat": 10.0, "carbs": 12.1, "category": "豆類"},
+            
+            # 野菜類 (category 07)
+            "キャベツ": {"calories": 23, "protein": 1.3, "fat": 0.2, "carbs": 5.2, "category": "野菜"},
+            "にんじん": {"calories": 39, "protein": 0.6, "fat": 0.2, "carbs": 9.3, "category": "野菜"},
+            "玉ねぎ": {"calories": 37, "protein": 1.0, "fat": 0.1, "carbs": 8.8, "category": "野菜"},
+            "ブロッコリー": {"calories": 33, "protein": 4.3, "fat": 0.5, "carbs": 5.2, "category": "野菜"},
+            "ほうれん草": {"calories": 20, "protein": 2.2, "fat": 0.4, "carbs": 3.1, "category": "野菜"},
+            "トマト": {"calories": 19, "protein": 0.7, "fat": 0.1, "carbs": 4.7, "category": "野菜"},
+            "きのこ": {"calories": 22, "protein": 3.0, "fat": 0.3, "carbs": 4.9, "category": "野菜"},
+            "さつまいも": {"calories": 132, "protein": 1.2, "fat": 0.2, "carbs": 31.5, "category": "野菜"},
+            
+            # 調味料・その他
+            "味噌汁": {"calories": 32, "protein": 2.2, "fat": 1.0, "carbs": 4.3, "category": "汁物"},
+            "サラダ": {"calories": 15, "protein": 1.0, "fat": 0.1, "carbs": 3.5, "category": "野菜"},
+            "コーヒー": {"calories": 4, "protein": 0.2, "fat": 0, "carbs": 0.7, "category": "飲料"},
+            "牛乳": {"calories": 67, "protein": 3.3, "fat": 3.8, "carbs": 4.8, "category": "飲料"},
+        }
+        
+        NUTRITION_DB = nutrition_data
+        logger.info(f"Loaded {len(nutrition_data)} nutrition items")
+        return nutrition_data
+        
+    except Exception as e:
+        logger.error(f"Failed to load nutrition data: {e}")
+        return {}
 
 def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     """
@@ -122,22 +181,89 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             })
         }
 
+def create_balanced_meal(target_calories: int, meal_type: str, nutrition_db: Dict) -> Dict:
+    """
+    栄養データベースを使って栄養バランスの取れた食事を作成
+    """
+    import random
+    
+    try:
+        meal = {
+            "mealType": meal_type,
+            "calories": 0,
+            "dishes": [],
+            "color": "#FF8C42"
+        }
+        
+        # 食事タイプ別のカロリー配分
+        if meal_type == "朝食":
+            target_range = (200, min(500, target_calories * 0.3))
+        elif meal_type == "昼食":
+            target_range = (400, min(800, target_calories * 0.4))
+        else:  # 夕食
+            target_range = (500, min(900, target_calories * 0.5))
+        
+        target_cal = random.randint(int(target_range[0]), int(target_range[1]))
+        current_calories = 0
+        
+        # 主食を選択
+        staples = [name for name, data in nutrition_db.items() if data["category"] == "主食"]
+        if staples and current_calories < target_cal * 0.6:
+            staple = random.choice(staples)
+            staple_portion = 1.0 if meal_type == "朝食" else 1.5  # 朝食は少なめ
+            staple_calories = int(nutrition_db[staple]["calories"] * staple_portion)
+            meal["dishes"].append(f"{staple}({staple_calories}kcal)")
+            current_calories += staple_calories
+        
+        # タンパク質源を選択
+        proteins = [name for name, data in nutrition_db.items() 
+                   if data["category"] in ["肉類", "魚類", "卵類", "豆類"]]
+        if proteins and current_calories < target_cal * 0.8:
+            protein = random.choice(proteins)
+            protein_portion = 0.8 if meal_type == "朝食" else 1.2
+            protein_calories = int(nutrition_db[protein]["calories"] * protein_portion)
+            meal["dishes"].append(f"{protein}({protein_calories}kcal)")
+            current_calories += protein_calories
+        
+        # 野菜・副菜を選択
+        vegetables = [name for name, data in nutrition_db.items() 
+                     if data["category"] in ["野菜", "汁物"]]
+        if vegetables and len(meal["dishes"]) < 3:
+            vegetable = random.choice(vegetables)
+            veg_calories = nutrition_db[vegetable]["calories"]
+            meal["dishes"].append(f"{vegetable}({veg_calories}kcal)")
+            current_calories += veg_calories
+        
+        # 飲み物を追加（朝食の場合）
+        if meal_type == "朝食" and len(meal["dishes"]) < 3:
+            beverages = [name for name, data in nutrition_db.items() if data["category"] == "飲料"]
+            if beverages:
+                beverage = random.choice(beverages)
+                bev_calories = nutrition_db[beverage]["calories"]
+                meal["dishes"].append(f"{beverage}({bev_calories}kcal)")
+                current_calories += bev_calories
+        
+        meal["calories"] = current_calories
+        return meal
+        
+    except Exception as e:
+        logger.error(f"Failed to create balanced meal: {e}")
+        return {
+            "mealType": meal_type,
+            "calories": target_cal if 'target_cal' in locals() else 400,
+            "dishes": [f"定食({target_cal if 'target_cal' in locals() else 400}kcal)"],
+            "color": "#FF8C42"
+        }
+
 def create_meal_prompt(preferences: Dict, restrictions: list, target_calories: int) -> str:
     """
-    ユーザープロファイルを考慮したプロンプトを作成
+    ユーザープロファイルと栄養データベースを考慮した現実的なプロンプトを作成
     """
     import random
     import time
     
-    # より柔軟なカロリー配分（ランダム性を追加）
-    breakfast_base = target_calories * 0.25
-    lunch_base = target_calories * 0.35
-    dinner_base = target_calories * 0.40
-    
-    # ±5%の範囲でランダムに調整
-    breakfast_cal = int(breakfast_base + (random.random() - 0.5) * breakfast_base * 0.1)
-    lunch_cal = int(lunch_base + (random.random() - 0.5) * lunch_base * 0.1)
-    dinner_cal = target_calories - breakfast_cal - lunch_cal  # 残りを夕食に割り当て
+    # 栄養データベースを読み込み
+    nutrition_db = load_nutrition_data()
     
     # ユーザー情報を取得
     allergies = preferences.get('allergies', '')
@@ -151,68 +277,56 @@ def create_meal_prompt(preferences: Dict, restrictions: list, target_calories: i
     # ランダム要素を追加してバリエーションを作る
     random_seed = int(time.time()) % 10000
     
-    # 多様な料理例を提示
-    diverse_examples = [
-        # 和食例
-        "朝食：玄米ごはん、鮭の塩焼き、ほうれん草のお浸し、豆腐の味噌汁",
-        "昼食：親子丼、わかめときゅうりの酢の物、なめこの味噌汁",
-        "夕食：白米、さばの味噌煮、肉じゃが、小松菜とあげの味噌汁",
-        # 洋食例
-        "朝食：全粒粉パン、スクランブルエッグ、ベーコン、野菜サラダ",
-        "昼食：ハンバーグ、ガーリックライス、コーンスープ、ブロッコリー",
-        "夕食：グリルチキン、マッシュポテト、人参グラッセ、オニオンスープ",
-        # 中華例
-        "朝食：中華粥、焼売、キムチ、中華スープ",
-        "昼食：麻婆豆腐、白米、青椒肉絲、わかめスープ",
-        "夕食：酢豚、チャーハン、餃子、中華コーンスープ"
-    ]
+    # 栄養データベースから実際のカロリーを持つ料理例を生成
+    realistic_dishes = []
+    for food_name, nutrition in nutrition_db.items():
+        calorie = nutrition["calories"]
+        category = nutrition["category"]
+        if category == "主食":
+            realistic_dishes.append(f"{food_name}({calorie}kcal/100g)")
+        elif category in ["肉類", "魚類"]:
+            realistic_dishes.append(f"{food_name}({calorie}kcal/100g)")
+        elif category == "野菜":
+            realistic_dishes.append(f"{food_name}({calorie}kcal/100g)")
     
-    # より創意的な料理リストを作成
-    creative_dishes = [
-        # 朝食アイデア
-        "納豆卵かけご飯", "フレンチトースト", "アボカドトースト", "オムライス", "パンケーキ", 
-        "雑炊", "おにぎり", "ベーグルサンド", "グラノーラヨーグルト", "お茶漬け",
-        # 昼食アイデア  
-        "カルボナーラ", "チャーハン", "カレーライス", "ラーメン", "うどん", "そば",
-        "ハンバーガー", "サンドイッチ", "お弁当", "丼物", "パスタ", "ピザ",
-        # 夕食アイデア
-        "ステーキ", "すき焼き", "しゃぶしゃぶ", "天ぷら", "寿司", "刺身", 
-        "焼肉", "鍋料理", "グラタン", "リゾット", "パエリア", "タコス"
-    ]
+    # カロリー許容範囲を設定（±200kcalの幅を持たせる）
+    target_min = max(1200, target_calories - 200)
+    target_max = target_calories + 200
     
-    prompt = f"""以下のJSON形式のみで回答してください。説明文や追加のテキストは一切不要です。
+    prompt = f"""以下のJSON形式で栄養バランスの取れた現実的な献立を提案してください：
 
 {{
   "meals": [
     {{
       "mealType": "朝食",
-      "calories": {breakfast_cal},
-      "dishes": ["具体的な料理名1", "具体的な料理名2", "具体的な料理名3"]
+      "calories": 実際のカロリー数値,
+      "dishes": ["料理名(カロリー)", "料理名(カロリー)"]
     }},
     {{
-      "mealType": "昼食", 
-      "calories": {lunch_cal},
-      "dishes": ["具体的な料理名1", "具体的な料理名2", "具体的な料理名3"]
+      "mealType": "昼食",
+      "calories": 実際のカロリー数値,
+      "dishes": ["料理名(カロリー)", "料理名(カロリー)", "料理名(カロリー)"]
     }},
     {{
       "mealType": "夕食",
-      "calories": {dinner_cal}, 
-      "dishes": ["具体的な料理名1", "具体的な料理名2", "具体的な料理名3"]
+      "calories": 実際のカロリー数値,
+      "dishes": ["料理名(カロリー)", "料理名(カロリー)"]
     }}
   ]
 }}
 
-条件：
-- 総カロリー{target_calories}kcal以内
-- 朝{breakfast_cal}kcal、昼{lunch_cal}kcal、夕{dinner_cal}kcal程度
+【重要な条件】
+- 合計カロリーは{target_min}～{target_max}kcal程度（厳密でなくて可）
+- 各料理のカロリーは100gあたりの実際値を基準にする
+- 朝食200-500kcal、昼食400-800kcal、夕食500-900kcal程度
+- 主食・タンパク質・野菜をバランス良く組み合わせる
+- 2食または3食、柔軟に調整可能
 {allergy_constraints}
-- 10月の秋の食材を活用
-- 多様なジャンル（和食・洋食・中華・エスニック）から選択
-- 毎食異なる料理を組み合わせる
+- 10月の秋の食材（さつまいも、きのこ、鮭など）を活用
 
-参考料理: {', '.join(random.sample(creative_dishes, 6))}
+栄養データ参考例: {', '.join(random.sample(realistic_dishes, min(6, len(realistic_dishes))))}
 
-上記JSON形式のみで回答し、他の文章は書かないでください。
+栄養バランスと実際のカロリーを考慮してJSON形式のみ回答してください。
 ID:{random_seed}"""
     return prompt
 
@@ -427,88 +541,127 @@ def create_simple_meals_from_text(text: str, target_calories: int = 2000) -> lis
 
 def create_default_meals(target_calories: int = 2000) -> list:
     """
-    パース失敗時のデフォルト献立を作成
+    栄養データベースを活用した現実的なデフォルト献立を作成
     """
     try:
-        breakfast_cal = int(target_calories * 0.25)
-        lunch_cal = int(target_calories * 0.35)
-        dinner_cal = target_calories - breakfast_cal - lunch_cal
+        # 栄養データベースを読み込み
+        nutrition_db = load_nutrition_data()
         
+        if not nutrition_db:
+            # フォールバック：従来の方式
+            return create_simple_default_meals(target_calories)
+        
+        meals = []
+        used_calories = 0
+        
+        # 食事数を決定（低カロリーの場合は2食）
+        meal_types = ["朝食", "昼食", "夕食"] if target_calories >= 1500 else ["昼食", "夕食"]
+        
+        for meal_type in meal_types:
+            # 残りカロリーを考慮して各食事を作成
+            remaining_calories = target_calories - used_calories
+            remaining_meals = len(meal_types) - meal_types.index(meal_type)
+            avg_remaining = remaining_calories / remaining_meals if remaining_meals > 0 else remaining_calories
+            
+            meal = create_balanced_meal(int(avg_remaining), meal_type, nutrition_db)
+            meals.append(meal)
+            used_calories += meal["calories"]
+        
+        total_calories = sum(meal["calories"] for meal in meals)
+        logger.info(f"Created nutrition-based meals with total {total_calories}kcal (target: {target_calories}kcal)")
+        
+        return meals
+        
+    except Exception as e:
+        logger.error(f"Failed to create nutrition-based meals: {e}")
+        return create_simple_default_meals(target_calories)
+
+def create_simple_default_meals(target_calories: int = 2000) -> list:
+    """
+    シンプルなデフォルト献立（フォールバック用）
+    """
+    try:
         import random
         
-        # より多様なデフォルト献立パターン
+        # 現実的なカロリーを持つ献立パターン
         breakfast_options = [
-            ["トースト", "目玉焼き", "コーヒー"],
-            ["おにぎり", "味噌汁", "焼き魚"],
-            ["パンケーキ", "ヨーグルト", "フルーツ"],
-            ["お粥", "梅干し", "緑茶"],
-            ["サンドイッチ", "サラダ", "牛乳"]
+            {"dishes": ["トースト1枚(260kcal)", "目玉焼き(90kcal)"], "calories": 350},
+            {"dishes": ["おにぎり2個(320kcal)", "味噌汁(32kcal)"], "calories": 352},
+            {"dishes": ["卵かけご飯(350kcal)"], "calories": 350}
         ]
         
         lunch_options = [
-            ["カレーライス", "サラダ", "スープ"],
-            ["ラーメン", "餃子", "チャーハン"],
-            ["パスタ", "パン", "野菜ジュース"],
-            ["うどん", "天ぷら", "おにぎり"],
-            ["丼物", "味噌汁", "漬物"]
+            {"dishes": ["カレーライス(650kcal)", "サラダ(15kcal)"], "calories": 665},
+            {"dishes": ["パスタ(550kcal)", "サラダ(15kcal)"], "calories": 565},
+            {"dishes": ["定食(650kcal)"], "calories": 650}
         ]
         
         dinner_options = [
-            ["ハンバーグ", "ライス", "野菜炒め"],
-            ["焼き魚", "ご飯", "煮物"],
-            ["ステーキ", "サラダ", "スープ"],
-            ["鍋料理", "ご飯", "お漬物"],
-            ["炒め物", "ライス", "中華スープ"]
+            {"dishes": ["焼き魚定食(580kcal)"], "calories": 580},
+            {"dishes": ["ハンバーグ(300kcal)", "ライス(240kcal)", "サラダ(15kcal)"], "calories": 555},
+            {"dishes": ["鍋料理(400kcal)", "ご飯(160kcal)"], "calories": 560}
         ]
         
+        # ランダムに選択
         selected_breakfast = random.choice(breakfast_options)
-        selected_lunch = random.choice(lunch_options) 
+        selected_lunch = random.choice(lunch_options)
         selected_dinner = random.choice(dinner_options)
         
-        default_meals = [
-            {
-                'mealType': '朝食',
-                'calories': breakfast_cal,
-                'dishes': selected_breakfast,
-                'color': '#FF8C42'
-            },
-            {
-                'mealType': '昼食',
-                'calories': lunch_cal,
-                'dishes': selected_lunch,
-                'color': '#FF8C42'
-            },
-            {
-                'mealType': '夕食',
-                'calories': dinner_cal,
-                'dishes': selected_dinner,
-                'color': '#FF8C42'
-            }
-        ]
+        # 2食でも十分な場合は2食にする
+        if target_calories < 1500:
+            meals = [
+                {
+                    'mealType': '昼食',
+                    'calories': selected_lunch["calories"],
+                    'dishes': selected_lunch["dishes"],
+                    'color': '#FF8C42'
+                },
+                {
+                    'mealType': '夕食',
+                    'calories': selected_dinner["calories"],
+                    'dishes': selected_dinner["dishes"],
+                    'color': '#FF8C42'
+                }
+            ]
+        else:
+            meals = [
+                {
+                    'mealType': '朝食',
+                    'calories': selected_breakfast["calories"],
+                    'dishes': selected_breakfast["dishes"],
+                    'color': '#FF8C42'
+                },
+                {
+                    'mealType': '昼食',
+                    'calories': selected_lunch["calories"],
+                    'dishes': selected_lunch["dishes"],
+                    'color': '#FF8C42'
+                },
+                {
+                    'mealType': '夕食',
+                    'calories': selected_dinner["calories"],
+                    'dishes': selected_dinner["dishes"],
+                    'color': '#FF8C42'
+                }
+            ]
         
-        logger.info(f"Created default meals: {default_meals}")
-        return default_meals
+        logger.info(f"Created simple default meals with total {sum(meal['calories'] for meal in meals)}kcal")
+        return meals
         
     except Exception as e:
-        logger.error(f"Failed to create default meals: {e}")
+        logger.error(f"Failed to create simple default meals: {e}")
         # 最終フォールバック
         return [
             {
-                'mealType': '朝食',
-                'calories': 500,
-                'dishes': ["パン", "卵", "コーヒー"],
-                'color': '#FF8C42'
-            },
-            {
                 'mealType': '昼食',
-                'calories': 700,
-                'dishes': ["定食", "ご飯", "味噌汁"],
+                'calories': 650,
+                'dishes': ["定食(650kcal)"],
                 'color': '#FF8C42'
             },
             {
                 'mealType': '夕食',
-                'calories': 800,
-                'dishes': ["メイン料理", "ご飯", "サラダ"],
+                'calories': 580,
+                'dishes': ["焼き魚定食(580kcal)"],
                 'color': '#FF8C42'
             }
         ]
