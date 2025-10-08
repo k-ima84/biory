@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import { generateClient } from "aws-amplify/data";
 import { Amplify } from "aws-amplify";
-import outputs from "../amplify_outputs.json";
+import outputs from "../amplify_outputs.json" with { type: "json" };
 import type { Schema } from "../amplify/data/resource";
 
 // Amplify設定
@@ -87,13 +87,12 @@ const saveToDatabase = async (foods: CSVFoodItem[]) => {
   for (const food of foods) {
     try {
       await client.models.FoodNutrition.create({
-        foodNumber: food.foodId,
         foodName: food.foodName,
-        category: food.category,
         energyKcal: food.calories,
-        proteinG: food.protein,
-        fatG: food.fat,
-        carbohydrateG: food.carbs,
+        protein: food.protein,
+        fat: food.fat,
+        carbs: food.carbs,
+        per100g: true, // 100gあたりの値として設定
       });
       
       successCount++;
