@@ -2,6 +2,7 @@
  
 import { useState, useEffect } from "react";
 import { generateClient } from "aws-amplify/data";
+import { getCurrentUser } from "aws-amplify/auth";
 import type { Schema } from "@/amplify/data/resource";
 import BioryLayout from "../components/BioryLayout";
 import styles from "./meal.module.css";
@@ -192,6 +193,92 @@ export default function MealPage() {
     } catch (error) {
       console.error('ユーザープロファイル取得/作成エラー:', error);
       return null;
+    }
+  };
+
+  // 献立を保存する関数
+  const saveMealPlan = async () => {
+    if (!meals || meals.length === 0) {
+      alert('保存する献立がありません');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      
+      // 現在の日付を取得
+      const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD形式
+      
+      // 現在のユーザーIDを取得
+      const user = await getCurrentUser();
+      const currentUserId = user.userId;
+
+      console.log('献立保存開始:', { userId: currentUserId, date: today, meals });
+
+      // 既存の記録があるかチェック
+      const { data: existingRecords } = await client.models.DailyRecord.list({
+        filter: {
+          and: [
+            { userId: { eq: currentUserId } },
+            { date: { eq: today } }
+          ]
+        }
+      });
+
+      // 各食事の内容を準備
+      const mealData: any = {
+        breakfast: '',
+        lunch: '',
+        dinner: ''
+      };
+
+      meals.forEach((meal) => {
+        const dishesText = meal.dishes.join(', ');
+        const mealContent = `${dishesText} (${meal.calories}kcal)`;
+        
+        switch (meal.mealType) {
+          case '朝食':
+            mealData.breakfast = mealContent;
+            break;
+          case '昼食':
+            mealData.lunch = mealContent;
+            break;
+          case '夕食':
+            mealData.dinner = mealContent;
+            break;
+        }
+      });
+
+      if (existingRecords && existingRecords.length > 0) {
+        // 既存記録を更新
+        const updateData: any = { id: existingRecords[0].id };
+        
+        // 空でない食事データのみを更新
+        if (mealData.breakfast) updateData.breakfast = mealData.breakfast;
+        if (mealData.lunch) updateData.lunch = mealData.lunch;
+        if (mealData.dinner) updateData.dinner = mealData.dinner;
+        
+        await client.models.DailyRecord.update(updateData);
+        console.log('既存の記録を更新しました:', updateData);
+      } else {
+        // 新規記録を作成
+        const newRecord = {
+          userId: currentUserId,
+          date: today,
+          ...mealData
+        };
+        
+        await client.models.DailyRecord.create(newRecord);
+        console.log('新規記録を作成しました:', newRecord);
+      }
+
+      alert('献立を保存しました！');
+      
+    } catch (error) {
+      console.error('献立保存エラー:', error);
+      alert('献立の保存に失敗しました');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -405,7 +492,11 @@ export default function MealPage() {
               <span className={styles.buttonIcon}>↻</span>
               {loading ? '生成中...' : '献立を生成！'}
             </button>
-            <button className={styles.saveButton}>
+            <button 
+              className={styles.saveButton}
+              onClick={saveMealPlan}
+              disabled={!meals || meals.length === 0 || loading}
+            >
               💾 献立を保存
             </button>
           </div>
