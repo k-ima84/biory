@@ -49,8 +49,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
             body=json.dumps({
                 "inputText": prompt,
                 "textGenerationConfig": {
-                    "maxTokenCount": 1000,
-                    "temperature": 0.7
+                    "maxTokenCount": 1500,
+                    "temperature": 0.9,
+                    "topP": 0.9,
+                    "stopSequences": []
                 }
             })
         )
@@ -62,9 +64,10 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         
         meal_suggestion_text = response_body['results'][0]['outputText']
         logger.info(f"Extracted text length: {len(meal_suggestion_text)}")
+        print(f"BEDROCK RAW RESPONSE: {meal_suggestion_text}")  # 完全な応答をログ出力
         
         # JSON形式の献立データを抽出
-        meal_data = parse_meal_suggestion(meal_suggestion_text)
+        meal_data = parse_meal_suggestion(meal_suggestion_text, target_calories)
         logger.info(f"Generated meal data: {meal_data}")
         logger.info(f"Meal data type: {type(meal_data)}")
         logger.info(f"Meal data length: {len(meal_data) if meal_data else 0}")
@@ -123,58 +126,101 @@ def create_meal_prompt(preferences: Dict, restrictions: list, target_calories: i
     import random
     import time
     
-    breakfast_cal = int(target_calories * 0.25)
-    lunch_cal = int(target_calories * 0.35)
-    dinner_cal = int(target_calories * 0.40)
+    # より柔軟なカロリー配分（ランダム性を追加）
+    breakfast_base = target_calories * 0.25
+    lunch_base = target_calories * 0.35
+    dinner_base = target_calories * 0.40
+    
+    # ±5%の範囲でランダムに調整
+    breakfast_cal = int(breakfast_base + (random.random() - 0.5) * breakfast_base * 0.1)
+    lunch_cal = int(lunch_base + (random.random() - 0.5) * lunch_base * 0.1)
+    dinner_cal = target_calories - breakfast_cal - lunch_cal  # 残りを夕食に割り当て
     
     # ユーザー情報を取得
-    favorite_foods = preferences.get('favoriteFoods', '')
-    disliked_foods = preferences.get('dislikedFoods', '')
     allergies = preferences.get('allergies', '')
     
-    # ユーザー情報をプロンプトに組み込み
-    user_constraints = ""
-    if favorite_foods and favorite_foods != "和食":
-        user_constraints += f"\n- 好きな食べ物: {favorite_foods}を積極的に取り入れてください"
-    if disliked_foods:
-        user_constraints += f"\n- 嫌いな食べ物: {disliked_foods}は使用しないでください"
-    if allergies and allergies != "なし":
-        user_constraints += f"\n- アレルギー: {allergies}は絶対に使用しないでください"
+    # アレルギー制約を厳格に設定
+    allergy_constraints = ""
+    if allergies and allergies.strip() and allergies != "なし":
+        allergy_constraints = f"\n【重要・必須条件】以下の食材は絶対に使用禁止: {allergies}"
+        allergy_constraints += "\n上記食材が含まれる料理や調味料も一切使用しないでください。"
     
     # ランダム要素を追加してバリエーションを作る
-    seasons = ['春', '夏', '秋', '冬']
-    cooking_styles = ['和食', '洋食', '中華', 'イタリアン']
-    random_season = random.choice(seasons)
-    random_style = random.choice(cooking_styles)
-    random_seed = int(time.time()) % 1000
+    random_seed = int(time.time()) % 10000
     
-    prompt = f"""以下のJSON形式のみで回答してください。説明文は不要です。
+    # 多様な料理例を提示
+    diverse_examples = [
+        # 和食例
+        "朝食：玄米ごはん、鮭の塩焼き、ほうれん草のお浸し、豆腐の味噌汁",
+        "昼食：親子丼、わかめときゅうりの酢の物、なめこの味噌汁",
+        "夕食：白米、さばの味噌煮、肉じゃが、小松菜とあげの味噌汁",
+        # 洋食例
+        "朝食：全粒粉パン、スクランブルエッグ、ベーコン、野菜サラダ",
+        "昼食：ハンバーグ、ガーリックライス、コーンスープ、ブロッコリー",
+        "夕食：グリルチキン、マッシュポテト、人参グラッセ、オニオンスープ",
+        # 中華例
+        "朝食：中華粥、焼売、キムチ、中華スープ",
+        "昼食：麻婆豆腐、白米、青椒肉絲、わかめスープ",
+        "夕食：酢豚、チャーハン、餃子、中華コーンスープ"
+    ]
+    
+    # より創意的な料理リストを作成
+    creative_dishes = [
+        # 朝食アイデア
+        "納豆卵かけご飯", "フレンチトースト", "アボカドトースト", "オムライス", "パンケーキ", 
+        "雑炊", "おにぎり", "ベーグルサンド", "グラノーラヨーグルト", "お茶漬け",
+        # 昼食アイデア  
+        "カルボナーラ", "チャーハン", "カレーライス", "ラーメン", "うどん", "そば",
+        "ハンバーガー", "サンドイッチ", "お弁当", "丼物", "パスタ", "ピザ",
+        # 夕食アイデア
+        "ステーキ", "すき焼き", "しゃぶしゃぶ", "天ぷら", "寿司", "刺身", 
+        "焼肉", "鍋料理", "グラタン", "リゾット", "パエリア", "タコス"
+    ]
+    
+    prompt = f"""あなたは創意豊かな料理研究家です。日本の10月の季節感を活かした、バラエティに富んだ1日の献立を提案してください。
+
+以下のJSON形式で回答してください：
 
 {{
   "meals": [
     {{
       "mealType": "朝食",
       "calories": {breakfast_cal},
-      "dishes": ["ごはん", "焼き魚", "味噌汁"]
+      "dishes": ["メイン料理", "副菜", "汁物/飲み物"]
     }},
     {{
-      "mealType": "昼食",
+      "mealType": "昼食", 
       "calories": {lunch_cal},
-      "dishes": ["ごはん", "豚の生姜焼き", "野菜サラダ"]
+      "dishes": ["メイン料理", "副菜", "汁物/飲み物"]
     }},
     {{
       "mealType": "夕食",
-      "calories": {dinner_cal},
-      "dishes": ["ごはん", "鶏の照り焼き", "野菜炒め"]
+      "calories": {dinner_cal}, 
+      "dishes": ["メイン料理", "副菜", "汁物/飲み物"]
     }}
   ]
 }}
 
-上記と同じ形式で、{target_calories}kcalの日本料理献立を作成してください。{user_constraints}
+【必須条件】
+- 総カロリー{target_calories}kcal以内
+- 朝{breakfast_cal}kcal、昼{lunch_cal}kcal、夕{dinner_cal}kcal程度
+{allergy_constraints}
+- 「ごはん」「白米」などの主食は最大1食まで
+- 毎食異なるジャンル・調理法の料理を組み合わせる
+- 10月の秋の食材（さつまいも、きのこ、柿など）を活用
+- 和食・洋食・中華・エスニックなど多様なジャンルから選択
+
+【参考料理】（これら以外も自由に提案してください）
+{', '.join(random.sample(creative_dishes, 8))}
+
+【重要】創造性を最大限発揮し、予想外の美味しい組み合わせを提案してください。
+毎回まったく異なる献立になるよう工夫してください。
+
+JSON形式のみで回答してください。説明不要。
 ID:{random_seed}"""
     return prompt
 
-def parse_meal_suggestion(text: str) -> list:
+def parse_meal_suggestion(text: str, target_calories: int = 2000) -> list:
     """
     Bedrockからの応答をパースして献立データを抽出
     """
@@ -192,11 +238,12 @@ def parse_meal_suggestion(text: str) -> list:
             meals = data.get('meals', [])
             if meals:
                 logger.info(f"Successfully parsed {len(meals)} meals")
+                # AIから返されたカロリーをそのまま使用（より柔軟性を持たせる）
                 return meals
         
         # JSONがない場合はテキストからパース
         logger.warning("No valid JSON found, parsing text format")
-        parsed_meals = parse_text_format(text)
+        parsed_meals = parse_text_format(text, target_calories)
         if parsed_meals:
             return parsed_meals
         else:
@@ -205,18 +252,23 @@ def parse_meal_suggestion(text: str) -> list:
             
     except json.JSONDecodeError as e:
         logger.error(f"JSON decode error: {e}")
-        parsed_meals = parse_text_format(text)
+        parsed_meals = parse_text_format(text, target_calories)
         if parsed_meals:
             return parsed_meals
         else:
             logger.error("Failed to parse meal data after JSON error")
             return []
 
-def parse_text_format(text: str) -> list:
+def parse_text_format(text: str, target_calories: int = 2000) -> list:
     """
     テキスト形式のレスポンスをパース
     """
     try:
+        # ターゲットカロリーに基づいた動的なカロリー配分
+        breakfast_cal = int(target_calories * 0.25)
+        lunch_cal = int(target_calories * 0.35)
+        dinner_cal = target_calories - breakfast_cal - lunch_cal
+        
         meals = []
         lines = text.split('\n')
         current_meal = None
@@ -226,15 +278,15 @@ def parse_text_format(text: str) -> list:
             if '朝食:' in line:
                 if current_meal:
                     meals.append(current_meal)
-                current_meal = {'mealType': '朝食', 'calories': 500, 'dishes': [], 'color': '#FF8C42'}
+                current_meal = {'mealType': '朝食', 'calories': breakfast_cal, 'dishes': [], 'color': '#FF8C42'}
             elif '昼食:' in line:
                 if current_meal:
                     meals.append(current_meal)
-                current_meal = {'mealType': '昼食', 'calories': 700, 'dishes': [], 'color': '#FF8C42'}
+                current_meal = {'mealType': '昼食', 'calories': lunch_cal, 'dishes': [], 'color': '#FF8C42'}
             elif '夕食:' in line:
                 if current_meal:
                     meals.append(current_meal)
-                current_meal = {'mealType': '夕食', 'calories': 800, 'dishes': [], 'color': '#FF8C42'}
+                current_meal = {'mealType': '夕食', 'calories': dinner_cal, 'dishes': [], 'color': '#FF8C42'}
             elif current_meal and ('主食:' in line or '主菜:' in line or '副菜:' in line):
                 dish = line.split(':')[-1].strip()
                 if dish:
@@ -252,7 +304,7 @@ def parse_text_format(text: str) -> list:
         
         # テキストから簡単なパースを試行
         logger.warning("Trying simple text parsing as fallback")
-        simple_meals = create_simple_meals_from_text(text)
+        simple_meals = create_simple_meals_from_text(text, target_calories)
         if simple_meals:
             return simple_meals
         
@@ -263,11 +315,16 @@ def parse_text_format(text: str) -> list:
         logger.error(f"Text parsing error: {e}")
         return []
 
-def create_simple_meals_from_text(text: str) -> list:
+def create_simple_meals_from_text(text: str, target_calories: int = 2000) -> list:
     """
     シンプルなテキストパースのフォールバック
     """
     try:
+        # ターゲットカロリーに基づいた動的なカロリー配分
+        breakfast_cal = int(target_calories * 0.25)
+        lunch_cal = int(target_calories * 0.35)
+        dinner_cal = target_calories - breakfast_cal - lunch_cal  # 残りを夕食に
+        
         # 基本的な献立を生成（AIが失敗した場合のフォールバック）
         import random
         
@@ -284,19 +341,19 @@ def create_simple_meals_from_text(text: str) -> list:
         return [
             {
                 'mealType': '朝食',
-                'calories': 500,
+                'calories': breakfast_cal,
                 'dishes': selected_dishes[0],
                 'color': '#FF8C42'
             },
             {
                 'mealType': '昼食', 
-                'calories': 700,
+                'calories': lunch_cal,
                 'dishes': selected_dishes[1],
                 'color': '#FF8C42'
             },
             {
                 'mealType': '夕食',
-                'calories': 800, 
+                'calories': dinner_cal, 
                 'dishes': selected_dishes[2],
                 'color': '#FF8C42'
             }
@@ -355,12 +412,12 @@ def get_user_profile(user_id: str) -> Dict:
             profile = response['Items'][0]
             logger.info(f"Found user profile: {profile}")
             return {
-                'favoriteFoods': profile.get('favoriteFoods', ''),
-                'dislikedFoods': profile.get('dislikedFoods', ''),
                 'allergies': profile.get('allergies', ''),
                 'gender': profile.get('gender', ''),
                 'weight': profile.get('weight', 60),
-                'height': profile.get('height', 160)
+                'height': profile.get('height', 160),
+                'age': profile.get('age', 30),
+                'exerciseFrequency': profile.get('exerciseFrequency', '')
             }
         else:
             logger.warning(f"No profile found for userId: {user_id}")

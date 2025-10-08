@@ -112,6 +112,17 @@ export const schema = a.schema({
       // メタデータ
       createdAt: a.datetime(),
       updatedAt: a.datetime(),
+      // email: a.string(),
+      name: a.string(),
+      height: a.float(), // xxx.xx cm
+      weight: a.float(), // xx.xx kg
+      age: a.integer(), // 年齢
+      gender: a.string(), // 女・男・そのほか
+      favoriteFoods: a.string(), // 好きな食べ物（自由入力）
+      allergies: a.string(), // アレルギー情報
+      dislikedFoods: a.string(), // 嫌いな食べ物（自由入力）
+      exerciseFrequency: a.string(), // 運動頻度（選択式）
+      exerciseFrequencyOther: a.string(), // その他を選択した場合の自由入力
     })
     .authorization((allow) => [allow.publicApiKey()]),
 });

@@ -17,6 +17,7 @@ interface UserProfileForm {
   name: string;
   height: string;
   weight: string;
+  age: string;
   gender: string;
   favoriteFoods: string;
   allergies: string;
@@ -29,6 +30,7 @@ interface ValidationErrors {
   name?: string;
   height?: string;
   weight?: string;
+  age?: string;
   gender?: string;
   exerciseFrequency?: string;
 }
@@ -47,6 +49,7 @@ export default function SettingsPage() {
     name: "",
     height: "",
     weight: "",
+    age: "",
     gender: "",
     favoriteFoods: "",
     allergies: "",
@@ -60,10 +63,11 @@ export default function SettingsPage() {
  
   // 運動頻度の選択肢
   const exerciseOptions = [
-    { value: "週に1回以上運動する", label: "週に1回以上運動する" },
-    { value: "週に1回程度運動する", label: "週に1回程度運動する" },
-    { value: "運動しない", label: "運動しない" },
-    { value: "そのほか", label: "そのほか" },
+    { value: "ほとんど運動しない", label: "ほとんど運動しない" },
+    { value: "週1〜3回の軽い運動", label: "週1〜3回の軽い運動" },
+    { value: "週3〜5回の中程度の運動", label: "週3〜5回の中程度の運動" },
+    { value: "週6〜7回の激しい運動", label: "週6〜7回の激しい運動" },
+    { value: "毎日2回の運動や肉体労働", label: "毎日2回の運動や肉体労働" },
   ];
  
   // 性別の選択肢
@@ -126,6 +130,7 @@ export default function SettingsPage() {
           name: profile.name || "",
           height: profile.height?.toString() || "",
           weight: profile.weight?.toString() || "",
+          age: profile.age?.toString() || "",
           gender: profile.gender || "",
           favoriteFoods: profile.favoriteFoods || "",
           allergies: profile.allergies || "",
@@ -149,6 +154,18 @@ export default function SettingsPage() {
           dislikedFoods: "",
           exerciseFrequency: "",
           exerciseFrequencyOther: "",
+        // プロフィールがない場合はサンプルデータを表示
+        const sampleData = {
+          name: "未設定",
+          height: "未設定",
+          weight: "未設定",
+          age: "未設定",
+          gender: "未設定",
+          favoriteFoods: "未設定",
+          allergies: "未設定",
+          dislikedFoods: "未設定",
+          exerciseFrequency: "未設定",
+          exerciseFrequencyOther: "未設定",
         };
         setFormData(defaultData);
         setUserProfile(null);
@@ -194,6 +211,18 @@ export default function SettingsPage() {
       const weightValue = parseFloat(formData.weight);
       if (weightValue < 0 || weightValue > 300) {
         newErrors.weight = "体重は0～300kgの範囲で入力してください";
+      }
+    }
+
+    // 年齢のバリデーション
+    if (!formData.age.trim()) {
+      newErrors.age = "年齢は必須です";
+    } else if (!/^\d{1,3}$/.test(formData.age)) {
+      newErrors.age = "年齢は正しい形式で入力してください（例：30）";
+    } else {
+      const ageValue = parseInt(formData.age);
+      if (ageValue < 1 || ageValue > 150) {
+        newErrors.age = "年齢は1～150歳の範囲で入力してください";
       }
     }
  
@@ -307,6 +336,7 @@ export default function SettingsPage() {
         name: formData.name,
         height: parseFloat(formData.height),
         weight: parseFloat(formData.weight),
+        age: parseInt(formData.age),
         gender: formData.gender,
         favoriteFoods: formData.favoriteFoods,
         allergies: formData.allergies,
@@ -478,6 +508,28 @@ export default function SettingsPage() {
               <div className="info-value">{formData.weight ? `${formData.weight} kg` : "未設定"}</div>
             )}
           </div>
+
+          {/* 年齢 */}
+          <div className="form-group">
+            <label className="form-label">年齢</label>
+            {isEditMode ? (
+              <>
+                <div className="input-with-unit">
+                  <input
+                    type="text"
+                    value={formData.age}
+                    onChange={(e) => handleInputChange("age", e.target.value)}
+                    className={`form-input ${errors.age ? "error" : ""}`}
+                    placeholder="30"
+                  />
+                  <span className="unit">歳</span>
+                </div>
+                {errors.age && <span className="error-message">{errors.age}</span>}
+              </>
+            ) : (
+              <div className="info-value">{formData.age ? `${formData.age} 歳` : "未設定"}</div>
+            )}
+          </div>
  
           {/* 性別 */}
           <div className="form-group">
@@ -505,7 +557,7 @@ export default function SettingsPage() {
  
           {/* 好きな食べ物 */}
           <div className="form-group">
-            <label className="form-label">好きなたべもの</label>
+            <label className="form-label">好きな食べ物</label>
             {isEditMode ? (
               <input
                 type="text"
@@ -516,22 +568,6 @@ export default function SettingsPage() {
               />
             ) : (
               <div className="info-value">{formData.favoriteFoods || "未設定"}</div>
-            )}
-          </div>
- 
-          {/* アレルギー */}
-          <div className="form-group">
-            <label className="form-label">アレルギー</label>
-            {isEditMode ? (
-              <input
-                type="text"
-                value={formData.allergies}
-                onChange={(e) => handleInputChange("allergies", e.target.value)}
-                className="form-input"
-                placeholder="卵、牛乳"
-              />
-            ) : (
-              <div className="info-value">{formData.allergies || "なし"}</div>
             )}
           </div>
  
@@ -548,6 +584,22 @@ export default function SettingsPage() {
               />
             ) : (
               <div className="info-value">{formData.dislikedFoods || "なし"}</div>
+            )}
+          </div>
+ 
+          {/* アレルギー */}
+          <div className="form-group">
+            <label className="form-label">アレルギー</label>
+            {isEditMode ? (
+              <input
+                type="text"
+                value={formData.allergies}
+                onChange={(e) => handleInputChange("allergies", e.target.value)}
+                className="form-input"
+                placeholder="卵、牛乳"
+              />
+            ) : (
+              <div className="info-value">{formData.allergies || "なし"}</div>
             )}
           </div>
  
