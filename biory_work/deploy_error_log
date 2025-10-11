@@ -1,0 +1,323 @@
+2025-10-08T00:27:45.775Z [INFO]: # Build environment configured with Standard build compute type: 8GiB Memory, 4vCPUs, 128GB Disk Space
+2025-10-08T00:27:46.549Z [INFO]: # Cloning repository: git@github.com:k-ima84/biory.git
+2025-10-08T00:27:48.193Z [INFO]: 
+2025-10-08T00:27:48.194Z [INFO]: Cloning into 'biory'...
+2025-10-08T00:27:48.194Z [INFO]: # Switching to commit: 11dc61b17579b2bae4e78bf2ed905a6c2348bb26
+2025-10-08T00:27:48.227Z [INFO]: Note: switching to '11dc61b17579b2bae4e78bf2ed905a6c2348bb26'.
+                                 You are in 'detached HEAD' state. You can look around, make experimental
+                                 changes and commit them, and you can discard any commits you make in this
+                                 state without impacting any branches by switching back to a branch.
+                                 If you want to create a new branch to retain commits you create, you may
+                                 do so (now or later) by using -c with the switch command. Example:
+                                 git switch -c <new-branch-name>
+                                 Or undo this operation with:
+                                 git switch -
+                                 Turn off this advice by setting config variable advice.detachedHead to false
+                                 HEAD is now at 11dc61b Merge pull request #36 from k-ima84/Feature005
+2025-10-08T00:27:48.240Z [INFO]: Successfully cleaned up Git credentials
+2025-10-08T00:27:48.240Z [INFO]: # Checking for Git submodules at: /codebuild/output/src2981299683/src/biory/.gitmodules
+2025-10-08T00:27:48.250Z [INFO]: # Retrieving environment cache...
+2025-10-08T00:27:48.340Z [INFO]: # Retrieved environment cache
+2025-10-08T00:27:48.340Z [INFO]: ---- Setting Up SSM Secrets ----
+2025-10-08T00:27:48.340Z [INFO]: SSM params {"Path":"/amplify/d3jy7yskmr5rp7/main/","WithDecryption":true}
+2025-10-08T00:27:49.145Z [INFO]: # No package override configuration found.
+2025-10-08T00:27:49.233Z [INFO]: # Retrieving cache...
+2025-10-08T00:28:08.078Z [INFO]: # Extracting cache...
+2025-10-08T00:28:33.254Z [INFO]: # Extraction completed
+2025-10-08T00:28:33.522Z [INFO]: # Retrieved cache
+2025-10-08T00:28:37.996Z [INFO]: ## Starting Backend Build
+                                 # Starting phase: build
+                                 # Executing command: npm ci --cache .npm --prefer-offline
+2025-10-08T00:29:02.928Z [WARNING]: npm warn ERESOLVE overriding peer dependency
+2025-10-08T00:29:02.933Z [WARNING]: npm warn While resolving: @aws-amplify/plugin-types@1.10.1
+                                    npm warn Found: @aws-sdk/types@3.821.0
+                                    npm warn node_modules/@aws-amplify/data-construct/node_modules/@aws-amplify/ai-constructs/node_modules/@aws-amplify/plugin-types/node_modules/@aws-sdk/types
+                                    npm warn
+                                    npm warn Could not resolve dependency:
+                                    npm warn peer @aws-sdk/types@"^3.734.0" from @aws-amplify/plugin-types@1.10.1
+                                    npm warn node_modules/@aws-amplify/data-construct/node_modules/@aws-amplify/ai-constructs/node_modules/@aws-amplify/plugin-types
+                                    npm warn   @aws-amplify/plugin-types@"^1.10.1" from @aws-amplify/ai-constructs@1.5.3
+                                    npm warn   node_modules/@aws-amplify/data-construct/node_modules/@aws-amplify/ai-constructs
+2025-10-08T00:29:03.165Z [WARNING]: npm warn ERESOLVE overriding peer dependency
+2025-10-08T00:29:03.165Z [WARNING]: npm warn While resolving: @aws-amplify/plugin-types@1.10.1
+                                    npm warn Found: @aws-sdk/types@3.821.0
+                                    npm warn node_modules/@aws-amplify/graphql-api-construct/node_modules/@aws-amplify/ai-constructs/node_modules/@aws-amplify/plugin-types/node_modules/@aws-sdk/types
+                                    npm warn
+                                    npm warn Could not resolve dependency:
+                                    npm warn peer @aws-sdk/types@"^3.734.0" from @aws-amplify/plugin-types@1.10.1
+                                    npm warn node_modules/@aws-amplify/graphql-api-construct/node_modules/@aws-amplify/ai-constructs/node_modules/@aws-amplify/plugin-types
+                                    npm warn   @aws-amplify/plugin-types@"^1.10.1" from @aws-amplify/ai-constructs@1.5.3
+                                    npm warn   node_modules/@aws-amplify/graphql-api-construct/node_modules/@aws-amplify/ai-constructs
+2025-10-08T00:29:03.462Z [WARNING]: npm error code EUSAGE
+2025-10-08T00:29:03.462Z [WARNING]: npm error
+                                    npm error `npm ci` can only install packages when your package.json and package-lock.json or npm-shrinkwrap.json are in sync. Please update your lock file with `npm install` before continuing.
+                                    npm error
+                                    npm error Missing: @aws-sdk/client-ecr@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/client-ecs@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/client-elastic-load-balancing-v2@3.901.0 from lock file
+                                    npm error Missing: @types/uuid@9.0.8 from lock file
+                                    npm error Missing: uuid@9.0.1 from lock file
+                                    npm error Missing: @types/uuid@9.0.8 from lock file
+                                    npm error Missing: uuid@9.0.1 from lock file
+                                    npm error Missing: uuid@9.0.1 from lock file
+                                    npm error Missing: @aws-sdk/core@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/credential-provider-node@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/middleware-host-header@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/middleware-logger@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/middleware-recursion-detection@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/middleware-user-agent@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/region-config-resolver@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/types@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/util-endpoints@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/util-user-agent-browser@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/util-user-agent-node@3.901.0 from lock file
+                                    npm error Missing: @smithy/config-resolver@4.3.0 from lock file
+                                    npm error Missing: @smithy/core@3.14.0 from lock file
+                                    npm error Missing: @smithy/fetch-http-handler@5.3.0 from lock file
+                                    npm error Missing: @smithy/hash-node@4.2.0 from lock file
+                                    npm error Missing: @smithy/invalid-dependency@4.2.0 from lock file
+                                    npm error Missing: @smithy/middleware-content-length@4.2.0 from lock file
+                                    npm error Missing: @smithy/middleware-endpoint@4.3.0 from lock file
+                                    npm error Missing: @smithy/middleware-retry@4.4.0 from lock file
+                                    npm error Missing: @smithy/middleware-serde@4.2.0 from lock file
+                                    npm error Missing: @smithy/middleware-stack@4.2.0 from lock file
+                                    npm error Invalid: lock file's @smithy/node-config-provider@4.1.4 does not satisfy @smithy/node-config-provider@4.3.0
+                                    npm error Missing: @smithy/node-http-handler@4.3.0 from lock file
+                                    npm error Missing: @smithy/protocol-http@5.3.0 from lock file
+                                    npm error Missing: @smithy/smithy-client@4.7.0 from lock file
+                                    npm error Missing: @smithy/types@4.6.0 from lock file
+                                    npm error Missing: @smithy/url-parser@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-base64@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-body-length-browser@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-body-length-node@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-defaults-mode-browser@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-defaults-mode-node@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-endpoints@3.2.0 from lock file
+                                    npm error Missing: @smithy/util-middleware@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-retry@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-utf8@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-waiter@4.2.0 from lock file
+                                    npm error Missing: @aws-sdk/core@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/credential-provider-node@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/middleware-host-header@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/middleware-logger@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/middleware-recursion-detection@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/middleware-user-agent@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/region-config-resolver@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/types@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/util-endpoints@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/util-user-agent-browser@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/util-user-agent-node@3.901.0 from lock file
+                                    npm error Missing: @smithy/config-resolver@4.3.0 from lock file
+                                    npm error Missing: @smithy/core@3.14.0 from lock file
+                                    npm error Missing: @smithy/fetch-http-handler@5.3.0 from lock file
+                                    npm error Missing: @smithy/hash-node@4.2.0 from lock file
+                                    npm error Missing: @smithy/invalid-dependency@4.2.0 from lock file
+                                    npm error Missing: @smithy/middleware-content-length@4.2.0 from lock file
+                                    npm error Missing: @smithy/middleware-endpoint@4.3.0 from lock file
+                                    npm error Missing: @smithy/middleware-retry@4.4.0 from lock file
+                                    npm error Missing: @smithy/middleware-serde@4.2.0 from lock file
+                                    npm error Missing: @smithy/middleware-stack@4.2.0 from lock file
+                                    npm error Missing: @smithy/node-http-handler@4.3.0 from lock file
+                                    npm error Missing: @smithy/protocol-http@5.3.0 from lock file
+                                    npm error Missing: @smithy/smithy-client@4.7.0 from lock file
+                                    npm error Missing: @smithy/types@4.6.0 from lock file
+                                    npm error Missing: @smithy/url-parser@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-base64@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-body-length-browser@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-body-length-node@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-defaults-mode-browser@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-defaults-mode-node@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-endpoints@3.2.0 from lock file
+                                    npm error Missing: @smithy/util-middleware@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-retry@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-utf8@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-waiter@4.2.0 from lock file
+                                    npm error Missing: @smithy/uuid@1.1.0 from lock file
+                                    npm error Missing: @aws-sdk/core@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/credential-provider-node@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/middleware-host-header@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/middleware-logger@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/middleware-recursion-detection@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/middleware-user-agent@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/region-config-resolver@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/types@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/util-endpoints@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/util-user-agent-browser@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/util-user-agent-node@3.901.0 from lock file
+                                    npm error Missing: @smithy/config-resolver@4.3.0 from lock file
+                                    npm error Missing: @smithy/core@3.14.0 from lock file
+                                    npm error Missing: @smithy/fetch-http-handler@5.3.0 from lock file
+                                    npm error Missing: @smithy/hash-node@4.2.0 from lock file
+                                    npm error Missing: @smithy/invalid-dependency@4.2.0 from lock file
+                                    npm error Missing: @smithy/middleware-content-length@4.2.0 from lock file
+                                    npm error Missing: @smithy/middleware-endpoint@4.3.0 from lock file
+                                    npm error Missing: @smithy/middleware-retry@4.4.0 from lock file
+                                    npm error Missing: @smithy/middleware-serde@4.2.0 from lock file
+                                    npm error Missing: @smithy/middleware-stack@4.2.0 from lock file
+                                    npm error Missing: @smithy/node-http-handler@4.3.0 from lock file
+                                    npm error Missing: @smithy/protocol-http@5.3.0 from lock file
+                                    npm error Missing: @smithy/smithy-client@4.7.0 from lock file
+                                    npm error Missing: @smithy/types@4.6.0 from lock file
+                                    npm error Missing: @smithy/url-parser@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-base64@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-body-length-browser@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-body-length-node@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-defaults-mode-browser@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-defaults-mode-node@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-endpoints@3.2.0 from lock file
+                                    npm error Missing: @smithy/util-middleware@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-retry@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-utf8@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-waiter@4.2.0 from lock file
+                                    npm error Missing: @types/uuid@9.0.8 from lock file
+                                    npm error Missing: uuid@9.0.1 from lock file
+                                    npm error Missing: @types/uuid@9.0.8 from lock file
+                                    npm error Missing: uuid@9.0.1 from lock file
+                                    npm error Missing: @types/uuid@9.0.8 from lock file
+                                    npm error Missing: uuid@9.0.1 from lock file
+                                    npm error Invalid: lock file's @smithy/property-provider@4.0.5 does not satisfy @smithy/property-provider@4.2.0
+                                    npm error Invalid: lock file's @smithy/shared-ini-file-loader@4.0.5 does not satisfy @smithy/shared-ini-file-loader@4.3.0
+                                    npm error Invalid: lock file's @smithy/types@4.3.2 does not satisfy @smithy/types@4.6.0
+                                    npm error Invalid: lock file's @smithy/types@4.3.2 does not satisfy @smithy/types@4.6.0
+                                    npm error Missing: @types/uuid@9.0.8 from lock file
+                                    npm error Missing: @types/uuid@9.0.8 from lock file
+                                    npm error Missing: uuid@9.0.1 from lock file
+                                    npm error Missing: @smithy/querystring-builder@4.2.0 from lock file
+                                    npm error Invalid: lock file's @smithy/types@4.3.2 does not satisfy @smithy/types@4.6.0
+                                    npm error Invalid: lock file's @smithy/util-uri-escape@4.0.0 does not satisfy @smithy/util-uri-escape@4.2.0
+                                    npm error Missing: @types/uuid@9.0.8 from lock file
+                                    npm error Missing: uuid@9.0.1 from lock file
+                                    npm error Missing: @types/uuid@9.0.8 from lock file
+                                    npm error Missing: uuid@9.0.1 from lock file
+                                    npm error Missing: @types/uuid@9.0.8 from lock file
+                                    npm error Missing: uuid@9.0.1 from lock file
+                                    npm error Missing: @types/uuid@9.0.8 from lock file
+                                    npm error Missing: uuid@9.0.1 from lock file
+                                    npm error Missing: @aws-sdk/xml-builder@3.901.0 from lock file
+                                    npm error Missing: @smithy/property-provider@4.2.0 from lock file
+                                    npm error Missing: @smithy/signature-v4@5.3.0 from lock file
+                                    npm error Missing: @aws-sdk/credential-provider-env@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/credential-provider-http@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/credential-provider-ini@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/credential-provider-process@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/credential-provider-sso@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/credential-provider-web-identity@3.901.0 from lock file
+                                    npm error Missing: @smithy/credential-provider-imds@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-stream@4.4.0 from lock file
+                                    npm error Missing: @aws-sdk/nested-clients@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/client-sso@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/token-providers@3.901.0 from lock file
+                                    npm error Missing: @aws/lambda-invoke-store@0.0.1 from lock file
+                                    npm error Missing: @smithy/util-config-provider@4.2.0 from lock file
+                                    npm error Missing: fast-xml-parser@5.2.5 from lock file
+                                    npm error Missing: @smithy/querystring-builder@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-buffer-from@4.2.0 from lock file
+                                    npm error Missing: @smithy/service-error-classification@4.2.0 from lock file
+                                    npm error Missing: @smithy/abort-controller@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-uri-escape@4.2.0 from lock file
+                                    npm error Missing: @smithy/is-array-buffer@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-hex-encoding@4.2.0 from lock file
+                                    npm error Missing: @smithy/querystring-parser@4.2.0 from lock file
+                                    npm error Missing: strnum@2.1.1 from lock file
+                                    npm error Missing: @aws-sdk/xml-builder@3.901.0 from lock file
+                                    npm error Missing: @smithy/property-provider@4.2.0 from lock file
+                                    npm error Missing: @smithy/signature-v4@5.3.0 from lock file
+                                    npm error Missing: @aws-sdk/credential-provider-env@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/credential-provider-http@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/credential-provider-ini@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/credential-provider-process@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/credential-provider-sso@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/credential-provider-web-identity@3.901.0 from lock file
+                                    npm error Missing: @smithy/credential-provider-imds@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-stream@4.4.0 from lock file
+                                    npm error Missing: @aws-sdk/nested-clients@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/client-sso@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/token-providers@3.901.0 from lock file
+                                    npm error Missing: @smithy/util-config-provider@4.2.0 from lock file
+                                    npm error Missing: fast-xml-parser@5.2.5 from lock file
+                                    npm error Missing: @smithy/querystring-builder@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-buffer-from@4.2.0 from lock file
+                                    npm error Missing: @smithy/service-error-classification@4.2.0 from lock file
+                                    npm error Missing: @smithy/abort-controller@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-uri-escape@4.2.0 from lock file
+                                    npm error Missing: @smithy/is-array-buffer@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-hex-encoding@4.2.0 from lock file
+                                    npm error Missing: @smithy/querystring-parser@4.2.0 from lock file
+                                    npm error Missing: strnum@2.1.1 from lock file
+                                    npm error Missing: @aws-sdk/xml-builder@3.901.0 from lock file
+                                    npm error Missing: @smithy/property-provider@4.2.0 from lock file
+                                    npm error Missing: @smithy/signature-v4@5.3.0 from lock file
+                                    npm error Missing: @aws-sdk/credential-provider-env@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/credential-provider-http@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/credential-provider-ini@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/credential-provider-process@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/credential-provider-sso@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/credential-provider-web-identity@3.901.0 from lock file
+                                    npm error Missing: @smithy/credential-provider-imds@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-stream@4.4.0 from lock file
+                                    npm error Missing: @aws-sdk/nested-clients@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/client-sso@3.901.0 from lock file
+                                    npm error Missing: @aws-sdk/token-providers@3.901.0 from lock file
+                                    npm error Missing: @smithy/util-config-provider@4.2.0 from lock file
+                                    npm error Missing: fast-xml-parser@5.2.5 from lock file
+                                    npm error Missing: @smithy/querystring-builder@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-buffer-from@4.2.0 from lock file
+                                    npm error Missing: @smithy/service-error-classification@4.2.0 from lock file
+                                    npm error Missing: @smithy/abort-controller@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-uri-escape@4.2.0 from lock file
+                                    npm error Missing: @smithy/is-array-buffer@4.2.0 from lock file
+                                    npm error Missing: @smithy/util-hex-encoding@4.2.0 from lock file
+                                    npm error Missing: @smithy/querystring-parser@4.2.0 from lock file
+                                    npm error Missing: strnum@2.1.1 from lock file
+                                    npm error Missing: @types/uuid@9.0.8 from lock file
+                                    npm error Missing: uuid@9.0.1 from lock file
+                                    npm error Missing: @types/uuid@9.0.8 from lock file
+                                    npm error Missing: uuid@9.0.1 from lock file
+                                    npm error Missing: @types/uuid@9.0.8 from lock file
+                                    npm error Missing: uuid@9.0.1 from lock file
+                                    npm error Missing: @types/uuid@9.0.8 from lock file
+                                    npm error Missing: uuid@9.0.1 from lock file
+                                    npm error Missing: @types/uuid@9.0.8 from lock file
+                                    npm error Missing: uuid@9.0.1 from lock file
+                                    npm error Missing: @types/uuid@9.0.8 from lock file
+                                    npm error Missing: uuid@9.0.1 from lock file
+                                    npm error Missing: @types/uuid@9.0.8 from lock file
+                                    npm error Missing: uuid@9.0.1 from lock file
+                                    npm error Missing: @types/uuid@9.0.8 from lock file
+                                    npm error Missing: uuid@9.0.1 from lock file
+                                    npm error Missing: @types/uuid@9.0.8 from lock file
+                                    npm error Missing: uuid@9.0.1 from lock file
+                                    npm error Missing: @types/uuid@9.0.8 from lock file
+                                    npm error Missing: uuid@9.0.1 from lock file
+                                    npm error Missing: @types/uuid@9.0.8 from lock file
+                                    npm error Missing: uuid@9.0.1 from lock file
+                                    npm error Missing: @types/uuid@9.0.8 from lock file
+                                    npm error Missing: uuid@9.0.1 from lock file
+                                    npm error
+                                    npm error Clean install a project
+                                    npm error
+                                    npm error Usage:
+                                    npm error npm ci
+                                    npm error
+                                    npm error Options:
+                                    npm error [--install-strategy <hoisted|nested|shallow|linked>] [--legacy-bundling]
+                                    npm error [--global-style] [--omit <dev|optional|peer> [--omit <dev|optional|peer> ...]]
+                                    npm error [--include <prod|dev|optional|peer> [--include <prod|dev|optional|peer> ...]]
+                                    npm error [--strict-peer-deps] [--foreground-scripts] [--ignore-scripts] [--no-audit]
+                                    npm error [--no-bin-links] [--no-fund] [--dry-run]
+                                    npm error [-w|--workspace <workspace-name> [-w|--workspace <workspace-name> ...]]
+                                    npm error [-ws|--workspaces] [--include-workspace-root] [--install-links]
+                                    npm error
+                                    npm error aliases: clean-install, ic, install-clean, isntall-clean
+                                    npm error
+                                    npm error Run "npm help ci" for more info
+2025-10-08T00:29:03.463Z [WARNING]: npm error A complete log of this run can be found in: /codebuild/output/src2981299683/src/biory/.npm/_logs/2025-10-08T00_28_42_140Z-debug-0.log
+2025-10-08T00:29:03.472Z [ERROR]: !!! Build failed
+2025-10-08T00:29:03.472Z [INFO]: Please read more about Amplify Hosting's support for SSR frameworks to find if your build failure is related to an unsupported feature: https://docs.aws.amazon.com/amplify/latest/userguide/amplify-ssr-framework-support.html. You may also find this troubleshooting guide useful: https://docs.aws.amazon.com/amplify/latest/userguide/troubleshooting-ssr-deployment.html
+2025-10-08T00:29:03.472Z [ERROR]: !!! Error: Command failed with exit code 1
+2025-10-08T00:29:03.473Z [INFO]: # Starting environment caching...
+2025-10-08T00:29:03.473Z [INFO]: # Uploading environment cache artifact...
+2025-10-08T00:29:03.572Z [INFO]: # Uploaded environment cache artifact
+2025-10-08T00:29:03.572Z [INFO]: # Environment caching completed
+
