@@ -27,11 +27,13 @@
     "@aws-amplify/seed": "^1.0.1",
     "@aws-amplify/ui-react": "^6.5.5",
     "@types/uuid": "^10.0.0",
+    "@types/xlsx": "^0.0.35",
     "aws-amplify": "^6.6.6",
     "next": "14.2.10",
     "react": "^18",
     "react-dom": "^18",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@aws-amplify/backend": "^1.16.1",
