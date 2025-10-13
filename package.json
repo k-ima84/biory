@@ -29,7 +29,7 @@
     "@types/uuid": "^10.0.0",
     "@types/xlsx": "^0.0.35",
     "aws-amplify": "^6.6.6",
-    "next": "14.2.10",
+    "next": "^14.2.33",
     "react": "^18",
     "react-dom": "^18",
     "uuid": "^11.1.0",
