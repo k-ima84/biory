@@ -595,15 +595,17 @@ export default function CalendarPage() {
                     </div>
                   )}
 
-                  {/* 食事記録を順序通りに表示 */}
-                  {mealData.map((meal, index) => (
-                    <div key={`meal-${meal.type}-${index}`} className="daily-record-item">
-                      <div className="record-section meal">
-                        <div className="record-label">🍽️ {meal.label}</div>
-                        <div className="record-content">{meal.content}</div>
-                      </div>
+                  {/* 食事記録を縦並びで表示 */}
+                  {mealData.length > 0 && (
+                    <div className="daily-record-item">
+                      {mealData.map((meal, index) => (
+                        <div key={`meal-${meal.type}-${index}`} className="record-section meal">
+                          <div className="record-label">🍽️ {meal.label}</div>
+                          <div className="record-content">{meal.content}</div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
 
                   {/* その他の記録 */}
                   {hasOtherRecords && (
