@@ -261,7 +261,7 @@
 }
 
 .daily-record-item {
-  background: #f8f9ff;
+  background: #f8f9fa;
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 15px;
@@ -300,25 +300,12 @@
   background: white;
   padding: 8px 12px;
   border-radius: 6px;
-  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e9ecef;
 }
 
 /* 記録タイプ別のスタイリング */
-.record-section.meal .record-content {
-  /*border-left: 3px solid #ff6b6b;*/
-  border-left: 3px solid #FDCB6E;
-}
-
-.record-section.condition .record-content {
-  border-left: 3px solid #FDCB6E;
-}
-
-.record-section.mood .record-content {
-  border-left: 3px solid #FDCB6E;
-}
-
 .record-section.weight .record-content {
-  border-left: 3px solid #FDCB6E;
   font-weight: 600;
   color: #2c5530;
 }
@@ -504,4 +491,250 @@
 .calendar-day:hover .calendar-meal-icon {
   background-color: #70472B; 
   transform: scale(1.1);     /* 少し拡大 */
+}
+
+/* 栄養情報表示のスタイル */
+.nutrition-summary {
+  background: #f8f9fa;
+  border-radius: 12px;
+  margin-bottom: 15px;
+}
+
+.nutrition-summary .record-section {
+  background: transparent;
+  border: none;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.nutrition-summary .record-label {
+  flex-shrink: 0;
+  font-weight: 600;
+  color: #555;
+  min-width: 80px;
+  font-size: 0.95rem;
+}
+
+.nutrition-content {
+  flex: 1;
+}
+
+.nutrition-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.nutrition-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: white;
+  padding: 8px 6px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e9ecef;
+  min-width: 0;
+  text-align: center;
+}
+
+.nutrition-label {
+  font-size: 0.7rem;
+  color: #6c757d;
+  font-weight: 500;
+  margin-bottom: 2px;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.nutrition-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #495057;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* カロリー用の特別なスタイル */
+.nutrition-item:first-child .nutrition-value {
+  color: #ff6b6b;
+  font-weight: 700;
+}
+
+/* タンパク質用のスタイル */
+.nutrition-item:nth-child(2) .nutrition-value {
+  color: #4dabf7;
+}
+
+/* 脂質用のスタイル */
+.nutrition-item:nth-child(3) .nutrition-value {
+  color: #69db7c;
+}
+
+/* 炭水化物用のスタイル */
+.nutrition-item:nth-child(4) .nutrition-value {
+  color: #ffd43b;
+}
+
+/* 食事情報表示のスタイル */
+.meal-summary {
+  background: #f8f9fa;
+  border-radius: 12px;
+  margin-bottom: 15px;
+}
+
+.meal-summary .record-section {
+  background: transparent;
+  border: none;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.meal-summary .record-label {
+  flex-shrink: 0;
+  font-weight: 600;
+  color: #555;
+  min-width: 80px;
+  font-size: 0.95rem;
+}
+
+.meal-content {
+  flex: 1;
+}
+
+.meal-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.meal-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+  min-width: 0;
+  text-align: left;
+}
+
+.meal-label {
+  font-size: 0.7rem;
+  color: #6c757d;
+  font-weight: 500;
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+
+.meal-value {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #495057;
+  line-height: 1.3;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* 朝食用のスタイル */
+.meal-item:first-child .meal-label {
+  color: #ff6b6b;
+}
+
+/* 昼食用のスタイル */
+.meal-item:nth-child(2) .meal-label {
+  color: #4dabf7;
+}
+
+/* 夕食用のスタイル */
+.meal-item:nth-child(3) .meal-label {
+  color: #69db7c;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .nutrition-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  
+  .nutrition-item {
+    padding: 6px 4px;
+  }
+  
+  .nutrition-label {
+    font-size: 0.65rem;
+  }
+  
+  .nutrition-value {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .nutrition-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+  }
+  
+  .nutrition-item {
+    padding: 4px 2px;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .nutrition-label {
+    font-size: 0.6rem;
+    margin-bottom: 2px;
+  }
+  
+  .nutrition-value {
+    font-size: 0.8rem;
+  }
+
+  /* 食事情報のレスポンシブ対応 */
+  .meal-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .meal-item {
+    padding: 6px 8px;
+  }
+  
+  .meal-label {
+    font-size: 0.65rem;
+  }
+  
+  .meal-value {
+    font-size: 0.8rem;
+  }
+}
+
+/* タブレット向け食事情報のレスポンシブ対応 */
+@media (max-width: 768px) and (min-width: 481px) {
+  .meal-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  
+  .meal-item {
+    padding: 6px 8px;
+  }
+  
+  .meal-label {
+    font-size: 0.65rem;
+  }
+  
+  .meal-value {
+    font-size: 0.8rem;
+  }
 }
