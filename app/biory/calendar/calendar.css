@@ -505,3 +505,111 @@
   background-color: #70472B; 
   transform: scale(1.1);     /* 少し拡大 */
 }
+
+/* 栄養情報表示のスタイル */
+.nutrition-summary {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.nutrition-summary .record-section {
+  background: transparent;
+  border: none;
+}
+
+.nutrition-content {
+  margin-top: 8px;
+}
+
+.nutrition-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.nutrition-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e9ecef;
+}
+
+.nutrition-label {
+  font-size: 0.75rem;
+  color: #6c757d;
+  font-weight: 500;
+  margin-bottom: 2px;
+  text-align: center;
+}
+
+.nutrition-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #495057;
+  text-align: center;
+}
+
+/* カロリー用の特別なスタイル */
+.nutrition-item:first-child .nutrition-value {
+  color: #ff6b6b;
+  font-weight: 700;
+}
+
+/* タンパク質用のスタイル */
+.nutrition-item:nth-child(2) .nutrition-value {
+  color: #4dabf7;
+}
+
+/* 脂質用のスタイル */
+.nutrition-item:nth-child(3) .nutrition-value {
+  color: #69db7c;
+}
+
+/* 炭水化物用のスタイル */
+.nutrition-item:nth-child(4) .nutrition-value {
+  color: #ffd43b;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .nutrition-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  
+  .nutrition-item {
+    padding: 6px 8px;
+  }
+  
+  .nutrition-label {
+    font-size: 0.7rem;
+  }
+  
+  .nutrition-value {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .nutrition-grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  
+  .nutrition-item {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .nutrition-label {
+    margin-bottom: 0;
+  }
+}

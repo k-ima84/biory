@@ -17,8 +17,14 @@ type DailyRecord = {
   id: string;
   userId?: string | null;
   date?: string | null;
-  mealType?: string | null;
-  content?: string | null;
+  breakfast?: string | null;
+  lunch?: string | null;
+  dinner?: string | null;
+  // 栄養情報を追加
+  calories?: number | null;
+  protein?: number | null;
+  fat?: number | null;
+  carbs?: number | null;
   condition?: string | null;
   mood?: string | null;
   weight?: number | null;
@@ -68,19 +74,25 @@ export default function CalendarPage() {
 
       console.log(`月次食事データ取得: ${startDate} ～ ${endDate}`);
 
-      // 月全体のDailyRecordを取得（食事記録のみ）
+      // 月全体のDailyRecordを取得（1食以上の記録がある日）
       const { data: records } = await client.models.DailyRecord.list({
         filter: {
-          and: [
-            { userId: { eq: currentUserId } },
-            { date: { ge: startDate } }, // 以上
-            { date: { le: endDate } },   // 以下
-            { breakfast: { ne: "" as any } },  // 朝食タイプが空でない
-            { lunch: { ne: "" as any } },   // 昼食タイプが空でない
-            { dinner: { ne: "" as any } }    // 夕食タイプが空でない
-          ]
-        }
-      });
+            and: [
+             { userId: { eq: currentUserId } },
+             { date: { ge: startDate } }, // 以上
+             { date: { le: endDate } },   // 以下
+             {
+                 or: [  // 1食以上記録があれば対象
+                 { breakfast: { ne: "" as any } },  // 朝食が空でない
+                 { lunch: { ne: "" as any } },      // 昼食が空でない  
+                 { dinner: { ne: "" as any } }      // 夕食が空でない
+        ]
+      }
+    ]
+  }
+});
+
+
 
       // 日付のSetを作成
       const mealDates = new Set<string>();
@@ -425,16 +437,6 @@ export default function CalendarPage() {
     setDailyRecords([]);
   };
 
-  // 食事タイプの表示名変換
-  const getMealTypeName = (mealType: string | null | undefined) => {
-    switch (mealType) {
-      case 'breakfast': return '朝食';
-      case 'lunch': return '昼食';
-      case 'dinner': return '夕食';
-      default: return mealType || '不明';
-    }
-  };
-
   const calendarDays = generateCalendarDays();
   const monthNames = [
     '1月', '2月', '3月', '4月', '5月', '6月',
@@ -529,88 +531,120 @@ export default function CalendarPage() {
               </p>
             </div>
             
-            {loading ? (
-              <div className="loading">
-                <p>📊 データを読み込み中...</p>
-              </div>
-            ) : dailyRecords.length > 0 ? (
-              <div className="daily-records">
-                <h4>📋 この日の記録</h4>
-                {(() => {
-                  // 食事タイプの優先順位を定義
-                  const getMealTypePriority = (mealType: string | null | undefined) => {
-                    switch (mealType) {
-                      case 'breakfast': return 1; // 朝食
-                      case 'lunch': return 2;     // 昼食  
-                      case 'dinner': return 3;    // 夕食
-                      default: return 999;        // その他
-                    }
-                  };
+        {loading ? (
+          <div className="loading">
+            <p>📊 データを読み込み中...</p>
+          </div>
+        ) : dailyRecords.length > 0 ? (
+          <div className="daily-records">
+            <h4>📋 この日の記録</h4>
+            {(() => {
+              // 最初のレコードを取得（通常は1日1レコード）
+              const record = dailyRecords[0];
+              
+              if (!record) {
+                return <p>記録が見つかりません</p>;
+              }
 
-                  // 食事記録を抽出してソート
-                  const mealRecords = dailyRecords
-                    .filter(record => record.mealType && record.content)
-                    .sort((a, b) => getMealTypePriority(a.mealType) - getMealTypePriority(b.mealType));
+              // 食事データを配列形式で整理
+              const mealData = [
+                { type: 'breakfast', label: '朝食', content: record.breakfast },
+                { type: 'lunch', label: '昼食', content: record.lunch },
+                { type: 'dinner', label: '夕食', content: record.dinner }
+              ].filter(meal => meal.content && meal.content.trim() !== "");
 
-                  // その他の記録（体調、気分、体重）を抽出
-                  const otherRecords = dailyRecords.filter(record => 
-                    record.condition || record.mood || record.weight
-                  );
+              const hasOtherRecords = record.condition || record.mood || record.weight;
+              const hasNutritionData = record.calories || record.protein || record.fat || record.carbs;
 
-                  return (
-                    <>
-                      {/* 食事記録を順序通りに表示 */}
-                      {mealRecords.map((record, index) => (
-                        <div key={`meal-${record.id || index}`} className="daily-record-item">
-                          <div className="record-section meal">
-                            <div className="record-label">🍽️ {getMealTypeName(record.mealType)}</div>
-                            <div className="record-content">{record.content}</div>
+              return (
+                <>
+                  {/* 栄養情報を最初に表示 */}
+                  {hasNutritionData && (
+                    <div className="daily-record-item nutrition-summary">
+                      <div className="record-section nutrition">
+                        <div className="record-label">📊 栄養情報</div>
+                        <div className="nutrition-content">
+                          <div className="nutrition-grid">
+                            {record.calories && (
+                              <div className="nutrition-item">
+                                <span className="nutrition-label">カロリー</span>
+                                <span className="nutrition-value">{record.calories}kcal</span>
+                              </div>
+                            )}
+                            {record.protein && (
+                              <div className="nutrition-item">
+                                <span className="nutrition-label">タンパク質</span>
+                                <span className="nutrition-value">{record.protein}g</span>
+                              </div>
+                            )}
+                            {record.fat && (
+                              <div className="nutrition-item">
+                                <span className="nutrition-label">脂質</span>
+                                <span className="nutrition-value">{record.fat}g</span>
+                              </div>
+                            )}
+                            {record.carbs && (
+                              <div className="nutrition-item">
+                                <span className="nutrition-label">炭水化物</span>
+                                <span className="nutrition-value">{record.carbs}g</span>
+                              </div>
+                            )}
                           </div>
                         </div>
-                      ))}
+                      </div>
+                    </div>
+                  )}
 
-                      {/* その他の記録を決まった順序で表示 */}
-                      {otherRecords.map((record, index) => (
-                        <div key={`other-${record.id || index}`} className="daily-record-item">
-                          {/* 体調記録 */}
-                          {record.condition && (
-                            <div className="record-section condition">
-                              <div className="record-label">💪 体調</div>
-                              <div className="record-content">{record.condition}</div>
-                            </div>
-                          )}
-                          
-                          {/* 気分記録 */}
-                          {record.mood && (
-                            <div className="record-section mood">
-                              <div className="record-label">😊 気分</div>
-                              <div className="record-content">{record.mood}</div>
-                            </div>
-                          )}
-                          
-                          {/* 体重記録 */}
-                          {record.weight && (
-                            <div className="record-section weight">
-                              <div className="record-label">⚖️ 体重</div>
-                              <div className="record-content">{record.weight}kg</div>
-                            </div>
-                          )}
+                  {/* 食事記録を順序通りに表示 */}
+                  {mealData.map((meal, index) => (
+                    <div key={`meal-${meal.type}-${index}`} className="daily-record-item">
+                      <div className="record-section meal">
+                        <div className="record-label">🍽️ {meal.label}</div>
+                        <div className="record-content">{meal.content}</div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* その他の記録 */}
+                  {hasOtherRecords && (
+                    <div className="daily-record-item">
+                      {/* 体調記録 */}
+                      {record.condition && record.condition.trim() !== "" && (
+                        <div className="record-section condition">
+                          <div className="record-label">💪 体調</div>
+                          <div className="record-content">{record.condition}</div>
                         </div>
-                      ))}
-                    </>
-                  );
-                })()}
-              </div>
-            ) : (
-              <div className="no-records">
-                <p>📝 この日の記録がありません</p>
-                <p className="no-records-hint">
-                  食事記録や体調記録を追加してみましょう
-                </p>
-              </div>
-            )}
-            
-            {/* デバッグ情報（開発中のみ） */}
+                      )}
+                      
+                      {/* 気分記録 */}
+                      {record.mood && record.mood.trim() !== "" && (
+                        <div className="record-section mood">
+                          <div className="record-label">😊 気分</div>
+                          <div className="record-content">{record.mood}</div>
+                        </div>
+                      )}
+                      
+                      {/* 体重記録 */}
+                      {record.weight && (
+                        <div className="record-section weight">
+                          <div className="record-label">⚖️ 体重</div>
+                          <div className="record-content">{record.weight}kg</div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+          </div>
+        ) : (
+          <div className="no-records">
+            <p>📝 この日の記録がありません</p>
+            <p className="no-records-hint">
+              食事記録や体調記録を追加してみましょう
+            </p>
+          </div>
+        )}            {/* デバッグ情報（開発中のみ） */}
             {process.env.NODE_ENV === 'development' && (
               <div className="debug-info">
                 <details>
