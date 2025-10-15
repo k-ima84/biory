@@ -6,75 +6,114 @@ adding a new "isDone" field as a boolean. The authorization rule below
 specifies that any user authenticated via an API key can "create", "read",
 "update", and "delete" any "Todo" records.
 =========================================================================*/
-const schema = a.schema({
-  
+export const schema = a.schema({
+  // 既存のユーザープロファイルモデル
+  UserProfile: a
+    .model({
+      userId: a.string().required(),
+      name: a.string(),
+      email: a.string(),
+      age: a.integer(),
+      gender: a.string(),
+      height: a.float(),
+      weight: a.float(),
+      activityLevel: a.string(),
+      goalType: a.string(),
+      targetWeight: a.float(),
+      // 設定画面で使用するフィールドを追加
+      favoriteFoods: a.string(),
+      allergies: a.string(),
+      dislikedFoods: a.string(),
+      exerciseFrequency: a.string(),
+      exerciseFrequencyOther: a.string(),
+      createdAt: a.datetime(),
+      updatedAt: a.datetime(),
+    })
+    .authorization((allow) => [allow.publicApiKey()]),
+
+  // 既存の食事記録モデル
+  Meal: a
+    .model({
+      userId: a.string().required(),
+      date: a.string().required(),
+      mealType: a.enum(["breakfast", "lunch", "dinner"]),
+      content: a.string(),
+      createdAt: a.datetime(),
+      updatedAt: a.datetime(),
+    })
+    .authorization((allow) => [allow.publicApiKey()]),
+
+  // 既存の栄養記録モデル
   Nutrition: a
     .model({
-      userId: a.string(),
-      date: a.string(),
+      userId: a.string().required(),
+      date: a.string().required(),
       calories: a.integer(),
       protein: a.float(),
       fat: a.float(),
       carbs: a.float(),
-    })
-    .authorization((allow) => [
-      allow.owner(),
-      allow.publicApiKey()
-    ]),
-
-  FoodNutrition: a
-    .model({
-      foodNumber: a.string(),
-      foodName: a.string(),
-      category: a.string(),
-      energyKcal: a.float(),
-      proteinG: a.float(),
-      fatG: a.float(),
-      carbohydrateG: a.float(),
-      sodiumMg: a.float(),
-      calciumMg: a.float(),
-      ironMg: a.float(),
-      vitaminAUg: a.float(),
-      vitaminB1Mg: a.float(),
-      vitaminB2Mg: a.float(),
-      vitaminCMg: a.float(),
-      cholesterolMg: a.float(),
+      createdAt: a.datetime(),
+      updatedAt: a.datetime(),
     })
     .authorization((allow) => [allow.publicApiKey()]),
 
-  DailyRecord: a
-    .model({
-      userId: a.string(),
-      date: a.string(),
-      mealType: a.string(), // breakfast, lunch, dinner
-      content: a.string(),
-      condition: a.string(), // 体調
-      mood: a.string(), // 気分
-      weight: a.float(), // 体重 (kg)
-    })
-    .authorization((allow) => [
-      allow.owner(),
-      allow.publicApiKey()
-    ]),
-
-  UserProfile: a
+  // 既存の健康記録モデル
+  HealthRecord: a
     .model({
       userId: a.string().required(),
-      // email: a.string(),
-      name: a.string(),
-      height: a.float(), // xxx.xx cm
-      weight: a.float(), // xx.xx kg
-      gender: a.string(), // 女・男・そのほか
-      favoriteFoods: a.string(), // 好きな食べ物（自由入力）
-      allergies: a.string(), // アレルギー情報
-      dislikedFoods: a.string(), // 嫌いな食べ物（自由入力）
-      exerciseFrequency: a.string(), // 運動頻度（選択式）
-      exerciseFrequencyOther: a.string(), // その他を選択した場合の自由入力
+      date: a.string().required(),
+      condition: a.string(),
+      mood: a.string(),
+      weight: a.float(),
+      createdAt: a.datetime(),
+      updatedAt: a.datetime(),
     })
-    .authorization((allow) => [
-      allow.owner(),
-      allow.publicApiKey()
-    ]),
+    .authorization((allow) => [allow.publicApiKey()]),
+
+  // 【新規追加】食品栄養データベースモデル
+  FoodNutrition: a
+    .model({
+      foodId: a.integer(), // 食品名（検索キー）
+      foodName: a.string().required(), // 食品名（検索キー）
+      energyKj: a.integer(), // エネルギー(KJ)
+      energyKcal: a.integer().required(), // エネルギー(Kcal)
+      water: a.float(), // 水分(g)
+      protein: a.float().required(), // たんぱく質(g)
+      fat: a.float().required(), // 脂質(g)
+      carbs: a.float().required(), // 炭水化物(g)
+      per100g: a.boolean().default(true), // 100gあたりの値かどうか
+      createdAt: a.datetime(),
+      updatedAt: a.datetime(),
+    })
+    .authorization((allow) => [allow.publicApiKey()]),
+
+  // 【新規追加】DailyRecordモデル - すべてのデータを統合
+  DailyRecord: a
+    .model({
+      userId: a.string().required(),
+      date: a.string().required(),
+
+      // 食事関連
+      breakfast: a.string(),
+      lunch: a.string(),
+      dinner: a.string(),
+
+      // 栄養関連
+      calories: a.integer(),
+      protein: a.float(),
+      fat: a.float(),
+      carbs: a.float(),
+
+      // 健康関連
+      condition: a.string(),
+      mood: a.string(),
+      weight: a.float(),
+
+      // メタデータ
+      createdAt: a.datetime(),
+      updatedAt: a.datetime(),
+    })
+    .authorization((allow) => [allow.publicApiKey()]),
 });
 
 export type Schema = ClientSchema<typeof schema>;
@@ -82,7 +121,7 @@ export type Schema = ClientSchema<typeof schema>;
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: "userPool",
+    defaultAuthorizationMode: "apiKey",
     apiKeyAuthorizationMode: {
       expiresInDays: 30,
     },
@@ -94,7 +133,7 @@ Go to your frontend source code. From your client-side code, generate a
 Data client to make CRUDL requests to your table. (THIS SNIPPET WILL ONLY
 WORK IN THE FRONTEND CODE FILE.)
 
-Using JavaScript or Next.js React Server Components, Middleware, Server 
+Using JavaScript or Next.js React Server Components, Middleware, Server
 Actions or Pages Router? Review how to generate Data clients for those use
 cases: https://docs.amplify.aws/gen2/build-a-backend/data/connect-to-API/
 =========================================================================*/

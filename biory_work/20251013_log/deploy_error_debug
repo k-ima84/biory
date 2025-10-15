@@ -1,0 +1,445 @@
+# Amplify Deploy Error Debug Guide
+
+## 🔍 **エラー概要**
+- **エラータイプ**: npm ci 実行時の package-lock.json 同期エラー
+- **原因**: package.json と package-lock.json の依存関係が不一致
+- **影響範囲**: AWS SDK関連パッケージ群 (@aws-sdk/*, @smithy/*)
+
+## 📝 **package.json と package-lock.json の基礎知識**
+
+### **package.json とは**
+Node.jsプロジェクトの**設定ファイル**で、プロジェクトの基本情報と依存関係を定義します。
+
+#### **主な内容**
+```json
+{
+  "name": "biory",
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "^14.0.0",
+    "react": "^18.0.0",
+    "@aws-amplify/backend": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}
+```
+
+#### **用途**
+- **プロジェクト情報**: 名前、バージョン、説明
+- **スクリプト定義**: ビルド、開発サーバー起動コマンド
+- **依存関係宣言**: 必要なライブラリとバージョン範囲
+- **開発者間共有**: プロジェクト設定の統一
+
+#### **バージョン指定方法**
+- `^1.2.3`: 1.2.3以上、2.0.0未満（マイナーアップデート許可）
+- `~1.2.3`: 1.2.3以上、1.3.0未満（パッチレベルのみ）
+- `1.2.3`: 厳密に1.2.3のみ
+
+### **package-lock.json とは**
+npm installで**実際にインストールされた正確なバージョン**を記録するファイルです。
+
+#### **主な内容**
+```json
+{
+  "name": "biory",
+  "version": "0.1.0",
+  "lockfileVersion": 3,
+  "packages": {
+    "": {
+      "name": "biory",
+      "version": "0.1.0",
+      "dependencies": {
+        "next": "14.2.5",
+        "react": "18.3.1"
+      }
+    },
+    "node_modules/next": {
+      "version": "14.2.5",
+      "resolved": "https://registry.npmjs.org/next/-/next-14.2.5.tgz",
+      "integrity": "sha512-...",
+      "dependencies": {
+        "@next/env": "14.2.5",
+        "@swc/helpers": "0.5.5"
+      }
+    }
+  }
+}
+```
+
+#### **用途**
+- **バージョン固定**: 全チーム/環境で同一バージョン保証
+- **依存関係ツリー**: すべての間接依存関係も記録
+- **セキュリティ**: パッケージの整合性チェック
+- **高速インストール**: 解決済み依存関係で時短
+
+### **npm install と npm ci の違い**
+
+#### **npm install**
+- **用途**: 開発時の依存関係管理
+- **動作**: package.jsonを読み、バージョン範囲で最適解を計算
+- **結果**: package-lock.jsonを**更新/作成**
+- **使用場面**: ローカル開発、新パッケージ追加時
+
+#### **npm ci**
+- **用途**: 本番環境での確実なインストール
+- **動作**: package-lock.jsonを厳密に再現
+- **結果**: package-lock.jsonは**変更しない**
+- **使用場面**: CI/CD、本番デプロイ時
+
+### **今回のエラーの原因詳細**
+
+#### **不一致の具体例**
+```
+package.json: "@aws-sdk/client-ecr": "^3.800.0"
+package-lock.json: 記録なし（Missing）
+
+結果: npm ci がインストールできない
+```
+
+#### **発生パターン**
+1. **手動でpackage.json編集** → lockファイル未更新
+2. **異なる環境でnpm install** → バージョン解決が変化
+3. **パッケージ削除忘れ** → lockファイルに残存
+4. **Amplifyバックエンド更新** → 新しい依存関係追加
+
+## 📋 **デバッグ手順**
+
+### **Step 1: 現状確認**
+```bash
+# プロジェクトディレクトリに移動
+cd /Users/ozawarikako/aglab/biory
+
+# 現在のpackage.jsonとpackage-lock.jsonの状態確認
+ls -la package*.json
+
+# Node.js/npmバージョン確認
+node --version
+npm --version
+```
+
+### **Step 2: バックアップ作成**
+```bash
+# 現在のpackage-lock.jsonをバックアップ
+cp package-lock.json package-lock.json.backup
+
+# 現在のpackage.jsonもバックアップ
+cp package.json package.json.backup
+
+# 念のためnode_modulesもバックアップ（容量大きいので注意）
+# tar -czf node_modules_backup.tar.gz node_modules
+```
+
+### **Step 3: 依存関係のクリーンアップ**
+```bash
+# 古いlockファイルを削除
+rm package-lock.json
+
+# node_modulesディレクトリを削除
+rm -rf node_modules
+
+# npmキャッシュをクリア
+npm cache clean --force
+
+# グローバルキャッシュ確認
+npm cache verify
+```
+
+### **Step 4: 依存関係の再構築**
+```bash
+# package.jsonから依存関係を再インストール
+npm install
+
+# インストール結果を確認
+npm ls --depth=0
+
+# 脆弱性チェック
+npm audit
+
+# 必要に応じて脆弱性修正
+npm audit fix
+```
+
+### **Step 5: ローカルビルドテスト**
+```bash
+# Next.jsアプリケーションのビルドテスト
+npm run build
+
+# 開発サーバー起動テスト
+npm run dev
+
+# ビルド成功確認
+echo "ビルドが成功した場合、次のステップへ進む"
+```
+
+### **Step 6: package.json の内容確認**
+```bash
+# 依存関係の一覧表示
+npm list --json > dependency_check.json
+
+# 特定パッケージの詳細確認
+npm info @aws-amplify/backend
+npm info next
+
+# 不要な依存関係の検出
+npm-check-updates --doctor
+```
+
+### **Step 7: Gitコミットとプッシュ**
+```bash
+# 変更ファイルを確認
+git status
+
+# 新しいpackage-lock.jsonをステージング
+git add package-lock.json
+
+# package.jsonに変更があれば追加
+git add package.json
+
+# コミット
+git commit -m "fix: regenerate package-lock.json to resolve dependency conflicts
+
+- Removed outdated package-lock.json
+- Reinstalled dependencies with npm install
+- Fixed AWS SDK and Smithy package version conflicts
+- Verified local build success"
+
+# リモートリポジトリにプッシュ
+git push origin Feature006
+```
+
+### **Step 8: Amplifyビルド確認**
+```bash
+# Amplify Consoleでビルド状況を確認
+echo "https://console.aws.amazon.com/amplify/ でビルド進行状況を確認"
+
+# ビルドログの監視
+echo "Backend Build -> Frontend Build の順序で進行"
+```
+
+## ⚠️ **注意事項**
+
+### **重要なファイル**
+- **package.json**: 人間が編集する依存関係定義ファイル
+- **package-lock.json**: npmが自動生成する正確なバージョン記録ファイル
+- **amplify/**: Amplify設定ディレクトリ（重要）
+
+### **避けるべき操作**
+- `npm ci`をローカルで実行（Amplifyでのみ使用）
+- package-lock.jsonの手動編集（必ず破損する）
+- node_modulesをGitにコミット（容量が巨大）
+- package.jsonの直接編集（npm installコマンド推奨）
+
+### **チーム開発での注意**
+- **package-lock.jsonは必ずコミット**（チーム全体で同じバージョン使用）
+- **新パッケージ追加時はnpm install使用**（npm add ではない）
+- **package.json変更後は必ずnpm install実行**
+
+## 🔧 **トラブルシューティング**
+
+### **エラーが解決しない場合**
+
+#### **1. Node.jsバージョン確認**
+```bash
+# 現在のバージョン
+node --version
+npm --version
+
+# 推奨バージョン（Next.js 14対応）
+# Node.js: 18.17.0以上または20.0.0以上
+# npm: 9.0.0以上
+
+# Node.jsバージョン変更（必要に応じて）
+# nvm use 20
+# npm install -g npm@latest
+```
+
+#### **2. package.jsonの依存関係チェック**
+```bash
+# 古いパッケージの検出
+npm outdated
+
+# 脆弱性のあるパッケージ検出
+npm audit
+
+# 重複依存関係の検出
+npm ls --duplicated
+
+# 使用されていないパッケージの検出
+npx depcheck
+```
+
+#### **3. Amplify CLI更新**
+```bash
+# 現在のAmplify CLIバージョン確認
+amplify --version
+
+# 最新版に更新
+npm install -g @aws-amplify/cli@latest
+
+# 設定確認
+amplify configure
+```
+
+#### **4. キャッシュ問題の対処**
+```bash
+# npm全キャッシュクリア
+npm cache clean --force
+
+# Yarnキャッシュもクリア（使用している場合）
+yarn cache clean
+
+# Next.jsキャッシュクリア
+rm -rf .next
+
+# Amplifyローカルキャッシュクリア
+rm -rf amplify/.config/local-*
+```
+
+### **代替案: 段階的デプロイ**
+```bash
+# 最小限の変更でテスト
+git checkout -b fix/dependencies-minimal
+
+# 必要最小限のpackage.json変更のみ
+# 基本パッケージのみでテスト
+npm install --save react next
+
+# テスト後にmainブランチにマージ
+git checkout Feature006
+git merge fix/dependencies-minimal
+```
+
+### **緊急時の対処法**
+```bash
+# 前回の正常なcommitに戻る
+git log --oneline -10
+git checkout <正常だったcommit-hash> -- package-lock.json
+git commit -m "revert: restore working package-lock.json"
+
+# 強制的にAmplifyビルドをスキップ
+# amplify.ymlのbuild:commands:を一時的にコメントアウト
+```
+
+## 📊 **成功確認項目**
+
+### **ローカル確認**
+- [ ] `npm install` エラーなし
+- [ ] `npm run build` 成功
+- [ ] `npm run dev` 正常起動
+- [ ] `npm audit` 重大な脆弱性なし
+- [ ] `npm ls` 依存関係エラーなし
+
+### **ファイル確認**
+- [ ] package-lock.json が新規生成されている
+- [ ] package.json の内容が正しい
+- [ ] .gitignore に node_modules が含まれている
+- [ ] バックアップファイルが存在する
+
+### **Amplify確認**
+- [ ] Backend Build フェーズ完了
+- [ ] Frontend Build フェーズ完了
+- [ ] Deploy フェーズ完了
+- [ ] アプリケーション正常動作
+
+### **依存関係確認**
+- [ ] AWS SDK パッケージが正しくインストール
+- [ ] Smithy パッケージが正しくインストール
+- [ ] Next.js が正しくインストール
+- [ ] TypeScript が正しくインストール
+
+## 🚀 **完了後の作業**
+
+### **クリーンアップ**
+```bash
+# バックアップファイルの削除
+rm package*.json.backup
+
+# 一時ファイルの削除
+rm dependency_check.json
+rm -f node_modules_backup.tar.gz
+
+# ログファイルの整理
+mkdir -p logs
+mv *.log logs/ 2>/dev/null || true
+```
+
+### **動作確認**
+```bash
+# 本番環境でのアプリケーション動作確認
+echo "https://main.d3jy7yskmr5rp7.amplifyapp.com でアプリケーション動作確認"
+
+# 主要機能テスト
+echo "以下の機能をテスト:"
+echo "- ユーザー認証（ログイン/ログアウト）"
+echo "- 献立生成機能"
+echo "- カレンダー表示"
+echo "- データ保存・読込"
+```
+
+### **ドキュメント更新**
+```bash
+# READMEの更新
+echo "## 依存関係管理
+
+### セットアップ
+\`\`\`bash
+npm install
+\`\`\`
+
+### 本番ビルド
+\`\`\`bash
+npm run build
+\`\`\`
+
+### 注意事項
+- package-lock.json は必ずコミットすること
+- 新しいパッケージ追加時は npm install を実行すること
+\`\`\`" >> README.md
+```
+
+## 📝 **ログ記録テンプレート**
+
+### **作業記録**
+```
+実行日時: $(date)
+作業者: [名前]
+Node.js バージョン: $(node --version)
+npm バージョン: $(npm --version)
+作業ブランチ: $(git branch --show-current)
+
+実行した手順:
+- [ ] Step 1: 現状確認
+- [ ] Step 2: バックアップ作成  
+- [ ] Step 3: クリーンアップ
+- [ ] Step 4: 再構築
+- [ ] Step 5: ローカルテスト
+- [ ] Step 6: package.json確認
+- [ ] Step 7: Git操作
+- [ ] Step 8: Amplify確認
+
+エラー発生: Yes / No
+エラー内容: [詳細記述]
+解決方法: [実施した対処法]
+所要時間: [開始時刻] - [終了時刻]
+結果: 成功 / 失敗 / 部分的成功
+```
+
+### **今後の予防策**
+1. **定期的な依存関係チェック**: 月1回 npm audit 実行
+2. **package.json変更時のルール**: 必ず npm install 実行後にコミット
+3. **チーム共有**: この手順書をチーム全体で共有
+4. **自動化検討**: pre-commit フックで package-lock.json チェック
+
+---
+**作成日**: 2025-10-13  
+**対象プロジェクト**: biory  
+**エラーレベル**: Critical  
+**最終更新**: 2025-10-13

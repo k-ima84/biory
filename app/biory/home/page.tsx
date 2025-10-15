@@ -38,6 +38,7 @@ export default function HomePage() {
   const [currentDate, setCurrentDate] = useState("");
   const [userName, setUserName] = useState("");
   const [cognitoUserId, setCognitoUserId] = useState("");
+  const [userProfile, setUserProfile] = useState<any>(null); // ユーザープロファイル
   const [nutritionData, setNutritionData] = useState<NutritionData>({
     calories: 0,
     protein: { value: 0, percentage: 0 },
@@ -79,6 +80,55 @@ export default function HomePage() {
   // 日本語の曜日配列
   const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
 
+  // BMR計算（基礎代謝率）
+  const calculateBMR = (profile: any) => {
+    if (!profile || !profile.weight || !profile.height || !profile.age || !profile.gender) {
+      return 2000; // デフォルト値
+    }
+    
+    if (profile.gender === "男") {
+      return Math.round(88.362 + (13.397 * profile.weight) + (4.799 * profile.height) - (5.677 * profile.age));
+    } else if (profile.gender === "女") {
+      return Math.round(447.593 + (9.247 * profile.weight) + (3.098 * profile.height) - (4.330 * profile.age));
+    } else {
+      // その他の場合は平均値を使用
+      return Math.round(((88.362 + (13.397 * profile.weight) + (4.799 * profile.height) - (5.677 * profile.age)) + 
+                        (447.593 + (9.247 * profile.weight) + (3.098 * profile.height) - (4.330 * profile.age))) / 2);
+    }
+  };
+
+  // 活動係数を取得
+  const getActivityFactor = (exerciseFrequency: string) => {
+    switch (exerciseFrequency) {
+      case "ほとんど運動しない":
+        return 1.2;
+      case "週1〜3回の軽い運動":
+        return 1.375;
+      case "週3〜5回の中程度の運動":
+        return 1.55;
+      case "週6〜7回の激しい運動":
+        return 1.725;
+      case "毎日2回の運動や肉体労働":
+        return 1.9;
+      default:
+        return 1.2; // デフォルト値（ほとんど運動しない）
+    }
+  };
+
+  // TDEE計算（BMR × 活動係数）
+  const calculateTDEE = (profile: any) => {
+    if (!profile) {
+      return 2000; // デフォルト値
+    }
+    
+    const bmr = calculateBMR(profile);
+    const activityFactor = getActivityFactor(profile.exerciseFrequency || "ほとんど運動しない");
+    return Math.round(bmr * activityFactor);
+  };
+
+  // 推奨カロリーを計算
+  const recommendedCalories = userProfile ? calculateTDEE(userProfile) : 2000;
+
   // 現在の日付を取得して設定する関数
   const updateCurrentDate = () => {
     const now = new Date();
@@ -87,6 +137,169 @@ export default function HomePage() {
     const dayOfWeek = dayNames[now.getDay()];
     const formattedDate = `${month}/${date} (${dayOfWeek})`;
     setCurrentDate(formattedDate);
+  };
+
+
+  // より詳細な FoodNutrition データベースチェック関数
+  const checkFoodNutritionData = async () => {
+    try {
+      console.log("🔍 FoodNutritionデータベースの詳細チェック開始...");
+      
+      // 全件数を取得（詳細ログ付き）
+      let totalCount = 0;
+      let nextToken: string | null = null;
+      let pageCount = 0;
+      
+      do {
+        pageCount++;
+        console.log(`📄 ページ ${pageCount} を取得中...`);
+        
+        const result: any = await client.models.FoodNutrition.list({
+          limit: 1000,
+          nextToken: nextToken || undefined
+        });
+        
+        if (result.data) {
+          totalCount += result.data.length;
+          console.log(`📊 ページ ${pageCount}: ${result.data.length}件取得 (累計: ${totalCount}件)`);
+          
+          // 最初の5件のサンプルデータを表示
+          if (pageCount === 1) {
+            console.log("📋 サンプルデータ:", result.data.slice(0, 5).map((item: any) => ({
+              id: item.id,
+              foodId: item.foodId,
+              foodName: item.foodName,
+              calories: item.energyKcal
+            })));
+          }
+        } else {
+          console.log(`⚠️ ページ ${pageCount}: データが空です`);
+        }
+        
+        nextToken = result.nextToken;
+        console.log(`🔗 NextToken: ${nextToken ? 'あり' : 'なし'}`);
+        
+        // 無限ループ防止（最大50ページまで）
+        if (pageCount >= 50) {
+          console.log("⚠️ 50ページに達したため処理を停止します");
+          break;
+        }
+        
+      } while (nextToken);
+
+      console.log(`🎯 最終データ件数: ${totalCount}件 (${pageCount}ページ取得)`);
+
+      if (totalCount >= 2538) {
+        console.log(`✅ FoodNutritionデータベースに十分なデータが存在します (${totalCount}件)`);
+        return true;
+      } else {
+        console.log(`⚠️ FoodNutritionデータベースのデータが不足しています (${totalCount}/2538件)`);
+        console.log("💡 CSVデータを自動取り込み中...");
+        
+        // CSV再取り込みを実行
+        await importCSVData();
+        return false;
+      }
+    } catch (error) {
+      console.error("❌ FoodNutritionデータベースチェックエラー:", error);
+      console.log("💡 データベース接続を確認してください");
+      return false;
+    }
+  };
+
+  // CSV自動取り込み関数
+  const importCSVData = async () => {
+    try {
+      console.log("📁 CSVファイルを読み込み中...");
+      
+      // nutrition-data.csvファイルを読み込み
+      const response = await fetch('/nutrition-data.csv');
+      if (!response.ok) {
+        throw new Error('CSVファイルが見つかりません');
+      }
+      
+      const csvText = await response.text();
+      const lines = csvText.trim().split('\n');
+      
+      console.log(`📊 CSVファイル読み込み完了: ${lines.length}行`);
+      
+      let successCount = 0;
+      let errorCount = 0;
+      
+      // 100件ずつバッチ処理
+      const batchSize = 100;
+      for (let i = 0; i < lines.length; i += batchSize) {
+        const batch = lines.slice(i, i + batchSize);
+        const promises = batch.map(async (line, index) => {
+          try {
+            const columns = line.split(',');
+            if (columns.length >= 6) {
+              await client.models.FoodNutrition.create({
+                foodId: parseInt(columns[0]) || (i + index + 1),
+                foodName: columns[1] || 'Unknown',
+                energyKcal: parseFloat(columns[2]) || 0,
+                protein: parseFloat(columns[3]) || 0,
+                fat: parseFloat(columns[4]) || 0,
+                carbs: parseFloat(columns[5]) || 0
+              });
+              return true;
+            }
+            return false;
+          } catch (error) {
+            console.error(`データ挿入エラー (行 ${i + index + 1}):`, error);
+            return false;
+          }
+        });
+        
+        const results = await Promise.all(promises);
+        successCount += results.filter(r => r).length;
+        errorCount += results.filter(r => !r).length;
+        
+        // 進捗表示
+        const progress = Math.round(((i + batch.length) / lines.length) * 100);
+        console.log(`📈 インポート進捗: ${progress}% (${successCount}件成功, ${errorCount}件エラー)`);
+      }
+      
+      console.log(`✅ CSVインポート完了: ${successCount}件成功, ${errorCount}件エラー`);
+      
+      // 最終件数確認
+      await checkFinalCount();
+      
+    } catch (error) {
+      console.error("❌ CSV自動取り込みエラー:", error);
+      alert("栄養データの自動取り込みに失敗しました。管理者にお問い合わせください。");
+    }
+  };
+
+  // 最終件数確認関数
+  const checkFinalCount = async () => {
+    try {
+      let totalCount = 0;
+      let nextToken: string | null = null;
+      
+      do {
+        const result: any = await client.models.FoodNutrition.list({
+          limit: 1000,
+          nextToken: nextToken || undefined
+        });
+        
+        if (result.data) {
+          totalCount += result.data.length;
+        }
+        
+        nextToken = result.nextToken;
+      } while (nextToken);
+
+      console.log(`🎯 最終データ件数: ${totalCount}件`);
+      
+      if (totalCount >= 2538) {
+        console.log("🎉 栄養データベースの構築が完了しました！");
+      } else {
+        console.log(`⚠️ まだデータが不足しています (${totalCount}/2538件)`);
+      }
+    } catch (error) {
+      console.error("最終件数確認エラー:", error);
+    }
   };
 
   // Cognitoユーザー情報を取得する関数
@@ -99,6 +312,10 @@ export default function HomePage() {
         userId: userInfo.userId,
         email: userInfo.email
       });
+      
+      // 初回ログイン時にFoodNutritionデータをチェック（2538件確認）
+      await checkFoodNutritionData();
+      
     } catch (error) {
       console.error('ホーム画面でのCognitoユーザー情報取得エラー:', error);
       // 認証エラーの場合はログイン画面へリダイレクト
@@ -120,6 +337,8 @@ export default function HomePage() {
 
       if (profiles && profiles.length > 0) {
         const profile = profiles[0];
+        // ユーザープロファイルを設定
+        setUserProfile(profile);
         // データベースに名前があればそれを使用
         setUserName(profile.name || "ユーザー");
 
@@ -131,18 +350,22 @@ export default function HomePage() {
       } else {
         // 該当するUserProfileがない場合はデフォルト名を使用
         setUserName("ユーザー");
+
         setHealthData(prev => ({
           ...prev,
           weight: 0
         }));
+
       }
     } catch (error) {
       console.error("ユーザープロフィール取得エラー:", error);
       setUserName("ゲスト");
+
       setHealthData(prev => ({
         ...prev,
         weight: 0
       }));
+
     }
   };
 
@@ -150,9 +373,9 @@ export default function HomePage() {
   const fetchHealthDataFromDailyRecord = async (dateString: string) => {
     try {
       const { data: dailyRecords } = await client.models.DailyRecord.list();
-      // 健康データ専用レコード（mealTypeがnullまたは未定義のレコード）を検索
+      // 健康データのレコードを検索
       const todayHealthRecord = dailyRecords?.find(record => 
-        record.userId === cognitoUserId && record.date === dateString && !record.mealType
+        record.userId === cognitoUserId && record.date === dateString
       );
 
       if (todayHealthRecord) {
@@ -208,12 +431,12 @@ export default function HomePage() {
       );
       
       if (matchedFood) {
-        console.log(`食品発見: ${matchedFood.foodName} -> カロリー:${matchedFood.energyKcal}, P:${matchedFood.proteinG}g`);
+        console.log(`食品発見: ${matchedFood.foodName} -> カロリー:${matchedFood.energyKcal}, P:${matchedFood.protein}g`);
         return {
           calories: matchedFood.energyKcal || 0,
-          protein: matchedFood.proteinG || 0,
-          fat: matchedFood.fatG || 0,
-          carbs: matchedFood.carbohydrateG || 0,
+          protein: matchedFood.protein || 0,
+          fat: matchedFood.fat || 0,
+          carbs: matchedFood.carbs || 0,
         };
       }
     } catch (error) {
@@ -286,12 +509,13 @@ export default function HomePage() {
         if (cognitoUserId) {
           const { data: dailyRecords } = await client.models.DailyRecord.list();
           const todayMeals = dailyRecords?.filter(m => 
-            m.date === dateString && m.userId === cognitoUserId && m.mealType
+            m.date === dateString && m.userId === cognitoUserId
           );
 
           const mealContents = ['breakfast', 'lunch', 'dinner'].map(mealType => {
-            const meal = todayMeals?.find(m => m.mealType === mealType);
-            return meal?.content || '';
+            const meal = todayMeals?.find(m => m[mealType as keyof typeof m]);
+            const mealContent = meal?.[mealType as keyof typeof meal] || '';
+            return typeof mealContent === 'string' ? mealContent : String(mealContent);
           });
 
           const calculatedNutrition = await calculateNutritionFromMeals(mealContents);
@@ -323,14 +547,26 @@ export default function HomePage() {
 
   // 食事データを取得する関数
   const fetchMealData = async (dateString: string) => {
-    if (!cognitoUserId) return;
+    if (!cognitoUserId) {
+      console.log("fetchMealData: cognitoUserId がありません");
+      return;
+    }
     
     try {
+      console.log("=== fetchMealData 開始 ===");
+      console.log("検索条件 - dateString:", dateString, "cognitoUserId:", cognitoUserId);
+      
       const { data: dailyRecords } = await client.models.DailyRecord.list();
-      // 食事データ専用レコード（mealTypeが設定されているレコード）のみを検索
+      console.log("DailyRecord全件数:", dailyRecords?.length || 0);
+      console.log("DailyRecord全データ:", dailyRecords);
+      
+      // 食事データ専用レコード
       const todayMeals = dailyRecords?.filter(m => 
-        m.date === dateString && m.userId === cognitoUserId && m.mealType
+        m.date === dateString && m.userId === cognitoUserId
       );
+      
+      console.log("フィルター後の今日の食事データ:", todayMeals);
+      console.log("フィルター後の件数:", todayMeals?.length || 0);
 
       const mealsByType = {
         breakfast: "—",
@@ -338,13 +574,29 @@ export default function HomePage() {
         dinner: "—",
       };
 
-      todayMeals?.forEach(meal => {
-        if (meal.mealType === "breakfast") mealsByType.breakfast = meal.content || "—";
-        if (meal.mealType === "lunch") mealsByType.lunch = meal.content || "—";
-        if (meal.mealType === "dinner") mealsByType.dinner = meal.content || "—";
+      todayMeals?.forEach((meal, index) => {
+        console.log(`食事レコード ${index}:`, meal);
+        console.log(`  breakfast: "${meal.breakfast}"`);
+        console.log(`  lunch: "${meal.lunch}"`);
+        console.log(`  dinner: "${meal.dinner}"`);
+        
+        if (meal.breakfast && meal.breakfast.trim() !== "") {
+          mealsByType.breakfast = meal.breakfast;
+          console.log(`  breakfast 設定: "${meal.breakfast}"`);
+        }
+        if (meal.lunch && meal.lunch.trim() !== "") {
+          mealsByType.lunch = meal.lunch;
+          console.log(`  lunch 設定: "${meal.lunch}"`);
+        }
+        if (meal.dinner && meal.dinner.trim() !== "") {
+          mealsByType.dinner = meal.dinner;
+          console.log(`  dinner 設定: "${meal.dinner}"`);
+        }
       });
 
+      console.log("最終的な食事データ:", mealsByType);
       setMealData(mealsByType);
+      console.log("=== fetchMealData 完了 ===");
     } catch (error) {
       console.error("食事データ取得エラー:", error);
     }
@@ -373,19 +625,24 @@ export default function HomePage() {
     fetchCognitoUserData();
   }, []);
 
-  // cognitoUserIdが取得できた後にプロフィールを取得
+  // cognitoUserIdが取得できた後にプロフィールと食事データを取得
   useEffect(() => {
     if (cognitoUserId) {
+      console.log("cognitoUserId が取得できました:", cognitoUserId);
       fetchUserProfile();
+      
+      // 食事データも取得
+      const dateString = getCurrentDateString();
+      console.log("食事データを取得します。日付:", dateString);
+      fetchMealData(dateString);
+      fetchHealthDataFromDailyRecord(dateString);
     }
   }, [cognitoUserId]);
 
   useEffect(() => {
-    // 今日の日付文字列を取得してデータを取得
+    // 初回は栄養データのみ取得（cognitoUserId依存のデータは別のuseEffectで取得）
     const dateString = getCurrentDateString();
     fetchNutritionData(dateString);
-    fetchMealData(dateString);
-    fetchHealthDataFromDailyRecord(dateString);
 
     // 1分ごとに日付を更新（日付が変わった場合のため）
     const dateUpdateInterval = setInterval(() => {
@@ -395,16 +652,22 @@ export default function HomePage() {
       // 日付が変わった場合はデータも再取得
       if (newDateString !== dateString) {
         fetchNutritionData(newDateString);
-        fetchMealData(newDateString);
-        fetchHealthDataFromDailyRecord(newDateString);
+        // cognitoUserIdが存在する場合のみ食事・健康データを取得
+        if (cognitoUserId) {
+          fetchMealData(newDateString);
+          fetchHealthDataFromDailyRecord(newDateString);
+        }
       }
     }, 60000); // 1分間隔
 
     // ページフォーカス時にユーザープロフィールと健康データを再取得
     const handleFocus = () => {
-      fetchUserProfile();
-      const currentDateString = getCurrentDateString();
-      fetchHealthDataFromDailyRecord(currentDateString);
+      if (cognitoUserId) {
+        fetchUserProfile();
+        const currentDateString = getCurrentDateString();
+        fetchHealthDataFromDailyRecord(currentDateString);
+        fetchMealData(currentDateString);
+      }
     };
     window.addEventListener('focus', handleFocus);
 
@@ -510,7 +773,7 @@ export default function HomePage() {
       // 2. DailyRecordの健康データ（体調・気分・体重）を更新
       const { data: dailyRecords } = await client.models.DailyRecord.list();
       const existingHealthRecord = dailyRecords?.find(record => 
-        record.userId === cognitoUserId && record.date === dateString && !record.mealType
+        record.userId === cognitoUserId && record.date === dateString
       );
 
       if (existingHealthRecord) {
@@ -530,8 +793,6 @@ export default function HomePage() {
           condition: healthEditData.condition,
           mood: healthEditData.mood,
           weight: weightValue,
-          content: "", // 健康データ専用レコードなのでcontentは空
-          mealType: null, // 健康データ専用レコードなのでmealTypeはnull
         });
         console.log("新しいDailyRecord健康データを作成しました:", healthEditData);
       }
@@ -570,46 +831,64 @@ export default function HomePage() {
 
   const handleMealSave = async () => {
     try {
+      console.log("=== handleMealSave 開始 ===");
+      console.log("cognitoUserId:", cognitoUserId);
+      console.log("保存する食事データ:", mealEditData);
+      
       const dateString = getCurrentDateString();
+      console.log("保存対象日付:", dateString);
       
       // DailyRecordテーブルから今日の食事データを検索
       const { data: dailyRecords } = await client.models.DailyRecord.list();
-      const todayMealRecords = dailyRecords?.filter(record => 
-        record.userId === cognitoUserId && record.date === dateString && record.mealType
+      console.log("DailyRecord検索結果:", dailyRecords?.length || 0, "件");
+      
+      const todayMealRecord = dailyRecords?.find(record => 
+        record.userId === cognitoUserId && record.date === dateString
       );
+      
+      console.log("既存レコード:", todayMealRecord);
 
-      // 各食事タイプ（朝・昼・夜）について処理
-      const mealTypes = [
-        { key: 'breakfast' as keyof MealData, type: 'breakfast', content: mealEditData.breakfast },
-        { key: 'lunch' as keyof MealData, type: 'lunch', content: mealEditData.lunch },
-        { key: 'dinner' as keyof MealData, type: 'dinner', content: mealEditData.dinner }
-      ];
-
-      for (const meal of mealTypes) {
-        const existingMealRecord = todayMealRecords?.find(record => 
-          record.mealType === meal.type
-        );
-
-        if (existingMealRecord) {
-          // 既存のレコードを更新
-          await client.models.DailyRecord.update({
-            id: existingMealRecord.id,
-            content: meal.content,
-          });
-          console.log(`${meal.type}データを更新しました:`, meal.content);
-        } else {
-          // 新しいレコードを作成
-          await client.models.DailyRecord.create({
-            userId: cognitoUserId,
-            date: dateString,
-            mealType: meal.type,
-            content: meal.content,
-            condition: null, // 食事データ専用レコードなのでconditionはnull
-            mood: null, // 食事データ専用レコードなのでmoodはnull
-            weight: null, // 食事データ専用レコードなのでweightはnull
-          });
-          console.log(`新しい${meal.type}データを作成しました:`, meal.content);
+      if (todayMealRecord) {
+        // 既存のレコードを更新
+        console.log("既存レコードを更新します:", {
+          id: todayMealRecord.id,
+          breakfast: mealEditData.breakfast,
+          lunch: mealEditData.lunch,
+          dinner: mealEditData.dinner,
+        });
+        
+        const { data: updatedRecord, errors } = await client.models.DailyRecord.update({
+          id: todayMealRecord.id,
+          breakfast: mealEditData.breakfast,
+          lunch: mealEditData.lunch,
+          dinner: mealEditData.dinner,
+        });
+        
+        if (errors) {
+          console.error("更新エラー:", errors);
+          throw new Error("更新に失敗しました");
         }
+        
+        console.log("食事データを更新しました:", updatedRecord);
+      } else {
+        // 新しいレコードを作成
+        const newRecord = {
+          userId: cognitoUserId,
+          date: dateString,
+          breakfast: mealEditData.breakfast,
+          lunch: mealEditData.lunch,
+          dinner: mealEditData.dinner,
+        };
+        console.log("新規レコードを作成します:", newRecord);
+        
+        const { data: createdRecord, errors } = await client.models.DailyRecord.create(newRecord);
+        
+        if (errors) {
+          console.error("作成エラー:", errors);
+          throw new Error("作成に失敗しました");
+        }
+        
+        console.log("新しい食事データを作成しました:", createdRecord);
       }
 
       // 画面の状態を更新
@@ -619,10 +898,17 @@ export default function HomePage() {
       // 栄養価を再計算
       await fetchNutritionData(dateString);
       
+      // 食事データを再取得して表示を確実に更新
+      await fetchMealData(dateString);
+      
       console.log("「本日の食事」が保存されました:", mealEditData);
+      console.log("=== handleMealSave 完了 ===");
     } catch (error) {
-      console.error("食事データ保存エラー:", error);
-      alert("保存に失敗しました。もう一度お試しください。");
+      console.error("=== 食事データ保存エラー ===");
+      console.error("エラー詳細:", error);
+      console.error("cognitoUserId:", cognitoUserId);
+      console.error("mealEditData:", mealEditData);
+      alert(`保存に失敗しました: ${error instanceof Error ? error.message : "不明なエラー"}`);
     }
   };
 
@@ -651,7 +937,7 @@ export default function HomePage() {
         <h3 className="section-title-highlight">食事バランス</h3>
         <div className="nutrition-header">
           <span className="nutrition-label">カロリー</span>
-          <span className="calories-value">{nutritionData.calories} kcal</span>
+          <span className="calories-value">{nutritionData.calories} kcal / {recommendedCalories} kcal</span>
         </div>
         <div className="nutrition-details">
           <div className="nutrition-row">
@@ -1028,14 +1314,15 @@ export default function HomePage() {
         )}
       </section>
 
+
+
       {/* 編集ボタン */}
-      <button className="edit-button" onClick={handleEditClick}>
+      {/*<button className="edit-button" onClick={handleEditClick}>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
         </svg>
-      </button>
+      </button>*/}
     </BioryLayout>
   );
 }
- 

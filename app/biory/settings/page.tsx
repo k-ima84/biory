@@ -17,6 +17,7 @@ interface UserProfileForm {
   name: string;
   height: string;
   weight: string;
+  age: string;
   gender: string;
   favoriteFoods: string;
   allergies: string;
@@ -29,6 +30,7 @@ interface ValidationErrors {
   name?: string;
   height?: string;
   weight?: string;
+  age?: string;
   gender?: string;
   exerciseFrequency?: string;
 }
@@ -47,6 +49,7 @@ export default function SettingsPage() {
     name: "",
     height: "",
     weight: "",
+    age: "",
     gender: "",
     favoriteFoods: "",
     allergies: "",
@@ -60,10 +63,11 @@ export default function SettingsPage() {
  
   // 運動頻度の選択肢
   const exerciseOptions = [
-    { value: "週に1回以上運動する", label: "週に1回以上運動する" },
-    { value: "週に1回程度運動する", label: "週に1回程度運動する" },
-    { value: "運動しない", label: "運動しない" },
-    { value: "そのほか", label: "そのほか" },
+    { value: "ほとんど運動しない", label: "ほとんど運動しない" },
+    { value: "週1〜3回の軽い運動", label: "週1〜3回の軽い運動" },
+    { value: "週3〜5回の中程度の運動", label: "週3〜5回の中程度の運動" },
+    { value: "週6〜7回の激しい運動", label: "週6〜7回の激しい運動" },
+    { value: "毎日2回の運動や肉体労働", label: "毎日2回の運動や肉体労働" },
   ];
  
   // 性別の選択肢
@@ -105,21 +109,28 @@ export default function SettingsPage() {
  
   const fetchUserProfile = async () => {
     if (!currentUserId) {
-      console.log('User ID not available yet');
+      console.log('Settings: User ID not available yet');
       return;
     }
+ 
+    console.log('Settings: Fetching user profile for userId:', currentUserId);
  
     try {
       const { data: profiles } = await client.models.UserProfile.list({
         filter: { userId: { eq: currentUserId } }
       });
  
+      console.log('Settings: Found profiles:', profiles?.length || 0);
+      
       if (profiles && profiles.length > 0) {
         const profile = profiles[0];
+        console.log('Settings: Profile data:', profile);
+        
         const profileData = {
           name: profile.name || "",
           height: profile.height?.toString() || "",
           weight: profile.weight?.toString() || "",
+          age: profile.age?.toString() || "",
           gender: profile.gender || "",
           favoriteFoods: profile.favoriteFoods || "",
           allergies: profile.allergies || "",
@@ -127,14 +138,30 @@ export default function SettingsPage() {
           exerciseFrequency: profile.exerciseFrequency || "",
           exerciseFrequencyOther: profile.exerciseFrequencyOther || "",
         };
+        console.log('Settings: Setting form data:', profileData);
         setFormData(profileData);
         setUserProfile(profileData);
       } else {
+        console.log('Settings: No profile found, using default values');
+        // プロフィールがない場合はデフォルト値を表示
+        const defaultData = {
+          name: "",
+          height: "",
+          weight: "",
+          age: "",
+          gender: "",
+          favoriteFoods: "",
+          allergies: "",
+          dislikedFoods: "",
+          exerciseFrequency: "",
+          exerciseFrequencyOther: "",
         // プロフィールがない場合はサンプルデータを表示
+        }
         const sampleData = {
           name: "未設定",
           height: "未設定",
           weight: "未設定",
+          age: "未設定",
           gender: "未設定",
           favoriteFoods: "未設定",
           allergies: "未設定",
@@ -142,11 +169,11 @@ export default function SettingsPage() {
           exerciseFrequency: "未設定",
           exerciseFrequencyOther: "未設定",
         };
-        setFormData(sampleData);
-        setUserProfile(sampleData);
+        setFormData(defaultData);
+        setUserProfile(null);
       }
     } catch (error) {
-      console.error("ユーザー情報の取得エラー:", error);
+      console.error('Settings: Error fetching user profile:', error);
     }
   };
  
@@ -188,6 +215,18 @@ export default function SettingsPage() {
         newErrors.weight = "体重は0～300kgの範囲で入力してください";
       }
     }
+
+    // 年齢のバリデーション
+    if (!formData.age.trim()) {
+      newErrors.age = "年齢は必須です";
+    } else if (!/^\d{1,3}$/.test(formData.age)) {
+      newErrors.age = "年齢は正しい形式で入力してください（例：30）";
+    } else {
+      const ageValue = parseInt(formData.age);
+      if (ageValue < 1 || ageValue > 150) {
+        newErrors.age = "年齢は1～150歳の範囲で入力してください";
+      }
+    }
  
     // 性別のバリデーション
     if (!formData.gender) {
@@ -205,14 +244,17 @@ export default function SettingsPage() {
  
   // 編集モードの切り替え
   const handleEditModeToggle = () => {
+    console.log('Settings: Edit mode toggle clicked, current mode:', isEditMode);
     if (isEditMode) {
       // 編集をキャンセルして元のデータに戻す
       if (userProfile) {
+        console.log('Settings: Restoring form data from userProfile:', userProfile);
         setFormData({ ...userProfile });
       }
       setErrors({});
     }
     setIsEditMode(!isEditMode);
+    console.log('Settings: Edit mode set to:', !isEditMode);
   };
  
   // 保存処理（ボタンクリック用）
@@ -245,7 +287,7 @@ export default function SettingsPage() {
       // DailyRecordテーブルから今日の健康データを検索
       const { data: dailyRecords } = await client.models.DailyRecord.list();
       const existingHealthRecord = dailyRecords?.find(record => 
-        record.userId === currentUserId && record.date === dateString && !record.mealType
+        record.userId === currentUserId && record.date === dateString
       );
 
       if (existingHealthRecord) {
@@ -263,8 +305,6 @@ export default function SettingsPage() {
           condition: "とても良い 😊", // デフォルト値
           mood: "ポジティブ", // デフォルト値
           weight: newWeight,
-          content: "", // 健康データ専用レコードなのでcontentは空
-          mealType: null, // 健康データ専用レコードなのでmealTypeはnull
         });
         console.log("新しいDailyRecord健康データを作成しました（体重のみ）:", newWeight);
       }
@@ -298,6 +338,7 @@ export default function SettingsPage() {
         name: formData.name,
         height: parseFloat(formData.height),
         weight: parseFloat(formData.weight),
+        age: parseInt(formData.age),
         gender: formData.gender,
         favoriteFoods: formData.favoriteFoods,
         allergies: formData.allergies,
@@ -329,10 +370,15 @@ export default function SettingsPage() {
       }
  
       // 保存完了後は編集モードを終了して設定画面に留まる
+      console.log('Settings: Saving completed, updating UI');
       setUserProfile(formData);
       setIsEditMode(false);
-      // 成功メッセージをコンソールに出力
-      console.log("設定を保存しました。");
+      
+      // データの再取得を行って最新の状態に同期
+      await fetchUserProfile();
+      
+      console.log("Settings: 設定を保存しました。");
+      alert("設定を保存しました。");
      
     } catch (error) {
       console.error("ユーザー情報の保存エラー:", error);
@@ -389,7 +435,10 @@ export default function SettingsPage() {
           {!isEditMode && (
             <button
               className="change-button"
-              onClick={() => setIsEditMode(true)}
+              onClick={() => {
+                console.log('Settings: Change button clicked');
+                setIsEditMode(true);
+              }}
               disabled={isLoading}
             >
               変更
@@ -461,6 +510,28 @@ export default function SettingsPage() {
               <div className="info-value">{formData.weight ? `${formData.weight} kg` : "未設定"}</div>
             )}
           </div>
+
+          {/* 年齢 */}
+          <div className="form-group">
+            <label className="form-label">年齢</label>
+            {isEditMode ? (
+              <>
+                <div className="input-with-unit">
+                  <input
+                    type="text"
+                    value={formData.age}
+                    onChange={(e) => handleInputChange("age", e.target.value)}
+                    className={`form-input ${errors.age ? "error" : ""}`}
+                    placeholder="30"
+                  />
+                  <span className="unit">歳</span>
+                </div>
+                {errors.age && <span className="error-message">{errors.age}</span>}
+              </>
+            ) : (
+              <div className="info-value">{formData.age ? `${formData.age} 歳` : "未設定"}</div>
+            )}
+          </div>
  
           {/* 性別 */}
           <div className="form-group">
@@ -488,7 +559,7 @@ export default function SettingsPage() {
  
           {/* 好きな食べ物 */}
           <div className="form-group">
-            <label className="form-label">好きなたべもの</label>
+            <label className="form-label">好きな食べ物</label>
             {isEditMode ? (
               <input
                 type="text"
@@ -499,22 +570,6 @@ export default function SettingsPage() {
               />
             ) : (
               <div className="info-value">{formData.favoriteFoods || "未設定"}</div>
-            )}
-          </div>
- 
-          {/* アレルギー */}
-          <div className="form-group">
-            <label className="form-label">アレルギー</label>
-            {isEditMode ? (
-              <input
-                type="text"
-                value={formData.allergies}
-                onChange={(e) => handleInputChange("allergies", e.target.value)}
-                className="form-input"
-                placeholder="卵、牛乳"
-              />
-            ) : (
-              <div className="info-value">{formData.allergies || "なし"}</div>
             )}
           </div>
  
@@ -531,6 +586,22 @@ export default function SettingsPage() {
               />
             ) : (
               <div className="info-value">{formData.dislikedFoods || "なし"}</div>
+            )}
+          </div>
+ 
+          {/* アレルギー */}
+          <div className="form-group">
+            <label className="form-label">アレルギー</label>
+            {isEditMode ? (
+              <input
+                type="text"
+                value={formData.allergies}
+                onChange={(e) => handleInputChange("allergies", e.target.value)}
+                className="form-input"
+                placeholder="卵、牛乳"
+              />
+            ) : (
+              <div className="info-value">{formData.allergies || "なし"}</div>
             )}
           </div>
  
