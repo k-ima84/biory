@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { generateClient } from 'aws-amplify/data';
 import { getCurrentUser } from 'aws-amplify/auth';
+import { useRouter } from 'next/navigation';
 import type { Schema } from '@/amplify/data/resource';
 import { Amplify } from 'aws-amplify';
 import outputs from '@/amplify_outputs.json';
@@ -11,6 +12,20 @@ import './calendar.css';
 
 Amplify.configure(outputs);
 const client = generateClient<Schema>();
+
+// Cognitoユーザー情報を取得するユーティリティ関数
+const fetchCognitoUserInfo = async () => {
+  try {
+    const user = await getCurrentUser();
+    return {
+      userId: user.userId,
+      email: user.signInDetails?.loginId || 'unknown',
+    };
+  } catch (error) {
+    console.error('Cognitoユーザー情報取得エラー:', error);
+    throw error;
+  }
+};
 
 // DailyRecordの型定義
 type DailyRecord = {
@@ -31,6 +46,7 @@ type DailyRecord = {
 };
 
 export default function CalendarPage() {
+  const router = useRouter();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -38,18 +54,21 @@ export default function CalendarPage() {
   const [monthlyMealData, setMonthlyMealData] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
 
-  // Cognitoユーザー情報を取得
-  useEffect(() => {
-    const fetchCurrentUser = async () => {
-      try {
-        const user = await getCurrentUser();
-        setCurrentUserId(user.userId);
-      } catch (error) {
-        console.error('ユーザー情報取得エラー:', error);
-      }
-    };
+  // Cognitoユーザー認証とデータ取得
+  const fetchCognitoUserData = async () => {
+    try {
+      const userInfo = await fetchCognitoUserInfo();
+      setCurrentUserId(userInfo.userId);
+    } catch (error) {
+      console.error('認証エラー:', error);
+      router.push("/biory/login");
+      return;
+    }
+  };
 
-    fetchCurrentUser();
+  // 認証チェック
+  useEffect(() => {
+    fetchCognitoUserData();
   }, []);
 
   // 月が変更されたら月次データを取得
