@@ -129,6 +129,20 @@ export default function HomePage() {
   // 推奨カロリーを計算
   const recommendedCalories = userProfile ? calculateTDEE(userProfile) : 2000;
 
+  // 目標PFCバランスを計算（推奨カロリーから算出）
+  const calculateTargetPFC = (totalCalories: number) => {
+    // 理想的なPFCバランス比率
+    const proteinRatio = 0.15; // 15% (13-20%の中央値)
+    const fatRatio = 0.25; // 25% (20-30%の中央値)
+    const carbsRatio = 0.60; // 60% (50-65%の中央値)
+
+    return {
+      protein: Math.round((totalCalories * proteinRatio / 4) * 10) / 10, // タンパク質 (4kcal/g)
+      fat: Math.round((totalCalories * fatRatio / 9) * 10) / 10, // 脂質 (9kcal/g)
+      carbs: Math.round((totalCalories * carbsRatio / 4) * 10) / 10, // 炭水化物 (4kcal/g)
+    };
+  };
+
   // 現在の日付を取得して設定する関数
   const updateCurrentDate = () => {
     const now = new Date();
@@ -494,22 +508,31 @@ export default function HomePage() {
         record.userId === cognitoUserId && record.date === dateString
       );
 
+      // 目標PFCを計算
+      const targetPFC = calculateTargetPFC(recommendedCalories);
+      console.log("目標PFC:", targetPFC);
+
       if (todayRecord && todayRecord.calories !== null && todayRecord.calories !== undefined) {
         // DailyRecordにPFCデータがある場合はそれを使用
         console.log("DailyRecordから栄養データを取得:", todayRecord);
+        
+        const currentProtein = todayRecord.protein || 0;
+        const currentFat = todayRecord.fat || 0;
+        const currentCarbs = todayRecord.carbs || 0;
+
         setNutritionData({
           calories: todayRecord.calories || 0,
           protein: { 
-            value: todayRecord.protein || 0, 
-            percentage: Math.round(((todayRecord.protein || 0) * 4 / (todayRecord.calories || 1)) * 100)
+            value: currentProtein, 
+            percentage: Math.round((currentProtein / targetPFC.protein) * 100)
           },
           fat: { 
-            value: todayRecord.fat || 0, 
-            percentage: Math.round(((todayRecord.fat || 0) * 9 / (todayRecord.calories || 1)) * 100)
+            value: currentFat, 
+            percentage: Math.round((currentFat / targetPFC.fat) * 100)
           },
           carbs: { 
-            value: todayRecord.carbs || 0, 
-            percentage: Math.round(((todayRecord.carbs || 0) * 4 / (todayRecord.calories || 1)) * 100)
+            value: currentCarbs, 
+            percentage: Math.round((currentCarbs / targetPFC.carbs) * 100)
           },
         });
       } else {
@@ -530,18 +553,15 @@ export default function HomePage() {
             calories: calculatedNutrition.calories,
             protein: { 
               value: calculatedNutrition.protein, 
-              percentage: calculatedNutrition.calories > 0 ? 
-                Math.round((calculatedNutrition.protein * 4 / calculatedNutrition.calories) * 100) : 0
+              percentage: Math.round((calculatedNutrition.protein / targetPFC.protein) * 100)
             },
             fat: { 
               value: calculatedNutrition.fat, 
-              percentage: calculatedNutrition.calories > 0 ? 
-                Math.round((calculatedNutrition.fat * 9 / calculatedNutrition.calories) * 100) : 0
+              percentage: Math.round((calculatedNutrition.fat / targetPFC.fat) * 100)
             },
             carbs: { 
               value: calculatedNutrition.carbs, 
-              percentage: calculatedNutrition.calories > 0 ? 
-                Math.round((calculatedNutrition.carbs * 4 / calculatedNutrition.calories) * 100) : 0
+              percentage: Math.round((calculatedNutrition.carbs / targetPFC.carbs) * 100)
             },
           });
         } else {
@@ -974,15 +994,15 @@ export default function HomePage() {
         <div className="nutrition-details">
           <div className="nutrition-row">
             <span className="nutrition-type">P（タンパク質）</span>
-            <span className="nutrition-values">{nutritionData.protein.value}g　{nutritionData.protein.percentage}%</span>
+            <span className="nutrition-values">{nutritionData.protein.value}g / {calculateTargetPFC(recommendedCalories).protein}g</span>
           </div>
           <div className="nutrition-row">
             <span className="nutrition-type">F（脂質）</span>
-            <span className="nutrition-values">{nutritionData.fat.value}g　{nutritionData.fat.percentage}%</span>
+            <span className="nutrition-values">{nutritionData.fat.value}g / {calculateTargetPFC(recommendedCalories).fat}g</span>
           </div>
           <div className="nutrition-row">
             <span className="nutrition-type">C（炭水化物）</span>
-            <span className="nutrition-values">{nutritionData.carbs.value}g　{nutritionData.carbs.percentage}%</span>
+            <span className="nutrition-values">{nutritionData.carbs.value}g / {calculateTargetPFC(recommendedCalories).carbs}g</span>
           </div>
         </div>
       </section>
