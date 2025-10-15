@@ -11,7 +11,8 @@ import { useRouter } from "next/navigation";
 
 const client = generateClient<Schema>();
 
-const API_ENDPOINT = "https://5obkiuclsb.execute-api.ap-northeast-1.amazonaws.com/prod/meal/suggestion";
+//const API_ENDPOINT = "https://5obkiuclsb.execute-api.ap-northeast-1.amazonaws.com/prod/meal/suggestion";
+const API_ENDPOINT = "https://u1a3a1qi9h.execute-api.ap-northeast-1.amazonaws.com/prod/meal/suggestion";
 
 interface MealData {
   mealType: string;
