@@ -13,8 +13,22 @@
         "../.amplify/generated/*"
       ]
     }
+  
+  //一時的にコメントアウト
+  //},
+  //"include": [
+  ///  "backend/cdk/**/*"
+  //]
+  
+
   },
   "include": [
-    "backend/cdk/**/*"
+    "**/*.ts",
+    "**/*.js"
+, "seed.backup/test-db-connection.ts.backup"  ],
+  "exclude": [
+    "node_modules",
+    "**/*.backup"
   ]
+
 }
