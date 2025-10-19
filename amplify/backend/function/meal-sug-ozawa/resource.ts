@@ -4,12 +4,13 @@ import { fileURLToPath } from "node:url";
 import { defineFunction } from "@aws-amplify/backend";
 import { DockerImage, Duration } from "aws-cdk-lib";
 import { Code, Function, Runtime } from "aws-cdk-lib/aws-lambda";
+import { PolicyStatement, Effect } from "aws-cdk-lib/aws-iam";
 
 const functionDir = path.dirname(fileURLToPath(import.meta.url));
 
 export const sayHelloFunctionHandler = defineFunction(
-  (scope) =>
-    new Function(scope, "say-hello", {
+  (scope) => {
+    const lambdaFunction = new Function(scope, "say-hello", {
       handler: "index.handler",
       runtime: Runtime.PYTHON_3_9, // or any other python version
       timeout: Duration.seconds(20), //  default is 3 seconds
@@ -27,7 +28,23 @@ export const sayHelloFunctionHandler = defineFunction(
           },
         },
       }),
-    }),
+    });
+
+    // Bedrock権限を追加
+    lambdaFunction.addToRolePolicy(
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: [
+          "bedrock:InvokeModel",
+          "bedrock:InvokeModelWithResponseStream",
+          "bedrock:ListFoundationModels"
+        ],
+        resources: ["*"] // 全Bedrockモデルへのアクセス
+      })
+    );
+
+    return lambdaFunction;
+  },
     {
       resourceGroupName: "auth" // Optional: Groups this function with auth resource
     }

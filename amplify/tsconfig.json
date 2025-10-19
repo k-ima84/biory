@@ -1,34 +1,27 @@
 {
   "compilerOptions": {
-    "target": "es2022",
-    "module": "es2022",
+    "target": "es5",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "skipLibCheck": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "paths": {
-      "$amplify/*": [
-        "../.amplify/generated/*"
-      ]
+      "@/*": ["./*"]
     }
-  
-  //一時的にコメントアウト
-  //},
-  //"include": [
-  ///  "backend/cdk/**/*"
-  //]
-  
-
   },
-  "include": [
-    "**/*.ts",
-    "**/*.js"
-, "seed.backup/test-db-connection.ts.backup"  ],
-  "exclude": [
-    "node_modules",
-    "**/*.backup"
-  ]
-
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts",],
+  "exclude": ["node_modules", "amplify","amplify/seed.backup/**/*"]
 }
