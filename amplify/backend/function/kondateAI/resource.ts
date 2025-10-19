@@ -8,9 +8,9 @@ import { PolicyStatement, Effect } from "aws-cdk-lib/aws-iam";
 
 const functionDir = path.dirname(fileURLToPath(import.meta.url));
 
-export const sayHelloFunctionHandler = defineFunction(
+export const kondateAIFunctionHandler = defineFunction(
   (scope) => {
-    const lambdaFunction = new Function(scope, "say-hello", {
+    const lambdaFunction = new Function(scope, "kondate-ai", {
       handler: "index.handler",
       runtime: Runtime.PYTHON_3_9, // or any other python version
       timeout: Duration.seconds(20), //  default is 3 seconds

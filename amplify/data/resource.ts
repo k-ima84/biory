@@ -1,7 +1,7 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
 
 //小澤追記
-import { sayHelloFunctionHandler } from "../backend/function/meal-sug-ozawa/resource"
+import { kondateAIFunctionHandler } from "../backend/function/kondateAI/resource"
 
 
 /*== STEP 1 ===============================================================
@@ -12,7 +12,7 @@ specifies that any user authenticated via an API key can "create", "read",
 =========================================================================*/
 export const schema = a.schema({
   //小澤追記
-  sayHello: a
+  kondateAI: a
     .query()
     .arguments({
       name: a.string(),
@@ -20,7 +20,7 @@ export const schema = a.schema({
     .returns(a.string())
     //.authorization((allow) => [allow.authenticated()]) // 認証ルール追加
     .authorization((allow) => [allow.publicApiKey()])
-    .handler(a.handler.function(sayHelloFunctionHandler)),
+    .handler(a.handler.function(kondateAIFunctionHandler)),
 
 
   // 既存のユーザープロファイルモデル

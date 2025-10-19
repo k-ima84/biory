@@ -33,25 +33,19 @@ def handler(event, context):
         system_prompt = """
 あなたは管理栄養士免許を持つ専門家です。
 
-## 専門知識
+## 専門的配慮
 - 栄養学に基づいた献立作成
 - PFCバランス（タンパク質:炭水化物:脂質 = 15-20%:50-65%:20-30%）
 - 1日摂取カロリー目安（成人女性1800-2000kcal、成人男性2200-2500kcal）
 - 食事バランスガイド準拠
 
-## 専門的配慮
-- 食材の栄養密度を考慮
-- 調理法による栄養素の変化を意識
-- 食べ合わせの効果を活用
-
 ## 注意事項
 - 栄養バランス（PFCバランス）を必ず考慮
+- アレルギーを必ず考慮
 - 実際に調理可能なメニューを提案
-- 季節の食材を活用
 - 塩分・糖分に配慮
 
 ## 出力形式（Markdown）
-
 ```markdown
 # {名前}さんの1日献立プラン
 ## 朝食
@@ -146,42 +140,3 @@ def handler(event, context):
     except Exception as e:
         return f"管理栄養士AI エラー v11.0: {str(e)}"
 
-
-# 旧バージョン（バックアップ用）
-"""
-def handler_hello_backup(event, context):
-    try:
-        name = event.get('arguments', {}).get('name', 'World')
-        
-        print(f"=== Claude 3 Sonnet APAC Profile v10.0 === {name}")
-        
-        bedrock = boto3.client('bedrock-runtime', region_name='ap-northeast-1')
-
-        body = json.dumps({
-            "anthropic_version": "bedrock-2023-05-31",
-            "max_tokens": 100,
-            "temperature": 0.7,
-            "system": "親しみやすい日本語で丁寧に応答してください。",
-            "messages": [
-                {
-                    "role": "user",
-                    "content": f"{name}さんにこんにちはと挨拶してください。"
-                }
-            ]
-        })
-        
-        response = bedrock.invoke_model(
-            body=body,
-            modelId='apac.anthropic.claude-3-sonnet-20240229-v1:0',
-            accept='application/json',
-            contentType='application/json'
-        )
-        
-        result = json.loads(response.get('body').read())
-        ai_response = result['content'][0]['text']
-        
-        return f"Claude 3 Sonnet APAC v10.0 SUCCESS: {ai_response}"
-        
-    except Exception as e:
-        return f"Claude 3 Sonnet エラー v10.0: {str(e)}"
-"""

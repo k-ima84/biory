@@ -6,13 +6,13 @@ import { data } from './data/resource.js';
 //import { MealSuggestionStack } from './backend/cdk/meal-suggestion-stack';
 
 //小澤追加
-import { sayHelloFunctionHandler } from './backend/function/meal-sug-ozawa/resource';
+import { kondateAIFunctionHandler } from './backend/function/kondateAI/resource';
 
 
 const backend = defineBackend({
   auth,
   data,
-  sayHelloFunctionHandler //小澤追加
+  kondateAIFunctionHandler //小澤追加
 });
 
 //一時的にコメントアウト　小澤
