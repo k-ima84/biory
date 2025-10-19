@@ -31,6 +31,11 @@ export default function MealPage() {
   const [cognitoUserId, setCognitoUserId] = useState("");
   const [userProfile, setUserProfile] = useState<any>(null); // ユーザープロファイル
   const [debugInfo, setDebugInfo] = useState<any>(null); // デバッグ情報
+
+  // 🆕 kondateAI関連のstate　小澤
+  const [kondateResult, setKondateResult] = useState<string>('');
+  const [kondateLoading, setKondateLoading] = useState<boolean>(false);
+  const [showKondateResult, setShowKondateResult] = useState<boolean>(false);
   
 
   // BMR計算（基礎代謝率）
@@ -78,6 +83,41 @@ export default function MealPage() {
     const activityFactor = getActivityFactor(profile.exerciseFrequency || "ほとんど運動しない");
     return Math.round(bmr * activityFactor);
   };
+
+  // 🆕 kondateAI呼び出し関数 小澤
+  const callKondateAI = async () => {
+    setKondateLoading(true);
+    setKondateResult('');
+    setShowKondateResult(false);
+    
+    try {
+      console.log('🤖 kondateAI呼び出し開始...');
+      
+      // ユーザー名を決定（ユーザープロファイルから取得、なければデフォルト）
+      const userName = userProfile?.name || '小澤さん';
+      
+      const result = await client.queries.kondateAI({
+        name: userName
+      });
+      
+      console.log('🤖 kondateAI結果:', result);
+      
+      if (result.data) {
+        setKondateResult(result.data);
+        setShowKondateResult(true);
+      } else if (result.errors) {
+        setKondateResult(`エラー: ${JSON.stringify(result.errors)}`);
+        setShowKondateResult(true);
+      }
+    } catch (error) {
+      console.error('🤖 kondateAI呼び出しエラー:', error);
+      setKondateResult(`エラー: ${error}`);
+      setShowKondateResult(true);
+    } finally {
+      setKondateLoading(false);
+    }
+  };
+  // ここまで
 
   // カロリー計算
   const currentCalories = meals.reduce((total, meal) => total + meal.calories, 0);
@@ -503,12 +543,109 @@ export default function MealPage() {
           )}
           {/* ↑削除予定-------------------------------- */}
         </header>
- 
-        {showMeals && (
-          <div className={styles.mealsContainer}>
-            {meals.map((meal, index) => {
-              console.log(`Meal ${index}:`, meal, 'dishes type:', typeof meal.dishes, 'is array:', Array.isArray(meal.dishes));
-              return (
+
+
+        {/* 🆕 kondateAIセクション　小澤 */}
+        <div style={{ 
+          marginBottom: '20px', 
+          padding: '20px', 
+          backgroundColor: '#f0f8ff', 
+          borderRadius: '12px',
+          border: '2px solid #4A90E2'
+        }}>
+          <h2 style={{ 
+            margin: '0 0 15px 0', 
+            color: '#2c5aa0', 
+            fontSize: '18px', 
+            fontWeight: 'bold',
+            display: 'flex',
+            alignItems: 'center'
+          }}>
+            🤖 AI管理栄養士による献立提案
+          </h2>
+          
+          <button
+            onClick={callKondateAI}
+            disabled={kondateLoading}
+            style={{
+              padding: '12px 24px',
+              backgroundColor: kondateLoading ? '#cccccc' : '#4A90E2',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              cursor: kondateLoading ? 'not-allowed' : 'pointer',
+              transition: 'background-color 0.3s',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}
+          >
+            {kondateLoading ? (
+              <>
+                <span style={{ 
+                  width: '16px', 
+                  height: '16px', 
+                  border: '2px solid #ffffff', 
+                  borderTop: '2px solid transparent', 
+                  borderRadius: '50%', 
+                  animation: 'spin 1s linear infinite' 
+                }}></span>
+                AI献立作成中...
+              </>
+            ) : (
+              <>
+                🍽️ AI献立を作成
+              </>
+            )}
+          </button>
+          
+          {showKondateResult && kondateResult && (
+            <div style={{ 
+              marginTop: '20px', 
+              padding: '20px', 
+              backgroundColor: 'white', 
+              borderRadius: '8px',
+              border: '1px solid #e0e0e0',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}>
+              <h3 style={{ 
+                margin: '0 0 15px 0', 
+                color: '#2c5aa0', 
+                fontSize: '16px', 
+                fontWeight: 'bold' 
+              }}>
+                📋 AI管理栄養士からの献立提案
+              </h3>
+              <div style={{ 
+                backgroundColor: '#f9f9f9', 
+                padding: '15px', 
+                borderRadius: '6px',
+                border: '1px solid #e8e8e8'
+              }}>
+                <pre style={{ 
+                  whiteSpace: 'pre-wrap', 
+                  fontFamily: 'inherit', 
+                  fontSize: '13px', 
+                  lineHeight: '1.6',
+                  margin: 0,
+                  color: '#333'
+                }}>
+                  {kondateResult}
+                </pre>
+              </div>
+            </div>
+          )}
+        </div>
+      {/*ここまで*/}
+
+      {/* 🆕 食事提案セクション */}
+      {showMeals && (
+        <div className={styles.mealsContainer}>
+          {meals.map((meal, index) => {
+            console.log(`Meal ${index}:`, meal, 'dishes type:', typeof meal.dishes, 'is array:', Array.isArray(meal.dishes));
+            return (
               <div key={index} className={styles.mealCard}>
               <div
                 className={styles.mealHeader}
