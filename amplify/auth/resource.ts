@@ -8,4 +8,5 @@ export const auth = defineAuth({
   loginWith: {
     email: true,
   },
+  // Note: Bedrockへのアクセス権限はbackend.tsで設定します
 });

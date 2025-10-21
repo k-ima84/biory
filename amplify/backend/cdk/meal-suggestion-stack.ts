@@ -7,7 +7,7 @@ import { Construct } from 'constructs';
 export class MealSuggestionStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
-
+    /*
     // Lambda関数の作成
     const mealSuggestionFunction = new lambda.Function(this, 'MealSuggestionFunction', {
       runtime: lambda.Runtime.PYTHON_3_11,
@@ -15,6 +15,7 @@ export class MealSuggestionStack extends cdk.Stack {
       code: lambda.Code.fromAsset('amplify/backend/function/meal-suggestion'),
       timeout: cdk.Duration.seconds(30),
     });
+    
 
     // Bedrockアクセス権限の付与
     mealSuggestionFunction.addToRolePolicy(
@@ -68,6 +69,6 @@ export class MealSuggestionStack extends cdk.Stack {
     new cdk.CfnOutput(this, 'ApiUrl', {
       value: api.url,
       description: 'Meal Suggestion API URL',
-    });
+    });*/
   }
 }
