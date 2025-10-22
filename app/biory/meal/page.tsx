@@ -36,6 +36,7 @@ export default function MealPage() {
   const [kondateResult, setKondateResult] = useState<string>('');
   const [kondateLoading, setKondateLoading] = useState<boolean>(false);
   const [showKondateResult, setShowKondateResult] = useState<boolean>(false);
+  const [kondateDebugInfo, setKondateDebugInfo] = useState<any>(null); // AI プロンプトデバッグ情報
   
   // AI献立提案のパース結果
   interface ParsedMeal {
@@ -314,11 +315,58 @@ export default function MealPage() {
     try {
       console.log('🤖 kondateAI呼び出し開始...');
       
-      // ユーザー名を決定（ユーザープロファイルから取得、なければデフォルト）
-      const userName = userProfile.name;
+      // DynamoDBからユーザープロファイルを取得してアレルギー情報を取得
+      let allergiesInfo = "なし";
+      let userName = "ユーザー";
+      
+      if (cognitoUserId) {
+        try {
+          console.log('🔍 DynamoDB UserProfile取得開始... userId:', cognitoUserId);
+          
+          const { data: profiles } = await client.models.UserProfile.list({
+            filter: { userId: { eq: cognitoUserId } }
+          });
+          
+          console.log('📊 取得したプロファイル数:', profiles?.length || 0);
+          
+          if (profiles && profiles.length > 0) {
+            const profile = profiles[0];
+            allergiesInfo = profile.allergies || "なし";
+            userName = profile.name || "ユーザー";
+            
+            console.log('✅ DynamoDBからアレルギー情報を取得:', {
+              userName: userName,
+              allergies: allergiesInfo,
+              profileData: profile
+            });
+          } else {
+            console.log('⚠️ UserProfileが見つかりませんでした');
+          }
+        } catch (dbError) {
+          console.error('❌ DynamoDB取得エラー:', dbError);
+          // エラーの場合はデフォルト値を使用
+        }
+      } else {
+        console.log('⚠️ cognitoUserIdが設定されていません');
+      }
+      
+      // デバッグ情報を作成
+      const debugData = {
+        userName: userName,
+        userId: cognitoUserId,
+        allergies: allergiesInfo,
+        timestamp: new Date().toISOString(),
+        source: 'DynamoDB UserProfile'
+      };
+      
+      setKondateDebugInfo(debugData);
+      console.log('🔍 デバッグ情報を設定:', debugData);
+      
+      console.log('🤖 呼び出しパラメータ:', { userName, allergies: allergiesInfo });
       
       const result = await client.queries.kondateAI({
-        name: userName
+        name: userName,
+        allergies: allergiesInfo
       });
       
       console.log('🤖 kondateAI結果:', result);
@@ -327,11 +375,30 @@ export default function MealPage() {
         console.log('📝 AIからのRawデータ (文字列長):', result.data.length);
         console.log('📝 AIからのRawデータ (最初の500文字):', result.data.substring(0, 500));
         
-        setKondateResult(result.data);
+        // JSONレスポンスをパース
+        let responseData;
+        let markdownContent;
+        try {
+          responseData = JSON.parse(result.data);
+          markdownContent = responseData.response;
+          
+          // デバッグ情報を保存
+          if (responseData.debug) {
+            setKondateDebugInfo(responseData.debug);
+            console.log('🔍 デバッグ情報:', responseData.debug);
+          }
+        } catch (e) {
+          // JSON形式でない場合は、そのままMarkdownとして扱う（後方互換性）
+          console.log('📝 JSON形式ではないため、直接Markdownとして扱います');
+          markdownContent = result.data;
+          responseData = { response: markdownContent, debug: null };
+        }
+        
+        setKondateResult(markdownContent);
         setShowKondateResult(true);
         
         // Markdownをパースして構造化データに変換
-        const parsed = parseKondateMarkdown(result.data);
+        const parsed = parseKondateMarkdown(markdownContent);
         if (parsed) {
           setParsedKondate(parsed);
           console.log('🍽️ パース結果:', parsed);
@@ -346,6 +413,9 @@ export default function MealPage() {
               nutritionPoint: meal.nutritionPoint
             });
           });
+          
+          // AI献立提案の結果をlocalStorageに保存
+          saveAIKondateToStorage(parsed, markdownContent, responseData?.debug);
         } else {
           console.error('❌ パース失敗: parseKondateMarkdownがnullを返しました');
         }
@@ -388,12 +458,30 @@ export default function MealPage() {
     try {
       const today = new Date().toISOString().split('T')[0];
       const storageKey = `meals_${today}`;
+      const aiKondateKey = `ai_kondate_${today}`;
       
       // 古いデータをクリア（過去3日より古いデータを削除）
       clearOldMealData();
       
-      const savedMeals = localStorage.getItem(storageKey);
+      // AI献立提案データの復元
+      const savedAIKondate = localStorage.getItem(aiKondateKey);
+      if (savedAIKondate) {
+        try {
+          const parsed = JSON.parse(savedAIKondate);
+          setParsedKondate(parsed.parsedKondate);
+          setKondateResult(parsed.kondateResult);
+          setShowKondateResult(true);
+          if (parsed.kondateDebugInfo) {
+            setKondateDebugInfo(parsed.kondateDebugInfo);
+          }
+          console.log('保存されたAI献立データを復元しました:', parsed);
+        } catch (parseError) {
+          console.error('AI献立データのパースエラー:', parseError);
+        }
+      }
       
+      // 既存の献立データの復元
+      const savedMeals = localStorage.getItem(storageKey);
       if (savedMeals) {
         const parsedMeals = JSON.parse(savedMeals);
         setMeals(parsedMeals);
@@ -417,6 +505,24 @@ export default function MealPage() {
     }
   };
 
+  // AI献立提案データをlocalStorageに保存する関数
+  const saveAIKondateToStorage = (parsedData: ParsedKondateResult, rawMarkdown: string, debugInfo?: any) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const storageKey = `ai_kondate_${today}`;
+      const dataToSave = {
+        parsedKondate: parsedData,
+        kondateResult: rawMarkdown,
+        kondateDebugInfo: debugInfo,
+        savedAt: new Date().toISOString()
+      };
+      localStorage.setItem(storageKey, JSON.stringify(dataToSave));
+      console.log('AI献立データをlocalStorageに保存しました:', dataToSave);
+    } catch (error) {
+      console.error('AI献立データの保存エラー:', error);
+    }
+  };
+
   // 古い献立データをlocalStorageから削除する関数
   const clearOldMealData = () => {
     try {
@@ -426,8 +532,14 @@ export default function MealPage() {
       // localStorageの全キーをチェック
       for (let i = localStorage.length - 1; i >= 0; i--) {
         const key = localStorage.key(i);
-        if (key && key.startsWith('meals_')) {
-          const dateStr = key.replace('meals_', '');
+        if (key && (key.startsWith('meals_') || key.startsWith('ai_kondate_'))) {
+          let dateStr = '';
+          if (key.startsWith('meals_')) {
+            dateStr = key.replace('meals_', '');
+          } else if (key.startsWith('ai_kondate_')) {
+            dateStr = key.replace('ai_kondate_', '');
+          }
+          
           const itemDate = new Date(dateStr);
           
           // 3日より古いデータは削除
@@ -519,25 +631,6 @@ export default function MealPage() {
       if (profiles.length > 0) {
         return profiles[0];
       }
-      
-      // プロファイルが存在しない場合は基本プロファイルを作成
-      console.log('ユーザープロファイルが見つからないため、基本プロファイルを作成します');
-      const newProfile = await client.models.UserProfile.create({
-        userId: userId,
-        name: "ユーザー",
-        height: 170.0,
-        weight: 65.0,
-        age: 30,
-        gender: "未設定",
-        favoriteFoods: "和食",
-        allergies: "なし",
-        dislikedFoods: "",
-        exerciseFrequency: "週1-2回",
-        exerciseFrequencyOther: ""
-      });
-      
-      console.log('基本プロファイルを作成しました:', newProfile);
-      return newProfile.data;
       
     } catch (error) {
       console.error('ユーザープロファイル取得/作成エラー:', error);
@@ -965,49 +1058,10 @@ export default function MealPage() {
           
           {parsedKondate && (
             <div className={styles.kondateResultContainer}>
-              {/* 配慮したこと・健康アドバイスセクション - 吹き出し形式 */}
-              <div className={styles.adviceSection}>
-                {parsedKondate.considerations.length > 0 && (
-                  <div className={styles.chatContainer}>
-                    <div className={styles.chatMessage}>
-                      <div className={styles.onigiriIcon}>
-                        <img src="/riceicon.png" alt="おにぎり" />
-                      </div>
-                      <div className={styles.speechBubble}>
-                        <div className={styles.speechBubbleContent}>
-                          <strong>配慮したこと</strong>
-                          <ul className={styles.chatList}>
-                            {parsedKondate.considerations.map((item, index) => (
-                              <li key={index}>{item}</li>
-                            ))}
-                          </ul>
-                        </div>
-                        <div className={styles.speechTail}></div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {parsedKondate.healthAdvice && (
-                  <div className={styles.chatContainer}>
-                    <div className={styles.chatMessage}>
-                      <div className={styles.humanIcon}>
-                        <img src="/exercise.png" alt="エクササイズ" />
-                      </div>
-                      <div className={styles.speechBubble}>
-                        <div className={styles.speechBubbleContent}>
-                          <strong>健康アドバイス</strong>
-                          <p className={styles.chatText}>{parsedKondate.healthAdvice}</p>
-                        </div>
-                        <div className={styles.speechTail}></div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* 食事カードセクション */}
-              <div className={styles.aiMealsContainer}>
+              {/* 食事カードと円形カロリー表示セクション */}
+              <div className={styles.mealAndCalorieSection}>
+                {/* 食事カードコンテナ */}
+                <div className={styles.aiMealsContainer}>
                 {parsedKondate.meals.map((meal, index) => {
                   const colors = ['#FF8C42', '#FFA500', '#FF6B35'];
                   const mealColor = colors[index % colors.length];
@@ -1023,15 +1077,10 @@ export default function MealPage() {
                       </div>
                       
                       <div className={styles.aiMealContent}>
-                        <div className={styles.aiDishImage}>
-                          <div className={styles.aiImagePlaceholder}>
-                            <span>🍽️</span>
-                          </div>
-                        </div>
                         
                         <div className={styles.aiMealDetails}>
                           <div className={styles.aiMenuItem}>
-                            <strong>メニュー:</strong> {meal.menu || '未設定'}
+                            <strong>{meal.menu || '未設定'}</strong>
                           </div>
                           
                           <div className={styles.aiNutritionInfo}>
@@ -1082,6 +1131,89 @@ export default function MealPage() {
                     </div>
                   );
                 })}
+                </div>
+                
+                {/* 円形カロリー表示 */}
+                <div className={styles.circularCalorieDisplay}>
+                  {(() => {
+                    const totalCaloriesNum = parseInt(parsedKondate.totalCalories.replace(/[^\d]/g, ''));
+                    const percentage = Math.min((totalCaloriesNum / maxCalories) * 100, 100);
+                    const radius = 80;
+                    const circumference = 2 * Math.PI * radius;
+                    const offset = circumference - (percentage / 100) * circumference;
+                    
+                    return (
+                      <div className={styles.circularProgressWrapper}>
+                        <svg width="200" height="200" className={styles.progressRing}>
+                          <circle
+                            className={styles.progressRingBg}
+                            cx="100"
+                            cy="100"
+                            r={radius}
+                            fill="none"
+                          />
+                          <circle
+                            className={styles.progressRingProgress}
+                            cx="100"
+                            cy="100"
+                            r={radius}
+                            fill="none"
+                            strokeDasharray={circumference}
+                            strokeDashoffset={offset}
+                            transform="rotate(-90 100 100)"
+                          />
+                        </svg>
+                        <div className={styles.progressText}>
+                          <div className={styles.calorieRatioText}>
+                            {parsedKondate.totalCalories}<br />
+                            / {maxCalories} kcal
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+
+              {/* 配慮したこと・健康アドバイスセクション - 吹き出し形式 */}
+              <div className={styles.adviceSection}>
+                {parsedKondate.considerations.length > 0 && (
+                  <div className={styles.chatContainer}>
+                    <div className={styles.chatMessage}>
+                      <div className={styles.onigiriIcon}>
+                        <img src="/riceicon.png" alt="おにぎり" />
+                      </div>
+                      <div className={styles.speechBubble}>
+                        <div className={styles.speechBubbleContent}>
+                          <strong>配慮したこと</strong>
+                          <ul className={styles.chatList}>
+                            {parsedKondate.considerations.map((item, index) => (
+                              <li key={index}>{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div className={styles.speechTail}></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {parsedKondate.healthAdvice && (
+                  <div className={styles.chatContainer}>
+                    <div className={styles.chatMessage}>
+                      <div className={styles.humanIcon}>
+                        <img src="/exercise.png" alt="エクササイズ" />
+                      </div>
+                      <div className={styles.speechBubble}>
+                        <div className={styles.speechBubbleContent}>
+                          <strong>健康アドバイス</strong>
+                          <p className={styles.chatText}>{parsedKondate.healthAdvice}</p>
+                        </div>
+                        <div className={styles.speechTail}></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -1130,6 +1262,75 @@ export default function MealPage() {
 {kondateResult}
                 </pre>
               </details>
+              
+              {kondateDebugInfo && (
+                <details style={{ marginTop: '15px' }} open>
+                  <summary style={{
+                    cursor: 'pointer',
+                    padding: '10px',
+                    backgroundColor: '#e3f2fd',
+                    borderRadius: '4px',
+                    fontWeight: 'bold',
+                    marginBottom: '10px'
+                  }}>
+                    �️ DynamoDBから取得した情報
+                  </summary>
+                  <div style={{
+                    backgroundColor: '#fff',
+                    padding: '15px',
+                    borderRadius: '4px',
+                    border: '2px solid #2196f3',
+                    fontSize: '0.85rem',
+                    lineHeight: '1.5',
+                    margin: '10px 0 0 0'
+                  }}>
+                    <h4 style={{ marginTop: 0, color: '#2196f3' }}>📋 ユーザープロファイル情報</h4>
+                    <pre style={{ 
+                      whiteSpace: 'pre-wrap', 
+                      backgroundColor: '#f9f9f9', 
+                      padding: '15px', 
+                      borderRadius: '4px',
+                      border: '1px solid #ddd',
+                      fontSize: '0.9rem'
+                    }}>
+{`ユーザー名: ${kondateDebugInfo.userName || '不明'}
+ユーザーID: ${kondateDebugInfo.userId || '不明'}
+アレルギー情報: ${kondateDebugInfo.allergies || 'なし'}
+データ取得元: ${kondateDebugInfo.source || 'N/A'}
+取得日時: ${kondateDebugInfo.timestamp ? new Date(kondateDebugInfo.timestamp).toLocaleString('ja-JP') : 'N/A'}`}
+                    </pre>
+                    
+                    <div style={{
+                      marginTop: '15px',
+                      padding: '10px',
+                      backgroundColor: kondateDebugInfo.allergies && kondateDebugInfo.allergies !== 'なし' ? '#fff3e0' : '#e8f5e9',
+                      borderRadius: '4px',
+                      border: `2px solid ${kondateDebugInfo.allergies && kondateDebugInfo.allergies !== 'なし' ? '#ff9800' : '#4caf50'}`
+                    }}>
+                      <strong style={{ color: kondateDebugInfo.allergies && kondateDebugInfo.allergies !== 'なし' ? '#e65100' : '#2e7d32' }}>
+                        {kondateDebugInfo.allergies && kondateDebugInfo.allergies !== 'なし' 
+                          ? `⚠️ アレルギー情報: ${kondateDebugInfo.allergies}`
+                          : '✅ アレルギーなし'}
+                      </strong>
+                    </div>
+                    
+                    {/* Lambda関数からのデバッグ情報（もし存在すれば） */}
+                    {kondateDebugInfo.systemPrompt && (
+                      <>
+                        <h4 style={{ marginTop: '20px', color: '#ff9800' }}>� システムプロンプト</h4>
+                        <pre style={{ whiteSpace: 'pre-wrap', backgroundColor: '#f9f9f9', padding: '10px', borderRadius: '4px', maxHeight: '300px', overflow: 'auto' }}>
+{kondateDebugInfo.systemPrompt}
+                        </pre>
+                        
+                        <h4 style={{ color: '#ff9800' }}>💬 ユーザーメッセージ</h4>
+                        <pre style={{ whiteSpace: 'pre-wrap', backgroundColor: '#f9f9f9', padding: '10px', borderRadius: '4px' }}>
+{kondateDebugInfo.userMessage}
+                        </pre>
+                      </>
+                    )}
+                  </div>
+                </details>
+              )}
               
               {parsedKondate && (
                 <>

@@ -16,6 +16,7 @@ export const schema = a.schema({
     .query()
     .arguments({
       name: a.string(),
+      allergies: a.string(),
     })
     .returns(a.string())
     //.authorization((allow) => [allow.authenticated()]) // 認証ルール追加
