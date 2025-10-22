@@ -845,23 +845,43 @@ export default function MealPage() {
           
           {parsedKondate && (
             <div className={styles.kondateResultContainer}>
-              {/* 配慮したこと・健康アドバイスセクション */}
+              {/* 配慮したこと・健康アドバイスセクション - 吹き出し形式 */}
               <div className={styles.adviceSection}>
                 {parsedKondate.considerations.length > 0 && (
-                  <div className={styles.considerationsBox}>
-                    <h3 className={styles.adviceTitle}>💡 配慮したこと</h3>
-                    <ul className={styles.adviceList}>
-                      {parsedKondate.considerations.map((item, index) => (
-                        <li key={index}>{item}</li>
-                      ))}
-                    </ul>
+                  <div className={styles.chatContainer}>
+                    <div className={styles.chatMessage}>
+                      <div className={styles.onigiriIcon}>
+                        <img src="/riceicon.png" alt="おにぎり" />
+                      </div>
+                      <div className={styles.speechBubble}>
+                        <div className={styles.speechBubbleContent}>
+                          <strong>配慮したこと</strong>
+                          <ul className={styles.chatList}>
+                            {parsedKondate.considerations.map((item, index) => (
+                              <li key={index}>{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div className={styles.speechTail}></div>
+                      </div>
+                    </div>
                   </div>
                 )}
                 
                 {parsedKondate.healthAdvice && (
-                  <div className={styles.healthAdviceBox}>
-                    <h3 className={styles.adviceTitle}>🏥 健康アドバイス</h3>
-                    <p className={styles.adviceText}>{parsedKondate.healthAdvice}</p>
+                  <div className={styles.chatContainer}>
+                    <div className={styles.chatMessage}>
+                      <div className={styles.humanIcon}>
+                        <img src="/exercise.png" alt="エクササイズ" />
+                      </div>
+                      <div className={styles.speechBubble}>
+                        <div className={styles.speechBubbleContent}>
+                          <strong>健康アドバイス</strong>
+                          <p className={styles.chatText}>{parsedKondate.healthAdvice}</p>
+                        </div>
+                        <div className={styles.speechTail}></div>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
