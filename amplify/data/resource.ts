@@ -1,5 +1,9 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
 
+//小澤追記
+import { kondateAIFunctionHandler } from "../backend/function/kondateAI/resource"
+
+
 /*== STEP 1 ===============================================================
 The section below creates a Todo database table with a "content" field. Try
 adding a new "isDone" field as a boolean. The authorization rule below
@@ -7,6 +11,19 @@ specifies that any user authenticated via an API key can "create", "read",
 "update", and "delete" any "Todo" records.
 =========================================================================*/
 export const schema = a.schema({
+  //小澤追記
+  kondateAI: a
+    .query()
+    .arguments({
+      name: a.string(),
+      allergies: a.string(),
+    })
+    .returns(a.string())
+    //.authorization((allow) => [allow.authenticated()]) // 認証ルール追加
+    .authorization((allow) => [allow.publicApiKey()])
+    .handler(a.handler.function(kondateAIFunctionHandler)),
+
+
   // 既存のユーザープロファイルモデル
   UserProfile: a
     .model({
@@ -98,11 +115,25 @@ export const schema = a.schema({
       lunch: a.string(),
       dinner: a.string(),
 
-      // 栄養関連
-      calories: a.integer(),
-      protein: a.float(),
-      fat: a.float(),
-      carbs: a.float(),
+      // 朝食栄養関連
+    　calories_bre: a.integer(),
+    　protein_bre: a.float(),
+    　fat_bre: a.float(),
+    　carbs_bre: a.float(),
+
+    　// 昼食栄養関連
+    　calories_lun: a.integer(),
+    　protein_lun: a.float(),
+    　fat_lun: a.float(),
+    　carbs_lun: a.float(),
+
+    　// 夕食栄養関連
+    　calories_din: a.integer(),
+    　protein_din: a.float(),
+    　fat_din: a.float(),
+    　carbs_din: a.float(),
+
+    
 
       // 健康関連
       condition: a.string(),

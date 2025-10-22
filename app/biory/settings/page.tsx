@@ -64,9 +64,9 @@ export default function SettingsPage() {
   // 運動頻度の選択肢
   const exerciseOptions = [
     { value: "ほとんど運動しない", label: "ほとんど運動しない" },
-    { value: "週1〜3回の軽い運動", label: "週1〜3回の軽い運動" },
-    { value: "週3〜5回の中程度の運動", label: "週3〜5回の中程度の運動" },
-    { value: "週6〜7回の激しい運動", label: "週6〜7回の激しい運動" },
+    { value: "週1〜3回の軽い運動", label: "週1〜3回の運動" },
+    { value: "週3〜5回の中程度の運動", label: "週3〜5回の運動" },
+    { value: "週6〜7回の激しい運動", label: "週6〜7回の運動" },
     { value: "毎日2回の運動や肉体労働", label: "毎日2回の運動や肉体労働" },
   ];
  
@@ -420,10 +420,6 @@ export default function SettingsPage() {
             <div className="user-info-row">
               <span className="user-info-label">ID（メールアドレス）：</span>
               <span className="user-info-value">{userEmail || "読み込み中..."}</span>
-            </div>
-            <div className="user-info-row">
-              <span className="user-info-label">ユーザーID：</span>
-              <span className="user-info-value">{currentUserId || "読み込み中..."}</span>
             </div>
           </div>
         </section>
