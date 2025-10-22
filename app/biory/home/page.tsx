@@ -869,6 +869,81 @@ export default function HomePage() {
     }));
   };
 
+  // 食事分析API呼び出し関数
+  const analyzeMealWithAPI = async (mealType: string, mealContent: string) => {
+    try {
+      if (!mealContent || mealContent.trim() === "" || mealContent === "—") {
+        return { calories: 0, protein: 0, fat: 0, carbs: 0 };
+      }
+
+      // 食材を分割
+      const mealItems = mealContent.split(/[、,，]+/).map(item => item.trim()).filter(item => item);
+      
+      console.log(`${mealType}の分析開始:`, mealItems);
+      
+      // GraphQL mealAnalysis クエリを呼び出し
+      const result = await client.queries.mealAnalysis({ mealItems });
+      
+      console.log(`${mealType}のAPI応答:`, result);
+      
+      if (result.data) {
+        console.log(`${mealType}の生データ:`, result.data);
+        console.log(`データ型: ${typeof result.data}`);
+        
+        // 文字列の場合は最初の100文字を表示
+        if (typeof result.data === 'string') {
+          console.log(`${mealType}の文字列データ（最初の100文字）:`, result.data.substring(0, 100));
+        }
+        
+        let analysisResult;
+        
+        // result.dataが文字列の場合はJSON.parse、オブジェクトの場合はそのまま使用
+        if (typeof result.data === 'string') {
+          console.log(`${mealType}: 文字列をパース中...`);
+          try {
+            analysisResult = JSON.parse(result.data);
+            console.log(`${mealType}: パース成功`);
+          } catch (parseError) {
+            console.error(`${mealType}: JSON.parseエラー:`, parseError);
+            console.error(`${mealType}: パース失敗した文字列:`, result.data);
+            throw parseError;
+          }
+        } else if (typeof result.data === 'object') {
+          console.log(`${mealType}: オブジェクトをそのまま使用`);
+          analysisResult = result.data;
+        } else {
+          console.error(`${mealType}: 予期しないデータ型:`, typeof result.data);
+          throw new Error(`予期しないデータ型: ${typeof result.data}`);
+        }
+        
+        console.log(`${mealType}の分析結果:`, analysisResult);
+        
+        // エラーチェック
+        if (analysisResult.error) {
+          console.error(`${mealType}でAPIエラー:`, analysisResult.error);
+          // FoodNutritionでフォールバック
+          return await calculateNutritionFromMeals([mealContent]);
+        }
+        
+        return {
+          calories: Math.round(analysisResult.totalCalories || 0),
+          protein: Math.round((analysisResult.totalProtein || 0) * 10) / 10,
+          fat: Math.round((analysisResult.totalFat || 0) * 10) / 10,
+          carbs: Math.round((analysisResult.totalCarbs || 0) * 10) / 10,
+        };
+      }
+    } catch (error) {
+      console.error(`${mealType}のmealAnalysis呼び出しエラー:`, error);
+      // エラー時はFoodNutritionでフォールバック
+      console.log(`${mealType}: FoodNutritionでフォールバック計算`);
+      return await calculateNutritionFromMeals([mealContent]);
+    }
+    
+    // エラー時はFoodNutritionでフォールバック
+    console.log(`${mealType}: デフォルト値でフォールバック`);
+    return await calculateNutritionFromMeals([mealContent]);
+  };
+
   const handleMealSave = async () => {
     try {
       console.log("=== handleMealSave 開始 ===");
@@ -878,10 +953,53 @@ export default function HomePage() {
       const dateString = getCurrentDateString();
       console.log("保存対象日付:", dateString);
       
-      // 各食事の栄養価を個別に計算
-      const breakfastNutrition = mealEditData.breakfast ? await calculateNutritionFromMeals([mealEditData.breakfast]) : { calories: 0, protein: 0, fat: 0, carbs: 0 };
-      const lunchNutrition = mealEditData.lunch ? await calculateNutritionFromMeals([mealEditData.lunch]) : { calories: 0, protein: 0, fat: 0, carbs: 0 };
-      const dinnerNutrition = mealEditData.dinner ? await calculateNutritionFromMeals([mealEditData.dinner]) : { calories: 0, protein: 0, fat: 0, carbs: 0 };
+      // 既存レコード取得
+      const { data: dailyRecords } = await client.models.DailyRecord.list();
+      const todayMealRecord = dailyRecords?.find(record => 
+        record.userId === cognitoUserId && record.date === dateString
+      );
+      
+      // 変更検出
+      const changedMeals: { type: 'breakfast' | 'lunch' | 'dinner', content: string }[] = [];
+      
+      if (mealEditData.breakfast !== mealData.breakfast) {
+        changedMeals.push({ type: 'breakfast', content: mealEditData.breakfast });
+      }
+      if (mealEditData.lunch !== mealData.lunch) {
+        changedMeals.push({ type: 'lunch', content: mealEditData.lunch });
+      }
+      if (mealEditData.dinner !== mealData.dinner) {
+        changedMeals.push({ type: 'dinner', content: mealEditData.dinner });
+      }
+      
+      // 既存栄養価保持
+      let breakfastNutrition = {
+        calories: todayMealRecord?.calories_bre || 0,
+        protein: todayMealRecord?.protein_bre || 0,
+        fat: todayMealRecord?.fat_bre || 0,
+        carbs: todayMealRecord?.carbs_bre || 0,
+      };
+      let lunchNutrition = {
+        calories: todayMealRecord?.calories_lun || 0,
+        protein: todayMealRecord?.protein_lun || 0,
+        fat: todayMealRecord?.fat_lun || 0,
+        carbs: todayMealRecord?.carbs_lun || 0,
+      };
+      let dinnerNutrition = {
+        calories: todayMealRecord?.calories_din || 0,
+        protein: todayMealRecord?.protein_din || 0,
+        fat: todayMealRecord?.fat_din || 0,
+        carbs: todayMealRecord?.carbs_din || 0,
+      };
+      
+      // 変更部分のみmealAnalysis実行
+      for (const meal of changedMeals) {
+        const nutrition = await analyzeMealWithAPI(meal.type, meal.content);
+        
+        if (meal.type === 'breakfast') breakfastNutrition = nutrition;
+        else if (meal.type === 'lunch') lunchNutrition = nutrition;
+        else if (meal.type === 'dinner') dinnerNutrition = nutrition;
+      }
       
       console.log("個別栄養価:", {
         breakfast: breakfastNutrition,
@@ -889,13 +1007,7 @@ export default function HomePage() {
         dinner: dinnerNutrition
       });
       
-      // DailyRecordテーブルから今日の食事データを検索
-      const { data: dailyRecords } = await client.models.DailyRecord.list();
-      console.log("DailyRecord検索結果:", dailyRecords?.length || 0, "件");
-      
-      const todayMealRecord = dailyRecords?.find(record => 
-        record.userId === cognitoUserId && record.date === dateString
-      );
+
       
       console.log("既存レコード:", todayMealRecord);
 

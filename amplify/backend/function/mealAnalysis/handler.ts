@@ -66,16 +66,54 @@ ${mealItems.map((item: string) => `- ${item}`).join('\n')}
     const result = JSON.parse(new TextDecoder().decode(response.body));
     const aiResponse = result.content[0].text;
 
+    console.log('=== AI応答（生データ）===');
+    console.log('型:', typeof aiResponse);
+    console.log('内容:', aiResponse);
+    console.log('最初の200文字:', aiResponse.substring(0, 200));
+
     // JSONを抽出
     const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
+      console.log('JSON抽出成功:', jsonMatch[0].substring(0, 200));
+      try {
+        const parsedData = JSON.parse(jsonMatch[0]);
+        console.log('解析成功:', parsedData);
+        const jsonString = JSON.stringify(parsedData);
+        console.log('返却するJSON文字列:', jsonString);
+        // JSON文字列として返す
+        return jsonString;
+      } catch (parseError) {
+        console.error('JSON解析エラー:', parseError);
+        console.error('解析失敗した文字列:', jsonMatch[0]);
+        return JSON.stringify({
+          totalCalories: 0,
+          totalProtein: 0,
+          totalFat: 0,
+          totalCarbs: 0,
+          error: `JSON解析エラー: ${parseError}`
+        });
+      }
     }
 
-    return aiResponse;
+    // JSONが見つからない場合はエラー
+    console.error('JSON形式のレスポンスが見つかりません:', aiResponse);
+    return JSON.stringify({
+      totalCalories: 0,
+      totalProtein: 0,
+      totalFat: 0,
+      totalCarbs: 0,
+      error: 'JSON形式のレスポンスが見つかりませんでした'
+    });
     
   } catch (error) {
     console.error('Error:', error);
-    return `食事分析AI エラー: ${error}`;
+    // エラー時もJSON文字列で返す
+    return JSON.stringify({
+      totalCalories: 0,
+      totalProtein: 0,
+      totalFat: 0,
+      totalCarbs: 0,
+      error: `食事分析AI エラー: ${error}`
+    });
   }
 };
