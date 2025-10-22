@@ -90,9 +90,9 @@
 .saveButton {
   flex: 1;
   padding: 16px 32px;
-  background: white;
-  color: #666666;
-  border: 6px solid #FFD700;
+  background: #B0E0E6;
+  color: #2F4F4F;
+  border: none;
   border-radius: 12px;
   font-size: 1.2rem;
   font-weight: 600;
@@ -102,12 +102,13 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  box-shadow: 0 4px 12px rgba(176, 224, 230, 0.3);
 }
 
 .saveButton:hover:not(:disabled) {
-  background: #FFF8DC;
+  background: #6da8c0;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+  box-shadow: 0 6px 18px rgba(176, 224, 230, 0.4);
 }
 
 .saveButton:disabled {
@@ -258,6 +259,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 30px;
+  margin-bottom: 40px;
 }
 
 /* AI食事カード */
@@ -538,21 +540,6 @@
   gap: 20px;
   max-width: 500px;
 }
- 
-.regenerateButton,
-.saveButton {
-  min-width: 180px;
-  padding: 20px 32px;
-  border: 2px solid transparent; /* デフォルトでは透明なボーダー */
-  border-radius: 12px;
-  font-size: 1.2rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex; /* フレックスボックスで中央揃え */
-  align-items: center; /* 垂直方向の中央揃え */
-  justify-content: center; /* 水平方向の中央揃え */
-}
 
 .buttonIcon {
   font-size: 1.8rem; /* アイコンのサイズを倍に */
@@ -565,10 +552,8 @@
 }
  
 
-.regenerateButton {
-  background: white; /* 背景を白に */
-  color: #666666; /* 文字色を灰色に */
-  border: 12px solid #FFD700; /* 縁を黄色に（太さを倍の12pxに） */
+
+
 
 /* レスポンシブデザイン - モバイル対応 */
 @media (max-width: 768px) {
@@ -620,30 +605,15 @@
     font-size: 0.9rem;
   }
 }
-}
 
-.regenerateButton:hover {
-  background: #FFF8DC; /* ホバー時は背景を薄い黄色に */
-  color: #666666; /* 文字色は灰色のまま */
-  border: 12px solid #FFD700; /* ホバー時も縁は同じ黄色に（太さ12px） */
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3); /* 黄色の影 */
-}
+
 
 .saveButton {
-  background: white; /* 背景を白に */
-  color: #666666; /* 文字色を灰色に */
-  border: 12px solid #FFD700; /* 縁を黄色に（太さを倍の12pxに） */
+  background: #78c8e7; /* 背景を白に */
+  color: #f6f3f3; /* 文字色を灰色に */
 }
 
-.saveButton:hover {
-  background: #FFF8DC; /* ホバー時は背景を薄い黄色に */
-  color: #666666; /* 文字色は灰色のまま */
-  border: 12px solid #FFD700; /* ホバー時も縁は同じ黄色に（太さ12px） */
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3); /* 黄色の影 */
-}/* PC画面専用設定 - レスポンシブ削除 */
-/* 全ての画面サイズでPC表示を適用 */
+
  
 /* 小画面でもPC表示を維持（必要に応じて微調整のみ） */
 @media (max-width: 768px) {

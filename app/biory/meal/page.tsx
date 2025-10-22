@@ -841,47 +841,6 @@ export default function MealPage() {
           
           {parsedKondate && (
             <div className={styles.kondateResultContainer}>
-              {/* 配慮したこと・健康アドバイスセクション - 吹き出し形式 */}
-              <div className={styles.adviceSection}>
-                {parsedKondate.considerations.length > 0 && (
-                  <div className={styles.chatContainer}>
-                    <div className={styles.chatMessage}>
-                      <div className={styles.onigiriIcon}>
-                        <img src="/riceicon.png" alt="おにぎり" />
-                      </div>
-                      <div className={styles.speechBubble}>
-                        <div className={styles.speechBubbleContent}>
-                          <strong>配慮したこと</strong>
-                          <ul className={styles.chatList}>
-                            {parsedKondate.considerations.map((item, index) => (
-                              <li key={index}>{item}</li>
-                            ))}
-                          </ul>
-                        </div>
-                        <div className={styles.speechTail}></div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {parsedKondate.healthAdvice && (
-                  <div className={styles.chatContainer}>
-                    <div className={styles.chatMessage}>
-                      <div className={styles.humanIcon}>
-                        <img src="/exercise.png" alt="エクササイズ" />
-                      </div>
-                      <div className={styles.speechBubble}>
-                        <div className={styles.speechBubbleContent}>
-                          <strong>健康アドバイス</strong>
-                          <p className={styles.chatText}>{parsedKondate.healthAdvice}</p>
-                        </div>
-                        <div className={styles.speechTail}></div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
               {/* 食事カードセクション */}
               <div className={styles.aiMealsContainer}>
                 {parsedKondate.meals.map((meal, index) => {
@@ -899,15 +858,10 @@ export default function MealPage() {
                       </div>
                       
                       <div className={styles.aiMealContent}>
-                        <div className={styles.aiDishImage}>
-                          <div className={styles.aiImagePlaceholder}>
-                            <span>🍽️</span>
-                          </div>
-                        </div>
                         
                         <div className={styles.aiMealDetails}>
                           <div className={styles.aiMenuItem}>
-                            <strong>メニュー:</strong> {meal.menu || '未設定'}
+                            <strong>{meal.menu || '未設定'}</strong>
                           </div>
                           
                           <div className={styles.aiNutritionInfo}>
@@ -958,6 +912,47 @@ export default function MealPage() {
                     </div>
                   );
                 })}
+              </div>
+
+              {/* 配慮したこと・健康アドバイスセクション - 吹き出し形式 */}
+              <div className={styles.adviceSection}>
+                {parsedKondate.considerations.length > 0 && (
+                  <div className={styles.chatContainer}>
+                    <div className={styles.chatMessage}>
+                      <div className={styles.onigiriIcon}>
+                        <img src="/riceicon.png" alt="おにぎり" />
+                      </div>
+                      <div className={styles.speechBubble}>
+                        <div className={styles.speechBubbleContent}>
+                          <strong>配慮したこと</strong>
+                          <ul className={styles.chatList}>
+                            {parsedKondate.considerations.map((item, index) => (
+                              <li key={index}>{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div className={styles.speechTail}></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {parsedKondate.healthAdvice && (
+                  <div className={styles.chatContainer}>
+                    <div className={styles.chatMessage}>
+                      <div className={styles.humanIcon}>
+                        <img src="/exercise.png" alt="エクササイズ" />
+                      </div>
+                      <div className={styles.speechBubble}>
+                        <div className={styles.speechBubbleContent}>
+                          <strong>健康アドバイス</strong>
+                          <p className={styles.chatText}>{parsedKondate.healthAdvice}</p>
+                        </div>
+                        <div className={styles.speechTail}></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
