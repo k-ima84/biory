@@ -44,8 +44,5 @@ export const kondateAIFunctionHandler = defineFunction(
     );
 
     return lambdaFunction;
-  },
-    {
-      resourceGroupName: "auth" // Optional: Groups this function with auth resource
-    }
+  }
 );

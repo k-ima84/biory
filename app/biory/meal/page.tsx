@@ -535,13 +535,6 @@ export default function MealPage() {
         <header className={styles.header}>
           <h1 className={styles.title}>今日のあなたにぴったりの献立</h1>
           <p className={styles.date}>{getTodayDate()}</p>
-          {/* ↓削除予定-------------------------------- */}
-          {cognitoUserId && (
-            <div className={styles.cognitoInfo}>
-              <div className={styles.cognitoId}>CognitoID: {cognitoUserId}</div>
-            </div>
-          )}
-          {/* ↑削除予定-------------------------------- */}
         </header>
 
 
