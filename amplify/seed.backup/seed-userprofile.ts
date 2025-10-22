@@ -85,7 +85,7 @@ export const seedUserProfileData = async () => {
 
     // 既存データの重複チェック
     const existingProfiles = await client.models.UserProfile.list();
-    const existingUserIds = new Set(existingProfiles.data.map(profile => profile.userId));
+    const existingUserIds = new Set(existingProfiles.data.map((profile: any) => profile.userId));
     
     let addedCount = 0;
     let skippedCount = 0;
@@ -176,7 +176,7 @@ export const showUserProfileData = async () => {
     log.success(`👥 登録されているUserProfile: ${allProfiles.data.length}件`);
     console.log('\n========================================');
     
-    allProfiles.data.forEach((profile, index) => {
+    allProfiles.data.forEach((profile: any, index: number) => {
       console.log(`\n${index + 1}. ${profile.name}`);
       console.log(`   🆔 ユーザーID: ${profile.userId}`);
       console.log(`   👤 性別: ${profile.gender}`);

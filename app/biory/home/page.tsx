@@ -388,7 +388,7 @@ export default function HomePage() {
     try {
       const { data: dailyRecords } = await client.models.DailyRecord.list();
       // 健康データのレコードを検索
-      const todayHealthRecord = dailyRecords?.find(record => 
+      const todayHealthRecord = dailyRecords?.find((record: any) => 
         record.userId === cognitoUserId && record.date === dateString
       );
 

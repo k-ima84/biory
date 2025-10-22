@@ -20,8 +20,9 @@
     ],
     "paths": {
       "@/*": ["./*"]
-    }
+    },
+    "types": ["node"]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "amplify/seed.backup/test-db-connection.ts.backup"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules", "amplify"]
 }
