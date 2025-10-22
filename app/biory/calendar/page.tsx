@@ -59,6 +59,11 @@ export default function CalendarPage() {
     try {
       const userInfo = await fetchCognitoUserInfo();
       setCurrentUserId(userInfo.userId);
+      
+      console.log('Calendar - Cognito User Info:', {
+        userId: userInfo.userId,
+        email: userInfo.email
+      });
     } catch (error) {
       console.error('認証エラー:', error);
       router.push("/biory/login");

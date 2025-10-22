@@ -206,7 +206,10 @@ export default function MealPage() {
       const userInfo = await fetchCognitoUserInfo();
       setCognitoUserId(userInfo.userId);
       
-      console.log('Meal Page - Cognito User ID:', userInfo.userId);
+      console.log('Meal - Cognito User Info:', {
+        userId: userInfo.userId,
+        email: userInfo.email
+      });
 
       // ユーザープロファイルを取得
       const profile = await getUserProfile(userInfo.userId);
