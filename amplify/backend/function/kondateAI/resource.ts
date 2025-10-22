@@ -19,10 +19,12 @@ export const kondateAIFunctionHandler = defineFunction(
           image: DockerImage.fromRegistry("dummy"), // replace with desired image from AWS ECR Public Gallery
           local: {
             tryBundle(outputDir: string) {
-              execSync(
-                `python3 -m pip install -r ${path.join(functionDir, "requirements.txt")} -t ${path.join(outputDir)} --platform manylinux2014_x86_64 --only-binary=:all:`
-              );
-              execSync(`cp -r ${functionDir}/* ${path.join(outputDir)}`);
+              const isWindows = process.platform === "win32";
+              const copyCmd = isWindows 
+                ? `xcopy "${functionDir}" "${outputDir}" /E /I /Y` 
+                : `cp -r ${functionDir}/* ${outputDir}`;
+              
+              execSync(copyCmd);
               return true;
             },
           },
