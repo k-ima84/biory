@@ -102,11 +102,11 @@ export default function HomePage() {
     switch (exerciseFrequency) {
       case "ほとんど運動しない":
         return 1.2;
-      case "週1〜3回の軽い運動":
+      case "週1〜3回の運動":
         return 1.375;
-      case "週3〜5回の中程度の運動":
+      case "週3〜5回の運動":
         return 1.55;
-      case "週6〜7回の激しい運動":
+      case "週6〜7回の運動":
         return 1.725;
       case "毎日2回の運動や肉体労働":
         return 1.9;

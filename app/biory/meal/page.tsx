@@ -545,7 +545,7 @@ export default function MealPage() {
     }
   };
 
-  // 献立を保存する関数
+  // 献立を保存する関数（PFCデータ対応版）
   const saveMealPlan = async () => {
     // AI献立提案データまたは既存のmealsデータをチェック
     if (!parsedKondate && (!meals || meals.length === 0)) {
@@ -563,54 +563,105 @@ export default function MealPage() {
       const user = await getCurrentUser();
       const currentUserId = user.userId;
 
-      // 各食事の内容を準備
+      // 各食事の内容と栄養価を準備
       const mealData: any = {
         breakfast: '',
         lunch: '',
-        dinner: ''
+        dinner: '',
+        // 朝食栄養データ
+        calories_bre: 0,
+        protein_bre: 0,
+        fat_bre: 0,
+        carbs_bre: 0,
+        // 昼食栄養データ
+        calories_lun: 0,
+        protein_lun: 0,
+        fat_lun: 0,
+        carbs_lun: 0,
+        // 夕食栄養データ
+        calories_din: 0,
+        protein_din: 0,
+        fat_din: 0,
+        carbs_din: 0,
       };
 
       // AI献立提案データがある場合はそれを使用
       if (parsedKondate && parsedKondate.meals) {
+        console.log("AI献立データから食事内容と栄養価を抽出中...");
+        
         parsedKondate.meals.forEach((meal) => {
-          // メニュー名と食材を組み合わせて保存
-          let dishText = meal.menu;
-          if (meal.ingredients.length > 0) {
-            dishText += ` (${meal.ingredients.slice(0, 3).join(', ')})`;
-          }
+          // 料理名のみを保存（食材名は含めない）
+          const dishText = meal.menu;
+          
+          // カロリーと栄養価を数値に変換
+          const calories = parseFloat(meal.calories.replace(/[^\d.]/g, '')) || 0;
+          const protein = parseFloat(meal.nutrition.protein) || 0;
+          const fat = parseFloat(meal.nutrition.fat) || 0;
+          const carbs = parseFloat(meal.nutrition.carbs) || 0;
+          
+          console.log(`${meal.mealType} 栄養価:`, { calories, protein, fat, carbs });
           
           switch (meal.mealType) {
             case '朝食':
               mealData.breakfast = dishText;
+              mealData.calories_bre = Math.round(calories);
+              mealData.protein_bre = Math.round(protein * 10) / 10;
+              mealData.fat_bre = Math.round(fat * 10) / 10;
+              mealData.carbs_bre = Math.round(carbs * 10) / 10;
               break;
             case '昼食':
               mealData.lunch = dishText;
+              mealData.calories_lun = Math.round(calories);
+              mealData.protein_lun = Math.round(protein * 10) / 10;
+              mealData.fat_lun = Math.round(fat * 10) / 10;
+              mealData.carbs_lun = Math.round(carbs * 10) / 10;
               break;
             case '夕食':
               mealData.dinner = dishText;
+              mealData.calories_din = Math.round(calories);
+              mealData.protein_din = Math.round(protein * 10) / 10;
+              mealData.fat_din = Math.round(fat * 10) / 10;
+              mealData.carbs_din = Math.round(carbs * 10) / 10;
               break;
           }
         });
       } else if (meals) {
-        // 既存のmealsデータを使用
-        meals.forEach((meal) => {
+        // 既存のmealsデータを使用（栄養価は自動計算）
+        console.log("既存献立データから食事内容を抽出中...");
+        
+        for (const meal of meals) {
           const dishesText = meal.dishes.join(', ');
+          
+          // 栄養価を自動計算（FoodNutritionから検索）
+          const nutrition = await calculateNutritionFromMeals(meal.dishes);
           
           switch (meal.mealType) {
             case '朝食':
               mealData.breakfast = dishesText;
+              mealData.calories_bre = nutrition.calories;
+              mealData.protein_bre = nutrition.protein;
+              mealData.fat_bre = nutrition.fat;
+              mealData.carbs_bre = nutrition.carbs;
               break;
             case '昼食':
               mealData.lunch = dishesText;
+              mealData.calories_lun = nutrition.calories;
+              mealData.protein_lun = nutrition.protein;
+              mealData.fat_lun = nutrition.fat;
+              mealData.carbs_lun = nutrition.carbs;
               break;
             case '夕食':
               mealData.dinner = dishesText;
+              mealData.calories_din = nutrition.calories;
+              mealData.protein_din = nutrition.protein;
+              mealData.fat_din = nutrition.fat;
+              mealData.carbs_din = nutrition.carbs;
               break;
           }
-        });
+        }
       }
 
-      console.log('献立保存開始:', { userId: currentUserId, date: today, mealData });
+      console.log('保存予定データ:', mealData);
 
       // 既存の記録があるかチェック
       const { data: existingRecords } = await client.models.DailyRecord.list({
@@ -624,15 +675,31 @@ export default function MealPage() {
 
       if (existingRecords && existingRecords.length > 0) {
         // 既存記録を更新
+        console.log("既存記録を更新します");
+        
         const updateData: any = { id: existingRecords[0].id };
         
-        // 空でない食事データのみを更新
+        // 食事データを更新
         if (mealData.breakfast) updateData.breakfast = mealData.breakfast;
         if (mealData.lunch) updateData.lunch = mealData.lunch;
         if (mealData.dinner) updateData.dinner = mealData.dinner;
         
+        // 栄養データを更新
+        updateData.calories_bre = mealData.calories_bre;
+        updateData.protein_bre = mealData.protein_bre;
+        updateData.fat_bre = mealData.fat_bre;
+        updateData.carbs_bre = mealData.carbs_bre;
+        updateData.calories_lun = mealData.calories_lun;
+        updateData.protein_lun = mealData.protein_lun;
+        updateData.fat_lun = mealData.fat_lun;
+        updateData.carbs_lun = mealData.carbs_lun;
+        updateData.calories_din = mealData.calories_din;
+        updateData.protein_din = mealData.protein_din;
+        updateData.fat_din = mealData.fat_din;
+        updateData.carbs_din = mealData.carbs_din;
+        
         await client.models.DailyRecord.update(updateData);
-        console.log('既存の記録を更新しました:', updateData);
+        console.log("既存記録の更新完了:", updateData);
       } else {
         // 新規記録を作成
         const newRecord = {
@@ -640,12 +707,25 @@ export default function MealPage() {
           date: today,
           ...mealData
         };
+        console.log("新規記録を作成します:", newRecord);
         
         await client.models.DailyRecord.create(newRecord);
-        console.log('新規記録を作成しました:', newRecord);
+        console.log("新規記録の作成完了");
       }
 
-      alert('献立を保存しました！');
+      // 保存成功の詳細表示
+      const totalCalories = mealData.calories_bre + mealData.calories_lun + mealData.calories_din;
+      const totalProtein = mealData.protein_bre + mealData.protein_lun + mealData.protein_din;
+      const totalFat = mealData.fat_bre + mealData.fat_lun + mealData.fat_din;
+      const totalCarbs = mealData.carbs_bre + mealData.carbs_lun + mealData.carbs_din;
+      
+      alert(`献立を保存しました！\n\n` +
+            `📊 保存された栄養価:\n` +
+            `カロリー: ${totalCalories}kcal\n` +
+            `たんぱく質: ${Math.round(totalProtein * 10) / 10}g\n` +
+            `脂質: ${Math.round(totalFat * 10) / 10}g\n` +
+            `炭水化物: ${Math.round(totalCarbs * 10) / 10}g\n\n` +
+            `ホーム画面で確認できます。`);
       
     } catch (error) {
       console.error('献立保存エラー:', error);
@@ -653,6 +733,50 @@ export default function MealPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // 栄養価自動計算関数（FoodNutritionから検索）
+  const calculateNutritionFromMeals = async (dishes: string[]) => {
+    let totalCalories = 0;
+    let totalProtein = 0;
+    let totalFat = 0;
+    let totalCarbs = 0;
+    
+    for (const dish of dishes) {
+      if (dish && dish.trim() !== "") {
+        try {
+          // FoodNutritionデータベースから検索
+          const { data: foods } = await client.models.FoodNutrition.list();
+          const matchedFood = foods?.find(food => 
+            food.foodName?.includes(dish) || dish.includes(food.foodName || '')
+          );
+          
+          if (matchedFood) {
+            totalCalories += matchedFood.energyKcal || 0;
+            totalProtein += matchedFood.protein || 0;
+            totalFat += matchedFood.fat || 0;
+            totalCarbs += matchedFood.carbs || 0;
+            console.log(`栄養価検索成功: ${dish} -> ${matchedFood.energyKcal}kcal`);
+          } else {
+            console.log(`栄養価未発見: ${dish}`);
+            // デフォルト値（推定）
+            totalCalories += 200;
+            totalProtein += 10;
+            totalFat += 5;
+            totalCarbs += 30;
+          }
+        } catch (error) {
+          console.error(`栄養価計算エラー (${dish}):`, error);
+        }
+      }
+    }
+    
+    return {
+      calories: Math.round(totalCalories),
+      protein: Math.round(totalProtein * 10) / 10,
+      fat: Math.round(totalFat * 10) / 10,
+      carbs: Math.round(totalCarbs * 10) / 10,
+    };
   };
 
   // 献立再生成ボタン押下時の処理
