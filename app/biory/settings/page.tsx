@@ -421,10 +421,6 @@ export default function SettingsPage() {
               <span className="user-info-label">ID（メールアドレス）：</span>
               <span className="user-info-value">{userEmail || "読み込み中..."}</span>
             </div>
-            <div className="user-info-row">
-              <span className="user-info-label">ユーザーID：</span>
-              <span className="user-info-value">{currentUserId || "読み込み中..."}</span>
-            </div>
           </div>
         </section>
  
