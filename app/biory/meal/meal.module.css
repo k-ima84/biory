@@ -136,6 +136,12 @@
   margin-top: 30px;
 }
 
+/* 食事カードと円形カロリー表示のセクション */
+.mealAndCalorieSection {
+  position: relative;
+  width: 100%;
+}
+
 /* 配慮したこと・健康アドバイスセクション - 吹き出し形式 */
 .adviceSection {
   display: flex;
@@ -258,6 +264,51 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 30px;
+}
+
+/* 円形カロリー表示 */
+.circularCalorieDisplay {
+  position: absolute;
+  right: -220px;
+  top: 0;
+  z-index: 10;
+}
+
+.circularProgressWrapper {
+  position: relative;
+  width: 200px;
+  height: 200px;
+}
+
+.progressRing {
+  transform: rotate(0deg);
+}
+
+.progressRingBg {
+  stroke: #E5E5E5;
+  stroke-width: 12;
+}
+
+.progressRingProgress {
+  stroke: #4A90E2;
+  stroke-width: 12;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.8s ease-in-out;
+}
+
+.progressText {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.calorieRatioText {
+  font-size: 1rem;
+  color: #6f6b68;
+  line-height: 1.5;
+  font-weight: 600;
 }
 
 /* AI食事カード */

@@ -391,6 +391,7 @@ export default function MealPage() {
           // JSON形式でない場合は、そのままMarkdownとして扱う（後方互換性）
           console.log('📝 JSON形式ではないため、直接Markdownとして扱います');
           markdownContent = result.data;
+          responseData = { response: markdownContent, debug: null };
         }
         
         setKondateResult(markdownContent);
@@ -412,6 +413,9 @@ export default function MealPage() {
               nutritionPoint: meal.nutritionPoint
             });
           });
+          
+          // AI献立提案の結果をlocalStorageに保存
+          saveAIKondateToStorage(parsed, markdownContent, responseData?.debug);
         } else {
           console.error('❌ パース失敗: parseKondateMarkdownがnullを返しました');
         }
@@ -454,12 +458,30 @@ export default function MealPage() {
     try {
       const today = new Date().toISOString().split('T')[0];
       const storageKey = `meals_${today}`;
+      const aiKondateKey = `ai_kondate_${today}`;
       
       // 古いデータをクリア（過去3日より古いデータを削除）
       clearOldMealData();
       
-      const savedMeals = localStorage.getItem(storageKey);
+      // AI献立提案データの復元
+      const savedAIKondate = localStorage.getItem(aiKondateKey);
+      if (savedAIKondate) {
+        try {
+          const parsed = JSON.parse(savedAIKondate);
+          setParsedKondate(parsed.parsedKondate);
+          setKondateResult(parsed.kondateResult);
+          setShowKondateResult(true);
+          if (parsed.kondateDebugInfo) {
+            setKondateDebugInfo(parsed.kondateDebugInfo);
+          }
+          console.log('保存されたAI献立データを復元しました:', parsed);
+        } catch (parseError) {
+          console.error('AI献立データのパースエラー:', parseError);
+        }
+      }
       
+      // 既存の献立データの復元
+      const savedMeals = localStorage.getItem(storageKey);
       if (savedMeals) {
         const parsedMeals = JSON.parse(savedMeals);
         setMeals(parsedMeals);
@@ -483,6 +505,24 @@ export default function MealPage() {
     }
   };
 
+  // AI献立提案データをlocalStorageに保存する関数
+  const saveAIKondateToStorage = (parsedData: ParsedKondateResult, rawMarkdown: string, debugInfo?: any) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const storageKey = `ai_kondate_${today}`;
+      const dataToSave = {
+        parsedKondate: parsedData,
+        kondateResult: rawMarkdown,
+        kondateDebugInfo: debugInfo,
+        savedAt: new Date().toISOString()
+      };
+      localStorage.setItem(storageKey, JSON.stringify(dataToSave));
+      console.log('AI献立データをlocalStorageに保存しました:', dataToSave);
+    } catch (error) {
+      console.error('AI献立データの保存エラー:', error);
+    }
+  };
+
   // 古い献立データをlocalStorageから削除する関数
   const clearOldMealData = () => {
     try {
@@ -492,8 +532,14 @@ export default function MealPage() {
       // localStorageの全キーをチェック
       for (let i = localStorage.length - 1; i >= 0; i--) {
         const key = localStorage.key(i);
-        if (key && key.startsWith('meals_')) {
-          const dateStr = key.replace('meals_', '');
+        if (key && (key.startsWith('meals_') || key.startsWith('ai_kondate_'))) {
+          let dateStr = '';
+          if (key.startsWith('meals_')) {
+            dateStr = key.replace('meals_', '');
+          } else if (key.startsWith('ai_kondate_')) {
+            dateStr = key.replace('ai_kondate_', '');
+          }
+          
           const itemDate = new Date(dateStr);
           
           // 3日より古いデータは削除
@@ -929,9 +975,11 @@ export default function MealPage() {
                 )}
               </div>
 
-              {/* 食事カードセクション */}
-              <div className={styles.aiMealsContainer}>
-                {parsedKondate.meals.map((meal, index) => {
+              {/* 食事カードと円形カロリー表示セクション */}
+              <div className={styles.mealAndCalorieSection}>
+                {/* 食事カードコンテナ */}
+                <div className={styles.aiMealsContainer}>
+                  {parsedKondate.meals.map((meal, index) => {
                   const colors = ['#FF8C42', '#FFA500', '#FF6B35'];
                   const mealColor = colors[index % colors.length];
                   
@@ -1005,6 +1053,48 @@ export default function MealPage() {
                     </div>
                   );
                 })}
+                </div>
+                
+                {/* 円形カロリー表示 */}
+                <div className={styles.circularCalorieDisplay}>
+                  {(() => {
+                    const totalCaloriesNum = parseInt(parsedKondate.totalCalories.replace(/[^\d]/g, ''));
+                    const percentage = Math.min((totalCaloriesNum / maxCalories) * 100, 100);
+                    const radius = 80;
+                    const circumference = 2 * Math.PI * radius;
+                    const offset = circumference - (percentage / 100) * circumference;
+                    
+                    return (
+                      <div className={styles.circularProgressWrapper}>
+                        <svg width="200" height="200" className={styles.progressRing}>
+                          <circle
+                            className={styles.progressRingBg}
+                            cx="100"
+                            cy="100"
+                            r={radius}
+                            fill="none"
+                          />
+                          <circle
+                            className={styles.progressRingProgress}
+                            cx="100"
+                            cy="100"
+                            r={radius}
+                            fill="none"
+                            strokeDasharray={circumference}
+                            strokeDashoffset={offset}
+                            transform="rotate(-90 100 100)"
+                          />
+                        </svg>
+                        <div className={styles.progressText}>
+                          <div className={styles.calorieRatioText}>
+                            {parsedKondate.totalCalories}<br />
+                            / {maxCalories} kcal
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
               </div>
             </div>
           )}
