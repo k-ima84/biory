@@ -132,6 +132,8 @@ export const schema = a.schema({
     　fat_din: a.float(),
     　carbs_din: a.float(),
 
+    
+
       // 健康関連
       condition: a.string(),
       mood: a.string(),
