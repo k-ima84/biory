@@ -2,6 +2,7 @@ import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
 
 //小澤追記
 import { kondateAIFunctionHandler } from "../backend/function/kondateAI/resource"
+import { mealAnalysisFunctionHandler } from "../backend/function/mealAnalysis/resource"
 
 
 /*== STEP 1 ===============================================================
@@ -21,6 +22,15 @@ export const schema = a.schema({
     //.authorization((allow) => [allow.authenticated()]) // 認証ルール追加
     .authorization((allow) => [allow.publicApiKey()])
     .handler(a.handler.function(kondateAIFunctionHandler)),
+
+  mealAnalysis: a
+    .query()
+    .arguments({
+      mealItems: a.string().array(),
+    })
+    .returns(a.string())
+    .authorization((allow) => [allow.publicApiKey()])
+    .handler(a.handler.function(mealAnalysisFunctionHandler)),
 
 
   // 既存のユーザープロファイルモデル
