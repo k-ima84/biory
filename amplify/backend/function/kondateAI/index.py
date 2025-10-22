@@ -113,7 +113,7 @@ def handler(event, context):
         body = json.dumps({
             "anthropic_version": "bedrock-2023-05-31",
             "max_tokens": 5000,  # 献立提案のため増量
-            "temperature": 0.3,
+            "temperature": 0.7,
             "system": system_prompt,  # 詳細なシステムプロンプト
             "messages": [
                 {
