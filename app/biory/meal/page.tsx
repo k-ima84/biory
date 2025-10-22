@@ -718,40 +718,9 @@ export default function MealPage() {
               break;
           }
         });
-      } else if (meals) {
-        // 既存のmealsデータを使用（栄養価は自動計算）
-        console.log("既存献立データから食事内容を抽出中...");
-        
-        for (const meal of meals) {
-          const dishesText = meal.dishes.join(', ');
-          
-          // 栄養価を自動計算（FoodNutritionから検索）
-          const nutrition = await calculateNutritionFromMeals(meal.dishes);
-          
-          switch (meal.mealType) {
-            case '朝食':
-              mealData.breakfast = dishesText;
-              mealData.calories_bre = nutrition.calories;
-              mealData.protein_bre = nutrition.protein;
-              mealData.fat_bre = nutrition.fat;
-              mealData.carbs_bre = nutrition.carbs;
-              break;
-            case '昼食':
-              mealData.lunch = dishesText;
-              mealData.calories_lun = nutrition.calories;
-              mealData.protein_lun = nutrition.protein;
-              mealData.fat_lun = nutrition.fat;
-              mealData.carbs_lun = nutrition.carbs;
-              break;
-            case '夕食':
-              mealData.dinner = dishesText;
-              mealData.calories_din = nutrition.calories;
-              mealData.protein_din = nutrition.protein;
-              mealData.fat_din = nutrition.fat;
-              mealData.carbs_din = nutrition.carbs;
-              break;
-          }
-        }
+      } else {
+        // parsedKondateもmealsもない場合
+        console.warn("保存可能な献立データがありません");
       }
 
       console.log('保存予定データ:', mealData);
@@ -826,50 +795,6 @@ export default function MealPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  // 栄養価自動計算関数（FoodNutritionから検索）
-  const calculateNutritionFromMeals = async (dishes: string[]) => {
-    let totalCalories = 0;
-    let totalProtein = 0;
-    let totalFat = 0;
-    let totalCarbs = 0;
-    
-    for (const dish of dishes) {
-      if (dish && dish.trim() !== "") {
-        try {
-          // FoodNutritionデータベースから検索
-          const { data: foods } = await client.models.FoodNutrition.list();
-          const matchedFood = foods?.find(food => 
-            food.foodName?.includes(dish) || dish.includes(food.foodName || '')
-          );
-          
-          if (matchedFood) {
-            totalCalories += matchedFood.energyKcal || 0;
-            totalProtein += matchedFood.protein || 0;
-            totalFat += matchedFood.fat || 0;
-            totalCarbs += matchedFood.carbs || 0;
-            console.log(`栄養価検索成功: ${dish} -> ${matchedFood.energyKcal}kcal`);
-          } else {
-            console.log(`栄養価未発見: ${dish}`);
-            // デフォルト値（推定）
-            totalCalories += 200;
-            totalProtein += 10;
-            totalFat += 5;
-            totalCarbs += 30;
-          }
-        } catch (error) {
-          console.error(`栄養価計算エラー (${dish}):`, error);
-        }
-      }
-    }
-    
-    return {
-      calories: Math.round(totalCalories),
-      protein: Math.round(totalProtein * 10) / 10,
-      fat: Math.round(totalFat * 10) / 10,
-      carbs: Math.round(totalCarbs * 10) / 10,
-    };
   };
 
   // 献立再生成ボタン押下時の処理

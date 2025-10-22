@@ -97,23 +97,6 @@ export const schema = a.schema({
     })
     .authorization((allow) => [allow.publicApiKey()]),
 
-  // 【新規追加】食品栄養データベースモデル
-  FoodNutrition: a
-    .model({
-      foodId: a.integer(), // 食品名（検索キー）
-      foodName: a.string().required(), // 食品名（検索キー）
-      energyKj: a.integer(), // エネルギー(KJ)
-      energyKcal: a.integer().required(), // エネルギー(Kcal)
-      water: a.float(), // 水分(g)
-      protein: a.float().required(), // たんぱく質(g)
-      fat: a.float().required(), // 脂質(g)
-      carbs: a.float().required(), // 炭水化物(g)
-      per100g: a.boolean().default(true), // 100gあたりの値かどうか
-      createdAt: a.datetime(),
-      updatedAt: a.datetime(),
-    })
-    .authorization((allow) => [allow.publicApiKey()]),
-
   // 【新規追加】DailyRecordモデル - すべてのデータを統合
   DailyRecord: a
     .model({

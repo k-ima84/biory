@@ -256,80 +256,7 @@ export default function HomePage() {
   };
  
 
-  // FoodNutritionから食品を検索する関数
-  const searchFoodNutrition = async (foodName: string) => {
-    try {
-      // 全件取得（ページネーション対応）
-      let allFoodData: any[] = [];
-      let nextToken: string | null = null;
-      
-      do {
-        const result: any = await client.models.FoodNutrition.list({
-          limit: 1000,
-          nextToken: nextToken || undefined
-        });
-        
-        if (result.data) {
-          allFoodData = allFoodData.concat(result.data);
-        }
-        
-        nextToken = result.nextToken;
-      } while (nextToken);
-      
-      // あいまい検索（部分一致）
-      const matchedFood = allFoodData.find(food => 
-        food.foodName?.includes(foodName) || foodName.includes(food.foodName || '')
-      );
-      
-      if (matchedFood) {
-        console.log(`食品発見: ${matchedFood.foodName} -> カロリー:${matchedFood.energyKcal}, P:${matchedFood.protein}g`);
-        return {
-          calories: matchedFood.energyKcal || 0,
-          protein: matchedFood.protein || 0,
-          fat: matchedFood.fat || 0,
-          carbs: matchedFood.carbs || 0,
-        };
-      }
-    } catch (error) {
-      console.error(`食品検索エラー (${foodName}):`, error);
-    }
-    
-    console.log(`食品未発見: ${foodName}`);
-    // デフォルト値
-    return { calories: 0, protein: 0, fat: 0, carbs: 0 };
-  };
 
-  // 食事記録から栄養価を自動計算する関数
-  const calculateNutritionFromMeals = async (meals: string[]) => {
-    let totalCalories = 0;
-    let totalProtein = 0;
-    let totalFat = 0;
-    let totalCarbs = 0;
-    
-    for (const mealContent of meals) {
-      if (mealContent && mealContent !== "—" && mealContent.trim() !== "") {
-        // 複数の食材が含まれている場合は分割
-        const foods = mealContent.split(/[、,，]+/).map(food => food.trim());
-        
-        for (const food of foods) {
-          if (food) {
-            const nutrition = await searchFoodNutrition(food);
-            totalCalories += nutrition.calories;
-            totalProtein += nutrition.protein;
-            totalFat += nutrition.fat;
-            totalCarbs += nutrition.carbs;
-          }
-        }
-      }
-    }
-    
-    return {
-      calories: Math.round(totalCalories),
-      protein: Math.round(totalProtein * 10) / 10,
-      fat: Math.round(totalFat * 10) / 10,
-      carbs: Math.round(totalCarbs * 10) / 10,
-    };
-  };
 
   // 栄養データを取得する関数（分割データから合算値を計算）
   const fetchNutritionData = async (dateString: string) => {
@@ -383,32 +310,12 @@ export default function HomePage() {
             },
           });
         } else {
-          // 栄養データがない場合は、食事内容から自動計算
-          console.log("栄養データがないため、食事内容から計算します");
-          
-          const mealContents = [
-            todayRecord.breakfast || '',
-            todayRecord.lunch || '',
-            todayRecord.dinner || ''
-          ];
-
-          const calculatedNutrition = await calculateNutritionFromMeals(mealContents);
-          console.log("計算された栄養データ:", calculatedNutrition);
-          
+          // 栄養データがない場合はゼロで初期化
           setNutritionData({
-            calories: calculatedNutrition.calories,
-            protein: { 
-              value: calculatedNutrition.protein, 
-              percentage: Math.round((calculatedNutrition.protein / targetPFC.protein) * 100)
-            },
-            fat: { 
-              value: calculatedNutrition.fat, 
-              percentage: Math.round((calculatedNutrition.fat / targetPFC.fat) * 100)
-            },
-            carbs: { 
-              value: calculatedNutrition.carbs, 
-              percentage: Math.round((calculatedNutrition.carbs / targetPFC.carbs) * 100)
-            },
+            calories: 0,
+            protein: { value: 0, percentage: 0 },
+            fat: { value: 0, percentage: 0 },
+            carbs: { value: 0, percentage: 0 },
           });
         }
       } else {
@@ -758,8 +665,8 @@ export default function HomePage() {
         // エラーチェック
         if (analysisResult.error) {
           console.error(`${mealType}でAPIエラー:`, analysisResult.error);
-          // FoodNutritionでフォールバック
-          return await calculateNutritionFromMeals([mealContent]);
+          alert(`栄養分析エラー\n\n${mealType}の栄養価計算に失敗しました。\n\nエラー詳細: ${analysisResult.error}\n\n栄養価は0として保存されます。`);
+          return { calories: 0, protein: 0, fat: 0, carbs: 0 };
         }
         
         return {
@@ -771,14 +678,13 @@ export default function HomePage() {
       }
     } catch (error) {
       console.error(`${mealType}のmealAnalysis呼び出しエラー:`, error);
-      // エラー時はFoodNutritionでフォールバック
-      console.log(`${mealType}: FoodNutritionでフォールバック計算`);
-      return await calculateNutritionFromMeals([mealContent]);
+      const errorMessage = error instanceof Error ? error.message : '不明なエラー';
+      alert(`栄養分析エラー\n\n${mealType}の栄養価計算に失敗しました。\n\nエラー詳細: ${errorMessage}\n\n栄養価は0として保存されます。`);
+      return { calories: 0, protein: 0, fat: 0, carbs: 0 };
     }
     
-    // エラー時はFoodNutritionでフォールバック
-    console.log(`${mealType}: デフォルト値でフォールバック`);
-    return await calculateNutritionFromMeals([mealContent]);
+    // データがない場合はデフォルト値
+    return { calories: 0, protein: 0, fat: 0, carbs: 0 };
   };
 
   const handleMealSave = async () => {
