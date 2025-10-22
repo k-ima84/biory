@@ -3,9 +3,6 @@ import { auth } from './auth/resource.js';
 import { data } from './data/resource.js';
 import { PolicyStatement, Effect } from 'aws-cdk-lib/aws-iam';
 
-//テストように一時的にコメントアウト　小澤
-//import { MealSuggestionStack } from './backend/cdk/meal-suggestion-stack';
-
 //小澤追加
 import { kondateAIFunctionHandler } from './backend/function/kondateAI/resource';
 import { mealAnalysisFunctionHandler } from './backend/function/mealAnalysis/resource';

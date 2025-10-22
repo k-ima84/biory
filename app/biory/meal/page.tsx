@@ -11,26 +11,12 @@ import { useRouter } from "next/navigation";
 
 const client = generateClient<Schema>();
 
-//const API_ENDPOINT = "https://5obkiuclsb.execute-api.ap-northeast-1.amazonaws.com/prod/meal/suggestion";
-const API_ENDPOINT = "https://u1a3a1qi9h.execute-api.ap-northeast-1.amazonaws.com/prod/meal/suggestion";
-
-interface MealData {
-  mealType: string;
-  calories: number;
-  dishes: string[];
-  color: string;
-  imageUrl?: string;
-}
- 
 export default function MealPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [meals, setMeals] = useState<MealData[]>([]); // 初期値は空
-  const [showMeals, setShowMeals] = useState(false); // 献立表示フラグ
   const [cognitoUserId, setCognitoUserId] = useState("");
   const [userProfile, setUserProfile] = useState<any>(null); // ユーザープロファイル
-  const [debugInfo, setDebugInfo] = useState<any>(null); // デバッグ情報
 
   // 🆕 kondateAI関連のstate　小澤
   const [kondateResult, setKondateResult] = useState<string>('');
@@ -434,9 +420,7 @@ export default function MealPage() {
   // ここまで
 
   // カロリー計算
-  const currentCalories = meals.reduce((total, meal) => total + meal.calories, 0);
   const maxCalories = userProfile ? calculateTDEE(userProfile) : 2000; // TDEEに基づく推奨カロリー
-  const percentage = Math.min((currentCalories / maxCalories) * 100, 100);
  
   useEffect(() => {
     loadUserInfo();
@@ -457,7 +441,6 @@ export default function MealPage() {
   const loadMealsFromStorage = () => {
     try {
       const today = new Date().toISOString().split('T')[0];
-      const storageKey = `meals_${today}`;
       const aiKondateKey = `ai_kondate_${today}`;
       
       // 古いデータをクリア（過去3日より古いデータを削除）
@@ -479,29 +462,8 @@ export default function MealPage() {
           console.error('AI献立データのパースエラー:', parseError);
         }
       }
-      
-      // 既存の献立データの復元
-      const savedMeals = localStorage.getItem(storageKey);
-      if (savedMeals) {
-        const parsedMeals = JSON.parse(savedMeals);
-        setMeals(parsedMeals);
-        setShowMeals(true);
-        console.log('保存された献立データを復元しました:', parsedMeals);
-      }
     } catch (error) {
       console.error('献立データの復元エラー:', error);
-    }
-  };
-
-  // localStorageに献立データを保存する関数
-  const saveMealsToStorage = (mealsData: MealData[]) => {
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      const storageKey = `meals_${today}`;
-      localStorage.setItem(storageKey, JSON.stringify(mealsData));
-      console.log('献立データをlocalStorageに保存しました');
-    } catch (error) {
-      console.error('献立データの保存エラー:', error);
     }
   };
 
@@ -532,14 +494,8 @@ export default function MealPage() {
       // localStorageの全キーをチェック
       for (let i = localStorage.length - 1; i >= 0; i--) {
         const key = localStorage.key(i);
-        if (key && (key.startsWith('meals_') || key.startsWith('ai_kondate_'))) {
-          let dateStr = '';
-          if (key.startsWith('meals_')) {
-            dateStr = key.replace('meals_', '');
-          } else if (key.startsWith('ai_kondate_')) {
-            dateStr = key.replace('ai_kondate_', '');
-          }
-          
+        if (key && key.startsWith('ai_kondate_')) {
+          const dateStr = key.replace('ai_kondate_', '');
           const itemDate = new Date(dateStr);
           
           // 3日より古いデータは削除
@@ -586,41 +542,6 @@ export default function MealPage() {
     });
   };
 
-  // Bedrock AIの返答をMealData[]に変換する関数
-  function parseAISuggestion(suggestion: string): MealData[] {
-    try {
-      const jsonMatch = suggestion.match(/```\s*JSON\s*\n([\s\S]*?)\n```/) || suggestion.match(/{[\s\S]*}/);
-      if (jsonMatch) {
-        const jsonStr = jsonMatch[1] || jsonMatch[0];
-        const data = JSON.parse(jsonStr);
-        if (data.meals && Array.isArray(data.meals)) {
-          return data.meals.map((meal: any) => {
-            // dishesが配列でない場合の処理
-            let dishes: string[] = [];
-            if (Array.isArray(meal.dishes)) {
-              dishes = meal.dishes.map((dish: any) => 
-                typeof dish === 'string' ? dish : dish.dish || dish.name || String(dish)
-              );
-            } else if (meal.dishes) {
-              // オブジェクトの場合は文字列に変換
-              dishes = [String(meal.dishes)];
-            }
-            
-            return {
-              mealType: meal.mealType || '食事',
-              calories: meal.calories || 0,
-              dishes: dishes,
-              color: "#FF8C42"
-            };
-          });
-        }
-      }
-    } catch (error) {
-      console.error('JSON parse error:', error);
-    }
-    return [];
-  }
-
   // ユーザープロファイル取得または作成
   const getUserProfile = async (userId = cognitoUserId) => {
     try {
@@ -640,8 +561,8 @@ export default function MealPage() {
 
   // 献立を保存する関数（PFCデータ対応版）
   const saveMealPlan = async () => {
-    // AI献立提案データまたは既存のmealsデータをチェック
-    if (!parsedKondate && (!meals || meals.length === 0)) {
+    // AI献立提案データをチェック
+    if (!parsedKondate) {
       alert('保存する献立がありません');
       return;
     }
@@ -718,9 +639,6 @@ export default function MealPage() {
               break;
           }
         });
-      } else {
-        // parsedKondateもmealsもない場合
-        console.warn("保存可能な献立データがありません");
       }
 
       console.log('保存予定データ:', mealData);
@@ -792,152 +710,6 @@ export default function MealPage() {
     } catch (error) {
       console.error('献立保存エラー:', error);
       alert('献立の保存に失敗しました');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 献立再生成ボタン押下時の処理
-  const generateMeals = async () => {
-    setLoading(true);
-    setShowMeals(false);
-    try {
-      // ユーザープロファイル取得
-      const userProfile = await getUserProfile();
-      
-      // 推奨カロリーを計算
-      const recommendedCalories = userProfile ? calculateTDEE(userProfile) : 2000;
-      
-      const requestBody = {
-        userId: cognitoUserId,
-        targetCalories: recommendedCalories,
-        timestamp: new Date().toISOString()
-      };
-      
-      console.log('送信データ:', requestBody);
-      
-      const response = await fetch(API_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody)
-      });
-      
-      const data = await response.json();
-      console.log('APIレスポンス:', data);
-      
-      console.log('Response status:', response.status);
-      console.log('Response data:', data);
-      
-          console.log('Full API response:', data); // デバッグ用
-          
-          // AI質問内容とレスポンスをコンソールに表示
-          if (data.debug) {
-            console.log('🤖 AI PROMPT SENT:', data.debug.promptSent);
-            console.log('📝 AI RESPONSE:', data.debug.aiResponse);
-            console.log('📊 MEAL SOURCE:', data.debug.mealSource || (data.debug.usingFallback ? 'FALLBACK' : 'AI_GENERATED'));
-            console.log('🔍 DEBUG INFO:', data.debug);
-            
-            // 献立ソースによる警告表示
-            if (data.debug.usingFallback || data.debug.mealSource === 'FALLBACK') {
-              console.warn('⚠️ NOTICE: Using fallback meals (AI generation failed)');
-              alert('⚠️ 注意: AIによる献立生成に失敗しました。テンプレート献立を表示しています。');
-            } else {
-              console.log('✅ SUCCESS: Using AI-generated meals');
-            }
-            
-            setDebugInfo(data.debug); // デバッグ情報を状態に保存
-          }      if (response.ok) {
-        // データ構造を詳細にチェック
-        console.log('data.meals:', data.meals);
-        console.log('data.meals type:', typeof data.meals);
-        console.log('data.meals isArray:', Array.isArray(data.meals));
-        
-        if (data.meals && Array.isArray(data.meals) && data.meals.length > 0) {
-          console.log('Processing meals data:', data.meals);
-          // 料理名の詳細チェック
-          data.meals.forEach((meal: any, index: number) => {
-            console.log(`Meal ${index} dishes:`, meal.dishes);
-            if (meal.dishes) {
-              meal.dishes.forEach((dish: any, dishIndex: number) => {
-                console.log(`  Dish ${dishIndex}: "${dish}" (type: ${typeof dish})`);
-              });
-            }
-          });
-          
-          // データを正規化
-          const normalizedMeals = data.meals.map((meal: any, index: number) => {
-            console.log(`Processing meal ${index}:`, meal);
-            
-            // dishesの処理を強化
-            let dishes: string[] = [];
-            if (Array.isArray(meal.dishes)) {
-              dishes = meal.dishes
-                .map((dish: any) => {
-                  if (typeof dish === 'string') {
-                    return dish.trim();
-                  } else if (dish && typeof dish === 'object') {
-                    return dish.dish || dish.name || String(dish);
-                  } else {
-                    return String(dish);
-                  }
-                })
-                .filter((dish: string) => dish && dish.length > 0);
-            } else if (meal.dishes) {
-              dishes = [String(meal.dishes)];
-            }
-            
-            // 抽象的な名前を検出して警告
-            const abstractNames = ['主菜', '副菜', '汁物', '主食'];
-            const hasAbstractNames = dishes.some(dish => abstractNames.includes(dish));
-            if (hasAbstractNames) {
-              console.warn(`⚠️ Abstract dish names found in meal ${index}:`, dishes);
-            }
-            
-            return {
-              mealType: meal.mealType || '食事',
-              calories: meal.calories || 0,
-              dishes: dishes.length > 0 ? dishes : ['和食'],
-              color: meal.color || "#FF8C42"
-            };
-          });
-          
-          console.log('Normalized meals:', normalizedMeals);
-          setMeals(normalizedMeals);
-          setShowMeals(true);
-          saveMealsToStorage(normalizedMeals); // localStorageに保存
-        }
-        else if (data.suggestion) {
-          console.log('Parsing suggestion:', data.suggestion);
-          const newMeals = parseAISuggestion(data.suggestion);
-          if (newMeals.length > 0) {
-            setMeals(newMeals);
-            setShowMeals(true);
-            saveMealsToStorage(newMeals); // localStorageに保存
-          } else {
-            console.error('パースされた献立が空です');
-            alert('AIからの献立提案が取得できませんでした。もう一度お試しください。');
-          }
-        }
-        else {
-          console.error('レスポンスに献立データがありません:', data);
-          console.log('Available data keys:', Object.keys(data));
-          
-          // 空の配列が返された場合の処理
-          if (data.meals && Array.isArray(data.meals) && data.meals.length === 0) {
-            console.log('Empty meals array received');
-            alert('AIからの献立提案が空でした。もう一度お試しください。');
-          } else {
-            alert('AIからの献立提案が取得できませんでした。もう一度お試しください。');
-          }
-        }
-      } else {
-        console.error('APIエラー - Status:', response.status, 'Data:', data);
-        alert('APIエラーが発生しました。もう一度お試しください。');
-      }
-    } catch (error) {
-      console.error('献立生成エラー:', error);
     } finally {
       setLoading(false);
     }
