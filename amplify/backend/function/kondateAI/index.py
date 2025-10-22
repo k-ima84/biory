@@ -1,30 +1,18 @@
 import json
 import boto3
 
-"""サンプルとして作ったもの 小澤（hello XXさん）
-def handler(event, context):
-
-    try:
-          # 引数を取得(AppSyncから受け取ったeventを処理)
-         name = event.get('arguments', {}).get('name', 'World')
-    
-         # シンプルなメッセージを返す(ビジネスロジック)
-         message = f"Hello {name}!"
-    
-         # appSyncに文字列として返却
-         return message
-
-    except:
-         return "Error occurred"
-"""
-
 
 def handler(event, context):
     try:
         # 引数を取得
         name = event.get('arguments', {}).get('name', 'World')
+        allergies = event.get('arguments', {}).get('allergies', 'なし')
         
         print(f"=== 管理栄養士AI Claude 3 v11.0 === {name}")
+        print(f"受け取ったアレルギー情報: {allergies}")
+        
+        # アレルギー情報の正規化
+        allergies_text = allergies if allergies and allergies.strip() else "なし"
         
         # Bedrock クライアント
         bedrock = boto3.client('bedrock-runtime', region_name='ap-northeast-1')
@@ -40,8 +28,8 @@ def handler(event, context):
 - 食事バランスガイド準拠
 
 ## 注意事項
-- 栄養バランス（PFCバランス）を必ず考慮
-- アレルギーを必ず考慮
+- 栄養バランス（PFCバランス）を考慮
+- アレルギーのある食材は絶対に使用しない
 - 実際に調理可能なメニューを提案
 - 塩分・糖分に配慮
 
@@ -103,7 +91,7 @@ def handler(event, context):
 - 季節: 現在の季節に適した食材を使用
 - 食事スタイル: 日本の家庭料理中心
 - 調理難易度: 初心者でも作れるレベル
-- アレルギー： 卵(卵を材料とする料理は禁止)
+- アレルギー: {allergies_text}
 - 特別な要望: なし（標準的な健康献立）
 
 よろしくお願いします。
@@ -113,7 +101,7 @@ def handler(event, context):
         body = json.dumps({
             "anthropic_version": "bedrock-2023-05-31",
             "max_tokens": 5000,  # 献立提案のため増量
-            "temperature": 0.3,
+            "temperature": 0.7,
             "system": system_prompt,  # 詳細なシステムプロンプト
             "messages": [
                 {

@@ -45,6 +45,19 @@ export const kondateAIFunctionHandler = defineFunction(
       })
     );
 
+    // DynamoDB権限を追加（UserProfileテーブルへのアクセス）
+    lambdaFunction.addToRolePolicy(
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: [
+          "dynamodb:GetItem",
+          "dynamodb:Scan",
+          "dynamodb:Query"
+        ],
+        resources: ["arn:aws:dynamodb:*:*:table/UserProfile*"] // UserProfileテーブルへのアクセス
+      })
+    );
+
     return lambdaFunction;
   },
     {
