@@ -136,47 +136,108 @@
   margin-top: 30px;
 }
 
-/* 配慮したこと・健康アドバイスセクション */
+/* 配慮したこと・健康アドバイスセクション - 吹き出し形式 */
 .adviceSection {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
   margin-bottom: 30px;
 }
 
-.considerationsBox,
-.healthAdviceBox {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+/* チャットコンテナ */
+.chatContainer {
+  width: 100%;
 }
 
-.adviceTitle {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #6f6b68;
-  margin: 0 0 15px 0;
+/* チャットメッセージ */
+.chatMessage {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+/* キャラクターアイコン */
+.onigiriIcon,
+.humanIcon {
+  font-size: 3rem;
+  width: 80px;
+  height: 80px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
 }
 
-.adviceList {
+/* キャラクターアイコン内の画像 */
+.onigiriIcon img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+}
+
+.humanIcon img {
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+}
+
+/* 吹き出し */
+.speechBubble {
+  position: relative;
+  background: white;
+  border-radius: 20px;
+  padding: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: calc(100% - 120px);
+  margin-left: 10px;
+}
+
+/* 吹き出しの内容 */
+.speechBubbleContent {
+  padding: 20px 25px;
+}
+
+.speechBubbleContent strong {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #6f6b68;
+  display: block;
+  margin-bottom: 15px;
+}
+
+/* 吹き出しの尻尾 */
+.speechTail {
+  position: absolute;
+  left: -10px;
+  top: 30px;
+  width: 0;
+  height: 0;
+  border-top: 15px solid transparent;
+  border-bottom: 15px solid transparent;
+  border-right: 15px solid white;
+}
+
+/* チャット内のリスト */
+.chatList {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.adviceList li {
+.chatList li {
   padding: 8px 0;
   padding-left: 20px;
   position: relative;
   color: #6f6b68;
   line-height: 1.6;
+  font-size: 1rem;
 }
 
-.adviceList li::before {
+.chatList li::before {
   content: "✓";
   position: absolute;
   left: 0;
@@ -184,10 +245,12 @@
   font-weight: bold;
 }
 
-.adviceText {
+/* チャット内のテキスト */
+.chatText {
   color: #6f6b68;
   line-height: 1.8;
   margin: 0;
+  font-size: 1rem;
 }
 
 /* AI食事カードコンテナ */
@@ -506,6 +569,57 @@
   background: white; /* 背景を白に */
   color: #666666; /* 文字色を灰色に */
   border: 12px solid #FFD700; /* 縁を黄色に（太さを倍の12pxに） */
+
+/* レスポンシブデザイン - モバイル対応 */
+@media (max-width: 768px) {
+  /* チャットメッセージのモバイル表示 */
+  .chatMessage {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 10px;
+  }
+  
+  .onigiriIcon,
+  .humanIcon {
+    font-size: 2.5rem;
+    width: 60px;
+    height: 60px;
+  }
+  
+  .onigiriIcon img {
+    width: 35px;
+    height: 35px;
+  }
+  
+  .humanIcon img {
+    width: 42px;
+    height: 42px;
+  }
+  
+  .speechBubble {
+    max-width: 100%;
+    margin-left: 0;
+    margin-top: 10px;
+  }
+  
+  .speechTail {
+    display: none; /* モバイルでは尻尾を非表示 */
+  }
+  
+  .speechBubbleContent {
+    padding: 15px 20px;
+  }
+  
+  .speechBubbleContent strong {
+    font-size: 1.1rem;
+  }
+  
+  .chatList li,
+  .chatText {
+    font-size: 0.9rem;
+  }
+}
 }
 
 .regenerateButton:hover {
