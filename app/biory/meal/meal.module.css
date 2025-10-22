@@ -279,6 +279,18 @@
 .aiIngredients li {
   margin-bottom: 4px;
 }
+
+.aiIngredients p,
+.aiCookingSteps p,
+.aiNutritionPoint p {
+  margin: 4px 0 0 0;
+  line-height: 1.6;
+}
+
+.noData {
+  color: #999;
+  font-style: italic;
+}
  
 .mealsContainer {
   display: grid;

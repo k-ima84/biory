@@ -130,8 +130,11 @@ export default function MealPage() {
       
       let currentMeal: Partial<ParsedMeal> | null = null;
       let currentSection = '';
+      let inCookingSteps = false; // 調理手順セクション内かどうかのフラグ
+      let cookingStepsLines: string[] = []; // 調理手順の行を保存
       
-      for (const line of lines) {
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
         const trimmedLine = line.trim();
         
         // タイトルから名前を抽出
@@ -141,6 +144,13 @@ export default function MealPage() {
         
         // セクションの判定
         if (trimmedLine.startsWith('## ')) {
+          // 調理手順セクション終了処理
+          if (inCookingSteps && currentMeal && cookingStepsLines.length > 0) {
+            currentMeal.cookingSteps = cookingStepsLines.join('\n');
+            cookingStepsLines = [];
+            inCookingSteps = false;
+          }
+          
           const section = trimmedLine.replace('## ', '');
           
           if (section === '朝食' || section === '昼食' || section === '夕食') {
@@ -168,14 +178,17 @@ export default function MealPage() {
           } else if (section === '健康アドバイス') {
             currentSection = '健康アドバイス';
           }
+          continue;
         }
         
         // データの抽出
         if (currentMeal) {
           if (trimmedLine.startsWith('- **メニュー**:')) {
             currentMeal.menu = trimmedLine.replace('- **メニュー**:', '').trim();
+            inCookingSteps = false;
           } else if (trimmedLine.startsWith('- **カロリー**:')) {
             currentMeal.calories = trimmedLine.replace('- **カロリー**:', '').trim();
+            inCookingSteps = false;
           } else if (trimmedLine.startsWith('- **栄養バランス**:')) {
             const nutritionText = trimmedLine.replace('- **栄養バランス**:', '').trim();
             const proteinMatch = nutritionText.match(/タンパク質([\d.]+)g/);
@@ -185,15 +198,64 @@ export default function MealPage() {
             if (proteinMatch) currentMeal.nutrition!.protein = proteinMatch[1];
             if (carbsMatch) currentMeal.nutrition!.carbs = carbsMatch[1];
             if (fatMatch) currentMeal.nutrition!.fat = fatMatch[1];
-          } else if (trimmedLine.startsWith('  - ')) {
-            const ingredient = trimmedLine.replace('  - ', '').trim();
+            inCookingSteps = false;
+          } else if (trimmedLine.startsWith('- **使用食材リストと分量**:')) {
+            inCookingSteps = false;
+            console.log('📋 使用食材リストと分量セクション検出');
+            // 次の行から食材リストを読み取る
+          } else if ((trimmedLine.startsWith('  - ') || trimmedLine.startsWith('- ')) && !inCookingSteps && !trimmedLine.startsWith('- **')) {
+            // 食材リスト（2スペース + ハイフン、または1つのハイフン）
+            let ingredient = trimmedLine;
+            if (ingredient.startsWith('  - ')) {
+              ingredient = ingredient.replace('  - ', '').trim();
+            } else if (ingredient.startsWith('- ')) {
+              ingredient = ingredient.replace('- ', '').trim();
+            }
+            
             if (ingredient) {
+              console.log('🥗 食材追加:', ingredient);
               currentMeal.ingredients!.push(ingredient);
             }
           } else if (trimmedLine.startsWith('- **簡単な調理手順**:')) {
-            currentMeal.cookingSteps = trimmedLine.replace('- **簡単な調理手順**:', '').trim();
+            inCookingSteps = true;
+            cookingStepsLines = [];
+            const stepText = trimmedLine.replace('- **簡単な調理手順**:', '').trim();
+            if (stepText) {
+              cookingStepsLines.push(stepText);
+            }
+          } else if (inCookingSteps) {
+            // 調理手順内の行
+            if (trimmedLine.startsWith('- **栄養ポイント**:')) {
+              // 調理手順セクション終了
+              if (cookingStepsLines.length > 0) {
+                currentMeal.cookingSteps = cookingStepsLines.join('\n');
+                console.log('📝 調理手順 (行数: ' + cookingStepsLines.length + '):', currentMeal.cookingSteps);
+                cookingStepsLines = [];
+              }
+              inCookingSteps = false;
+              currentMeal.nutritionPoint = trimmedLine.replace('- **栄養ポイント**:', '').trim();
+            } else if (trimmedLine.startsWith('- **')) {
+              // 次のセクション開始（調理手順終了）
+              if (cookingStepsLines.length > 0) {
+                currentMeal.cookingSteps = cookingStepsLines.join('\n');
+                console.log('📝 調理手順 (行数: ' + cookingStepsLines.length + '):', currentMeal.cookingSteps);
+                cookingStepsLines = [];
+              }
+              inCookingSteps = false;
+              // この行は次のセクションなので、再処理のため何もしない
+            } else if (trimmedLine.match(/^\d+\./) || trimmedLine.startsWith('  ') || trimmedLine.length > 0) {
+              // 番号付きリスト、インデントされた行、または空でない行
+              cookingStepsLines.push(trimmedLine);
+              console.log('🔪 調理手順行追加:', trimmedLine);
+            } else if (trimmedLine === '') {
+              // 空行も保持（改行として）
+              if (cookingStepsLines.length > 0) {
+                cookingStepsLines.push('');
+              }
+            }
           } else if (trimmedLine.startsWith('- **栄養ポイント**:')) {
             currentMeal.nutritionPoint = trimmedLine.replace('- **栄養ポイント**:', '').trim();
+            inCookingSteps = false;
           }
         }
         
@@ -227,8 +289,11 @@ export default function MealPage() {
         }
       }
       
-      // 最後の食事を追加
+      // 最後の食事を追加（調理手順が残っている場合も処理）
       if (currentMeal && currentMeal.mealType) {
+        if (inCookingSteps && cookingStepsLines.length > 0) {
+          currentMeal.cookingSteps = cookingStepsLines.join('\n');
+        }
         result.meals.push(currentMeal as ParsedMeal);
       }
       
@@ -259,6 +324,9 @@ export default function MealPage() {
       console.log('🤖 kondateAI結果:', result);
       
       if (result.data) {
+        console.log('📝 AIからのRawデータ (文字列長):', result.data.length);
+        console.log('📝 AIからのRawデータ (最初の500文字):', result.data.substring(0, 500));
+        
         setKondateResult(result.data);
         setShowKondateResult(true);
         
@@ -267,6 +335,19 @@ export default function MealPage() {
         if (parsed) {
           setParsedKondate(parsed);
           console.log('🍽️ パース結果:', parsed);
+          console.log('🍽️ パース結果 - 食事数:', parsed.meals.length);
+          parsed.meals.forEach((meal, index) => {
+            console.log(`🍽️ 食事 ${index + 1} (${meal.mealType}):`, {
+              menu: meal.menu,
+              calories: meal.calories,
+              ingredientsCount: meal.ingredients.length,
+              ingredients: meal.ingredients,
+              cookingSteps: meal.cookingSteps,
+              nutritionPoint: meal.nutritionPoint
+            });
+          });
+        } else {
+          console.error('❌ パース失敗: parseKondateMarkdownがnullを返しました');
         }
       } else if (result.errors) {
         setKondateResult(`エラー: ${JSON.stringify(result.errors)}`);
@@ -810,42 +891,199 @@ export default function MealPage() {
                         
                         <div className={styles.aiMealDetails}>
                           <div className={styles.aiMenuItem}>
-                            <strong>メニュー:</strong> {meal.menu}
+                            <strong>メニュー:</strong> {meal.menu || '未設定'}
                           </div>
                           
                           <div className={styles.aiNutritionInfo}>
-                            <strong>栄養:</strong> タンパク質{meal.nutrition.protein}g、
+                            <strong>栄養バランス:</strong> タンパク質{meal.nutrition.protein}g、
                             炭水化物{meal.nutrition.carbs}g、脂質{meal.nutrition.fat}g
                           </div>
                           
-                          {meal.ingredients.length > 0 && (
-                            <div className={styles.aiIngredients}>
-                              <strong>食材:</strong>
+                          <div className={styles.aiIngredients}>
+                            <strong>使用食材リストと分量:</strong>
+                            {meal.ingredients.length > 0 ? (
                               <ul>
                                 {meal.ingredients.map((ingredient, idx) => (
                                   <li key={idx}>{ingredient}</li>
                                 ))}
                               </ul>
-                            </div>
-                          )}
+                            ) : (
+                              <p className={styles.noData}>食材情報なし</p>
+                            )}
+                          </div>
                           
-                          {meal.cookingSteps && (
-                            <div className={styles.aiCookingSteps}>
-                              <strong>調理手順:</strong> {meal.cookingSteps}
-                            </div>
-                          )}
+                          <div className={styles.aiCookingSteps}>
+                            <details>
+                              <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>
+                                簡単な調理手順
+                              </summary>
+                              {meal.cookingSteps ? (
+                                <div style={{ whiteSpace: 'pre-line', marginTop: '8px', paddingLeft: '10px' }}>
+                                  {meal.cookingSteps}
+                                </div>
+                              ) : (
+                                <p style={{ marginTop: '8px', paddingLeft: '10px' }}>調理手順情報なし</p>
+                              )}
+                            </details>
+                          </div>
                           
-                          {meal.nutritionPoint && (
-                            <div className={styles.aiNutritionPoint}>
-                              <strong>栄養ポイント:</strong> {meal.nutritionPoint}
-                            </div>
-                          )}
+                          <div className={styles.aiNutritionPoint}>
+                            <details>
+                              <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>
+                                栄養ポイント
+                              </summary>
+                              <p style={{ marginTop: '8px', paddingLeft: '10px' }}>
+                                {meal.nutritionPoint || '栄養ポイント情報なし'}
+                              </p>
+                            </details>
+                          </div>
                         </div>
                       </div>
                     </div>
                   );
                 })}
               </div>
+            </div>
+          )}
+          
+          {/* デバッグ情報: AIからのRawデータ */}
+          {kondateResult && (
+            <div style={{
+              marginTop: '30px',
+              padding: '20px',
+              backgroundColor: '#f5f5f5',
+              borderRadius: '8px',
+              border: '2px solid #ddd'
+            }}>
+              <h3 style={{
+                margin: '0 0 15px 0',
+                color: '#333',
+                fontSize: '1.1rem',
+                fontWeight: 'bold'
+              }}>
+                🔍 デバッグ情報: AIからの回答 (Raw Data)
+              </h3>
+              <details>
+                <summary style={{
+                  cursor: 'pointer',
+                  padding: '10px',
+                  backgroundColor: '#e0e0e0',
+                  borderRadius: '4px',
+                  fontWeight: 'bold',
+                  marginBottom: '10px'
+                }}>
+                  クリックして表示
+                </summary>
+                <pre style={{
+                  whiteSpace: 'pre-wrap',
+                  wordWrap: 'break-word',
+                  backgroundColor: '#fff',
+                  padding: '15px',
+                  borderRadius: '4px',
+                  border: '1px solid #ccc',
+                  fontSize: '0.85rem',
+                  lineHeight: '1.5',
+                  maxHeight: '500px',
+                  overflow: 'auto',
+                  margin: '10px 0 0 0'
+                }}>
+{kondateResult}
+                </pre>
+              </details>
+              
+              {parsedKondate && (
+                <>
+                  <details style={{ marginTop: '15px' }}>
+                    <summary style={{
+                      cursor: 'pointer',
+                      padding: '10px',
+                      backgroundColor: '#e0e0e0',
+                      borderRadius: '4px',
+                      fontWeight: 'bold',
+                      marginBottom: '10px'
+                    }}>
+                      パース結果 (JSON)
+                    </summary>
+                    <pre style={{
+                      whiteSpace: 'pre-wrap',
+                      wordWrap: 'break-word',
+                      backgroundColor: '#fff',
+                      padding: '15px',
+                      borderRadius: '4px',
+                      border: '1px solid #ccc',
+                      fontSize: '0.85rem',
+                      lineHeight: '1.5',
+                      maxHeight: '500px',
+                      overflow: 'auto',
+                      margin: '10px 0 0 0'
+                    }}>
+{JSON.stringify(parsedKondate, null, 2)}
+                    </pre>
+                  </details>
+                  
+                  <details style={{ marginTop: '15px' }}>
+                    <summary style={{
+                      cursor: 'pointer',
+                      padding: '10px',
+                      backgroundColor: '#e0e0e0',
+                      borderRadius: '4px',
+                      fontWeight: 'bold',
+                      marginBottom: '10px'
+                    }}>
+                      パース結果の詳細 (各食事)
+                    </summary>
+                    <div style={{
+                      backgroundColor: '#fff',
+                      padding: '15px',
+                      borderRadius: '4px',
+                      border: '1px solid #ccc',
+                      marginTop: '10px'
+                    }}>
+                      {parsedKondate.meals.map((meal, index) => (
+                        <div key={index} style={{
+                          marginBottom: '20px',
+                          padding: '15px',
+                          backgroundColor: '#f9f9f9',
+                          borderRadius: '8px',
+                          border: '1px solid #ddd'
+                        }}>
+                          <h4 style={{ margin: '0 0 10px 0', color: '#333' }}>
+                            {meal.mealType} ({meal.calories})
+                          </h4>
+                          <div style={{ fontSize: '0.9rem', lineHeight: '1.6' }}>
+                            <p><strong>メニュー:</strong> {meal.menu || '(なし)'}</p>
+                            <p><strong>栄養:</strong> タンパク質{meal.nutrition.protein}g、炭水化物{meal.nutrition.carbs}g、脂質{meal.nutrition.fat}g</p>
+                            <p><strong>食材数:</strong> {meal.ingredients.length}個</p>
+                            <div style={{ marginLeft: '20px' }}>
+                              {meal.ingredients.length > 0 ? (
+                                <ul style={{ margin: '5px 0' }}>
+                                  {meal.ingredients.map((ing, idx) => (
+                                    <li key={idx}>{ing}</li>
+                                  ))}
+                                </ul>
+                              ) : (
+                                <p style={{ color: '#999', fontStyle: 'italic' }}>食材情報なし</p>
+                              )}
+                            </div>
+                            <p><strong>調理手順:</strong></p>
+                            <pre style={{
+                              whiteSpace: 'pre-wrap',
+                              backgroundColor: '#fff',
+                              padding: '10px',
+                              borderRadius: '4px',
+                              fontSize: '0.85rem',
+                              border: '1px solid #ddd'
+                            }}>
+{meal.cookingSteps || '(なし)'}
+                            </pre>
+                            <p><strong>栄養ポイント:</strong> {meal.nutritionPoint || '(なし)'}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                </>
+              )}
             </div>
           )}
         </div>
