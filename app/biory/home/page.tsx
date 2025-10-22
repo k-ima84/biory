@@ -977,11 +977,6 @@ export default function HomePage() {
       <section className="date-greeting">
         <div className="date">{currentDate}</div>
         <div className="greeting">{getGreeting()} {userName}さん</div>
-        {cognitoUserId && (
-          <div className="cognito-info">
-            <div className="cognito-id">CognitoID: {cognitoUserId}</div>
-          </div>
-        )}
       </section>
 
       {/* 栄養情報セクション */}
