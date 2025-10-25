@@ -267,6 +267,16 @@ export default function CalendarPage() {
 
       console.log(`検索結果: ${records.length}件`, records);
       setDailyRecords(records || []);
+
+      // 開発環境でのデバッグ情報をまとめて出力
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔍 デバッグ情報:', {
+          現在のユーザーID: currentUserId || 'なし',
+          検索対象日付: dateString,
+          取得レコード数: records.length,
+          レコード詳細: records
+        });
+      }
       
     } catch (error) {
       console.error('DailyRecord取得エラー:', error);
@@ -828,19 +838,7 @@ export default function CalendarPage() {
               })()}
               </div>
             );
-          })()}            {/* デバッグ情報（開発中のみ） */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className="debug-info">
-                <details>
-                  <summary>🔍 デバッグ情報</summary>
-                  <div className="debug-content">
-                    <p><strong>現在のユーザーID:</strong> {currentUserId || 'なし'}</p>
-                    <p><strong>検索対象日付:</strong> {selectedDate ? `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}` : 'なし'}</p>
-                    <p><strong>取得レコード数:</strong> {dailyRecords.length}</p>
-                  </div>
-                </details>
-              </div>
-            )}
+          })()}
           </div>
         )}
       </div>
