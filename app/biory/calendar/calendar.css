@@ -470,6 +470,8 @@
   left: 50%;             /* 水平中央 */
   transform: translateX(-50%); /* 中央揃え */
   z-index: 1;
+  display: flex;         /* 🆕 横並び配置 */
+  gap: 2px;              /* 🆕 アイコン間のスペース */
 }
 
 .calendar-meal-icon {
@@ -488,7 +490,29 @@
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2'/%3E%3Cpath d='M7 2v20'/%3E%3Cpath d='M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7'/%3E%3C/svg%3E");
 }
 
+/* 🆕 鉛筆アイコン（体重・気分・体調記録用） */
+.calendar-record-icon {
+  width: 16px;
+  height: 16px;
+  background-color: #70472B;
+  mask-size: 14px 14px;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  transition: all 0.2s ease;
+  -webkit-mask-size: 14px 14px;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  /* 鉛筆のSVGアイコン */
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z'/%3E%3Cpath d='m15 5 4 4'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z'/%3E%3Cpath d='m15 5 4 4'/%3E%3C/svg%3E");
+}
+
 .calendar-day:hover .calendar-meal-icon {
+  background-color: #70472B; 
+  transform: scale(1.1);     /* 少し拡大 */
+}
+
+.calendar-day:hover .calendar-record-icon {
   background-color: #70472B; 
   transform: scale(1.1);     /* 少し拡大 */
 }

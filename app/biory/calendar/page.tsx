@@ -60,6 +60,7 @@ export default function CalendarPage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [dailyRecords, setDailyRecords] = useState<DailyRecord[]>([]);
   const [monthlyMealData, setMonthlyMealData] = useState<Set<string>>(new Set());
+  const [monthlyHealthData, setMonthlyHealthData] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
 
   // Cognitoユーザー認証とデータ取得
@@ -88,6 +89,7 @@ export default function CalendarPage() {
   useEffect(() => {
     if (currentUserId) {
       fetchMonthlyMealData(currentDate);
+      fetchMonthlyHealthData(currentDate);
     }
   }, [currentUserId, currentDate]);
 
@@ -143,6 +145,49 @@ export default function CalendarPage() {
     }
   };
 
+  // 月次の健康記録データを取得（ダイジェスト用）
+  const fetchMonthlyHealthData = async (date: Date) => {
+    if (!currentUserId) return;
+
+    try {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      
+      // その月の最初と最後の日付を計算
+      const startDate = `${year}-${month}-01`;
+      const lastDay = new Date(year, date.getMonth() + 1, 0).getDate();
+      const endDate = `${year}-${month}-${String(lastDay).padStart(2, '0')}`;
+
+      console.log(`月次健康データ取得: ${startDate} ～ ${endDate}`);
+
+      // 月全体のDailyRecordを取得（健康記録がある日）
+      const { data: records } = await client.models.DailyRecord.list({
+        filter: {
+            and: [
+             { userId: { eq: currentUserId } },
+             { date: { ge: startDate } }, // 以上
+             { date: { le: endDate } }    // 以下
+           ]
+        }
+      });
+
+      // 健康記録がある日付をSetで管理
+      const healthDates = new Set<string>();
+      records.forEach(record => {
+        if (record.date && (record.weight || record.mood || record.condition)) {
+          healthDates.add(record.date);
+        }
+      });
+
+      console.log(`健康記録がある日数: ${healthDates.size}`);
+      setMonthlyHealthData(healthDates);
+      
+    } catch (error) {
+      console.error('月次健康データ取得エラー:', error);
+      setMonthlyHealthData(new Set());
+    }
+  };
+
   // 指定日付に食事記録があるかチェック
   const hasMealRecord = (date: Date) => {
     const year = date.getFullYear();
@@ -151,6 +196,16 @@ export default function CalendarPage() {
     const dateString = `${year}-${month}-${day}`;
     
     return monthlyMealData.has(dateString);
+  };
+
+  // 指定日付に健康記録があるかチェック
+  const hasHealthRecord = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateString = `${year}-${month}-${day}`;
+    
+    return monthlyHealthData.has(dateString);
   };
 
   // 選択した日付のDailyRecordを取得
@@ -541,10 +596,15 @@ export default function CalendarPage() {
               >
                 <span className="day-number">{dayData.day}</span>
                 
-                {/* 食事記録があるかチェックしてアイコン表示 */}
-                {hasMealRecord(dayData.date) && (
+                {/* 記録があるかチェックしてアイコン表示 */}
+                {(hasMealRecord(dayData.date) || hasHealthRecord(dayData.date)) && (
                   <div className="meal-indicator">
-                    <div className="calendar-meal-icon" title="食事記録あり"></div>
+                    {hasMealRecord(dayData.date) && (
+                      <div className="calendar-meal-icon" title="食事記録あり"></div>
+                    )}
+                    {hasHealthRecord(dayData.date) && (
+                      <div className="calendar-record-icon" title="健康記録あり"></div>
+                    )}
                   </div>
                 )}
               </div>
