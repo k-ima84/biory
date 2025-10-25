@@ -53,16 +53,16 @@ export default function HomePage() {
   });
 
   const [healthData, setHealthData] = useState<HealthData>({
-    condition: "とても良い 😊",
-    mood: "ポジティブ",
+    condition: "今日の体調を入力しよう 📝",
+    mood: "今日の気分を入力しよう 💭",
     weight: 0,
   });
 
   // 「本日の調子」編集機能用のstate
   const [isHealthEditMode, setIsHealthEditMode] = useState(false);
   const [healthEditData, setHealthEditData] = useState<HealthData>({
-    condition: "とても良い 😊",
-    mood: "ポジティブ",
+    condition: "今日の体調を入力しよう 📝",
+    mood: "今日の気分を入力しよう 💭",
     weight: 0,
   });
 
@@ -232,16 +232,16 @@ export default function HomePage() {
       if (todayHealthRecord) {
         setHealthData(prev => ({
           ...prev,
-          condition: todayHealthRecord.condition || "とても良い 😊",
-          mood: todayHealthRecord.mood || "ポジティブ",
+          condition: todayHealthRecord.condition || "今日の体調を入力しよう 📝",
+          mood: todayHealthRecord.mood || "今日の気分を入力しよう 💭",
           // 体重はUserProfileから取得するのでここでは更新しない
         }));
       } else {
         // デフォルト値を設定（体重は除く）
         setHealthData(prev => ({
           ...prev,
-          condition: "とても良い 😊",
-          mood: "ポジティブ",
+          condition: "今日の体調を入力しよう 📝",
+          mood: "今日の気分を入力しよう 💭",
         }));
       }
     } catch (error) {
@@ -249,8 +249,8 @@ export default function HomePage() {
       // エラー時はデフォルト値を設定（体重は除く）
       setHealthData(prev => ({
         ...prev,
-        condition: "とても良い 😊",
-        mood: "ポジティブ",
+        condition: "今日の体調を入力しよう 📝",
+        mood: "今日の気分を入力しよう 💭",
       }));
     }
   };
@@ -1120,6 +1120,7 @@ export default function HomePage() {
                   fontSize: '14px'
                 }}
               >
+                <option value="今日の体調を入力しよう 📝">今日の体調を入力しよう 📝</option>
                 <option value="とても良い 😊">とても良い 😊</option>
                 <option value="良い 😌">良い 😌</option>
                 <option value="普通 😐">普通 😐</option>
@@ -1139,6 +1140,7 @@ export default function HomePage() {
                   fontSize: '14px'
                 }}
               >
+                <option value="今日の気分を入力しよう 💭">今日の気分を入力しよう 💭</option>
                 <option value="ポジティブ">ポジティブ</option>
                 <option value="普通">普通</option>
                 <option value="ネガティブ">ネガティブ</option>

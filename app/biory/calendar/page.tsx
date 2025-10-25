@@ -108,31 +108,63 @@ export default function CalendarPage() {
 
       console.log(`月次食事データ取得: ${startDate} ～ ${endDate}`);
 
-      // 月全体のDailyRecordを取得（1食以上の記録がある日）
+      // 月全体のDailyRecordを取得
       const { data: records } = await client.models.DailyRecord.list({
         filter: {
-            and: [
-             { userId: { eq: currentUserId } },
-             { date: { ge: startDate } }, // 以上
-             { date: { le: endDate } },   // 以下
-             {
-                 or: [  // 1食以上記録があれば対象
-                 { breakfast: { ne: "" as any } },  // 朝食が空でない
-                 { lunch: { ne: "" as any } },      // 昼食が空でない  
-                 { dinner: { ne: "" as any } }      // 夕食が空でない
-        ]
-      }
-    ]
-  }
-});
+          and: [
+            { userId: { eq: currentUserId } },
+            { date: { ge: startDate } }, 
+            { date: { le: endDate } }
+          ]
+        }
+      });
 
+      // 🆕 デバッグログ追加
+      console.log('取得したレコード:', records);
 
-
-      // 日付のSetを作成
+      // JavaScript側で食事記録の存在をチェック（「ー」は除外）
       const mealDates = new Set<string>();
       records?.forEach(record => {
+        console.log('食事記録チェック:', {
+          date: record.date,
+          breakfast: record.breakfast,
+          lunch: record.lunch,
+          dinner: record.dinner
+        });
+
         if (record.date) {
-          mealDates.add(record.date);
+          // 🆕 食事が無効かどうかを判定する関数
+          const isEmptyMeal = (meal: string | null | undefined) => {
+            // そもそも食事のカラムがない（null/undefined）
+            if (!meal) return true;
+            
+            // 空文字列の場合
+            if (meal.trim() === "") return true;
+            
+            // 「ー」または「-」で登録されている場合
+            if (meal.trim() === "—" || meal.trim() === "ー" || meal.trim() === "-") return true;
+            
+            return false;
+          };
+
+          // 各食事が有効かどうかをチェック
+          const breakfastValid = !isEmptyMeal(record.breakfast);
+          const lunchValid = !isEmptyMeal(record.lunch);
+          const dinnerValid = !isEmptyMeal(record.dinner);
+          
+          // 1食でも有効な食事があれば「食事あり」
+          const hasMeal = breakfastValid || lunchValid || dinnerValid;
+          
+          console.log(`${record.date}の食事判定:`, {
+            breakfastValid,
+            lunchValid, 
+            dinnerValid,
+            hasMeal
+          });
+          
+          if (hasMeal) {
+            mealDates.add(record.date);
+          }
         }
       });
 
@@ -627,28 +659,79 @@ export default function CalendarPage() {
           <div className="loading">
             <p>📊 データを読み込み中...</p>
           </div>
-        ) : dailyRecords.length > 0 ? (
-          <div className="daily-records">
-            <h4>📋 この日の記録</h4>
-            {(() => {
-              // 最初のレコードを取得（通常は1日1レコード）
-              const record = dailyRecords[0];
-              
-              if (!record) {
-                return <p>記録が見つかりません</p>;
-              }
+        ) : (() => {
+            // レコードの存在と有効性をチェック
+            if (dailyRecords.length === 0) {
+              return (
+                <div className="no-records">
+                  <p>📝 この日の記録がありません</p>
+                  <p className="no-records-hint">
+                    食事記録や体調記録を追加してみましょう
+                  </p>
+                </div>
+              );
+            }
 
-              // 食事データを配列形式で整理
-              const mealData = [
-                { type: 'breakfast', label: '朝食', content: record.breakfast },
-                { type: 'lunch', label: '昼食', content: record.lunch },
-                { type: 'dinner', label: '夕食', content: record.dinner }
-              ].filter(meal => meal.content && meal.content.trim() !== "");
+            // 最初のレコードを取得（通常は1日1レコード）
+            const record = dailyRecords[0];
+            
+            if (!record) {
+              return (
+                <div className="no-records">
+                  <p>📝 この日の記録がありません</p>
+                  <p className="no-records-hint">
+                    食事記録や体調記録を追加してみましょう
+                  </p>
+                </div>
+              );
+            }
 
-              const hasOtherRecords = record.condition || record.mood || record.weight;
+            // 🆕 共通の食事判定関数
+            const isEmptyMeal = (meal: string | null | undefined) => {
+              if (!meal) return true;
+              if (meal.trim() === "") return true;
+              if (meal.trim() === "—" || meal.trim() === "ー" || meal.trim() === "-") return true;
+              return false;
+            };
+
+            // 🆕 有効な食事記録があるかチェック
+            const hasValidMeals = !isEmptyMeal(record.breakfast) || 
+                                 !isEmptyMeal(record.lunch) || 
+                                 !isEmptyMeal(record.dinner);
+
+            // 健康記録（気分・体調・体重）があるかチェック
+            const hasHealthRecords = (record.condition && record.condition.trim() !== "") || 
+                                    (record.mood && record.mood.trim() !== "") || 
+                                    record.weight;
+
+            // 有効な記録が何もない場合は「記録がありません」を表示
+            if (!hasValidMeals && !hasHealthRecords) {
+              return (
+                <div className="no-records">
+                  <p>📝 この日の記録がありません</p>
+                  <p className="no-records-hint">
+                    食事記録や体調記録を追加してみましょう
+                  </p>
+                </div>
+              );
+            }
+
+            // 有効な記録がある場合は記録を表示
+            return (
+              <div className="daily-records">
+                <h4>📋 この日の記録</h4>
+                {(() => {
+                  // 食事データを配列形式で整理（無効な食事記録を除外）
+                  const mealData = [
+                    { type: 'breakfast', label: '朝食', content: record.breakfast },
+                    { type: 'lunch', label: '昼食', content: record.lunch },
+                    { type: 'dinner', label: '夕食', content: record.dinner }
+                  ].filter(meal => !isEmptyMeal(meal.content));
+
+                  const hasOtherRecords = record.condition || record.mood || record.weight;
               
-              // 🆕 分割データから1日の合計栄養価を計算
-              const hasNutritionData = (
+              // 🆕 栄養情報の表示条件を食事記録の存在と連動
+              const hasNutritionData = hasValidMeals && (
                 record.calories_bre !== null || record.calories_lun !== null || record.calories_din !== null ||
                 record.protein_bre !== null || record.protein_lun !== null || record.protein_din !== null ||
                 record.fat_bre !== null || record.fat_lun !== null || record.fat_din !== null ||
@@ -740,18 +823,12 @@ export default function CalendarPage() {
                       )}
                     </div>
                   )}
-                </>
-              );
-            })()}
-          </div>
-        ) : (
-          <div className="no-records">
-            <p>📝 この日の記録がありません</p>
-            <p className="no-records-hint">
-              食事記録や体調記録を追加してみましょう
-            </p>
-          </div>
-        )}            {/* デバッグ情報（開発中のみ） */}
+                  </>
+                );
+              })()}
+              </div>
+            );
+          })()}            {/* デバッグ情報（開発中のみ） */}
             {process.env.NODE_ENV === 'development' && (
               <div className="debug-info">
                 <details>
