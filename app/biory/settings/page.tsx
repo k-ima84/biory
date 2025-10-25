@@ -445,7 +445,7 @@ export default function SettingsPage() {
         <form id="user-profile-form" onSubmit={handleSubmit} className="profile-form">
           {/* 名前 */}
           <div className="form-group">
-            <label className="form-label">氏名</label>
+            <label className="form-label">ニックネーム</label>
             {isEditMode ? (
               <div className="form-input-container">
                 <input

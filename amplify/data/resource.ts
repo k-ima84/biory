@@ -109,22 +109,22 @@ export const schema = a.schema({
       dinner: a.string(),
 
       // 朝食栄養関連
-    　calories_bre: a.integer(),
-    　protein_bre: a.float(),
-    　fat_bre: a.float(),
-    　carbs_bre: a.float(),
+      calories_bre: a.integer(),
+      protein_bre: a.float(),
+      fat_bre: a.float(),
+      carbs_bre: a.float(),
 
-    　// 昼食栄養関連
-    　calories_lun: a.integer(),
-    　protein_lun: a.float(),
-    　fat_lun: a.float(),
-    　carbs_lun: a.float(),
+      // 昼食栄養関連
+      calories_lun: a.integer(),
+      protein_lun: a.float(),
+      fat_lun: a.float(),
+      carbs_lun: a.float(),
 
-    　// 夕食栄養関連
-    　calories_din: a.integer(),
-    　protein_din: a.float(),
-    　fat_din: a.float(),
-    　carbs_din: a.float(),
+      // 夕食栄養関連
+      calories_din: a.integer(),
+      protein_din: a.float(),
+      fat_din: a.float(),
+      carbs_din: a.float(),
 
     
 

@@ -35,11 +35,19 @@ type DailyRecord = {
   breakfast?: string | null;
   lunch?: string | null;
   dinner?: string | null;
-  // 栄養情報を追加
-  calories?: number | null;
-  protein?: number | null;
-  fat?: number | null;
-  carbs?: number | null;
+  // 🆕 分割栄養情報
+  calories_bre?: number | null;
+  calories_lun?: number | null;
+  calories_din?: number | null;
+  protein_bre?: number | null;
+  protein_lun?: number | null;
+  protein_din?: number | null;
+  fat_bre?: number | null;
+  fat_lun?: number | null;
+  fat_din?: number | null;
+  carbs_bre?: number | null;
+  carbs_lun?: number | null;
+  carbs_din?: number | null;
   condition?: string | null;
   mood?: string | null;
   weight?: number | null;
@@ -578,7 +586,20 @@ export default function CalendarPage() {
               ].filter(meal => meal.content && meal.content.trim() !== "");
 
               const hasOtherRecords = record.condition || record.mood || record.weight;
-              const hasNutritionData = record.calories || record.protein || record.fat || record.carbs;
+              
+              // 🆕 分割データから1日の合計栄養価を計算
+              const hasNutritionData = (
+                record.calories_bre !== null || record.calories_lun !== null || record.calories_din !== null ||
+                record.protein_bre !== null || record.protein_lun !== null || record.protein_din !== null ||
+                record.fat_bre !== null || record.fat_lun !== null || record.fat_din !== null ||
+                record.carbs_bre !== null || record.carbs_lun !== null || record.carbs_din !== null
+              );
+
+              // 栄養価の合算計算
+              const totalCalories = (record.calories_bre || 0) + (record.calories_lun || 0) + (record.calories_din || 0);
+              const totalProtein = (record.protein_bre || 0) + (record.protein_lun || 0) + (record.protein_din || 0);
+              const totalFat = (record.fat_bre || 0) + (record.fat_lun || 0) + (record.fat_din || 0);
+              const totalCarbs = (record.carbs_bre || 0) + (record.carbs_lun || 0) + (record.carbs_din || 0);
 
               return (
                 <>
@@ -586,31 +607,31 @@ export default function CalendarPage() {
                   {hasNutritionData && (
                     <div className="daily-record-item nutrition-summary">
                       <div className="record-section nutrition">
-                        <div className="record-label">📊 栄養情報</div>
+                        <div className="record-label">📊 栄養情報（1日合計）</div>
                         <div className="nutrition-content">
                           <div className="nutrition-grid">
-                            {record.calories && (
+                            {totalCalories > 0 && (
                               <div className="nutrition-item">
                                 <span className="nutrition-label">カロリー</span>
-                                <span className="nutrition-value">{record.calories}kcal</span>
+                                <span className="nutrition-value">{Math.round(totalCalories)}kcal</span>
                               </div>
                             )}
-                            {record.protein && (
+                            {totalProtein > 0 && (
                               <div className="nutrition-item">
                                 <span className="nutrition-label">タンパク質</span>
-                                <span className="nutrition-value">{record.protein}g</span>
+                                <span className="nutrition-value">{Math.round(totalProtein)}g</span>
                               </div>
                             )}
-                            {record.fat && (
+                            {totalFat > 0 && (
                               <div className="nutrition-item">
                                 <span className="nutrition-label">脂質</span>
-                                <span className="nutrition-value">{record.fat}g</span>
+                                <span className="nutrition-value">{Math.round(totalFat)}g</span>
                               </div>
                             )}
-                            {record.carbs && (
+                            {totalCarbs > 0 && (
                               <div className="nutrition-item">
                                 <span className="nutrition-label">炭水化物</span>
-                                <span className="nutrition-value">{record.carbs}g</span>
+                                <span className="nutrition-value">{Math.round(totalCarbs)}g</span>
                               </div>
                             )}
                           </div>
