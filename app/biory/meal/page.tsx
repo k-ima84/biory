@@ -733,10 +733,14 @@ export default function MealPage() {
               className={styles.aiButton}
             >
               {kondateLoading ? (
-                <>
-                  <span className={styles.spinner}></span>
-                  AI献立作成中...
-                </>
+                <div className={styles.loadingRiceContainer}>
+                  <img 
+                    src="/riceicon.png" 
+                    alt="献立作成中" 
+                    className={styles.loadingRiceIcon}
+                  />
+                  <span className={styles.loadingText}>AI献立作成中...</span>
+                </div>
               ) : (
                 <>
                   🍽️ AI献立を作成
@@ -752,6 +756,27 @@ export default function MealPage() {
               💾 献立を保存
             </button>
           </div>
+
+          {/* 🆕 ボタン下の範囲内でのローディング表示 */}
+          {kondateLoading && (
+            <div className={styles.inlineLoadingContainer}>
+              <div className={styles.inlineLoadingContent}>
+                <img 
+                  src="/riceicon.png" 
+                  alt="献立作成中" 
+                  className={styles.inlineLoadingRice}
+                />
+                <h3 className={styles.inlineLoadingTitle}>
+                  あなたにぴったりの献立を作成中...
+                </h3>
+                <div className={styles.inlineLoadingDots}>
+                  <span>.</span>
+                  <span>.</span>
+                  <span>.</span>
+                </div>
+              </div>
+            </div>
+          )}
           
           {parsedKondate && (
             <div className={styles.kondateResultContainer}>
