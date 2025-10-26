@@ -1,0 +1,504 @@
+6
+
+2025-10-26T08:18:41.126Z [WARNING]: ! Unable to write cache: {"code":"ERR_BAD_REQUEST","message":"Request failed with status code 404"})}
+
+7
+
+2025-10-26T08:18:41.126Z [INFO]: ---- Setting Up SSM Secrets ----
+
+8
+
+2025-10-26T08:18:41.126Z [INFO]: SSM params {"Path":"/amplify/d3jy7yskmr5rp7/task010/deploytest_from_ozawa-from-mano010/","WithDecryption":true}
+
+9
+
+2025-10-26T08:18:42.169Z [INFO]: # No package override configuration found.
+
+10
+
+2025-10-26T08:18:42.278Z [INFO]: # Retrieving cache...
+
+11
+
+2025-10-26T08:18:42.322Z [INFO]: # Retrieved cache
+
+12
+
+2025-10-26T08:18:46.981Z [INFO]: ## Starting Backend Build
+
+13
+
+                                 # Starting phase: build
+
+14
+
+                                 # Executing command: npm ci --cache .npm --prefer-offline
+
+15
+
+2025-10-26T08:19:07.088Z [WARNING]: npm warn ERESOLVE overriding peer dependency
+
+16
+
+2025-10-26T08:19:07.095Z [WARNING]: npm warn While resolving: @aws-amplify/plugin-types@1.10.1
+
+17
+
+                                    npm warn Found: @aws-sdk/types@3.821.0
+
+18
+
+                                    npm warn node_modules/@aws-amplify/data-construct/node_modules/@aws-amplify/ai-constructs/node_modules/@aws-amplify/plugin-types/node_modules/@aws-sdk/types
+
+19
+
+                                    npm warn
+
+20
+
+                                    npm warn Could not resolve dependency:
+
+21
+
+                                    npm warn peer @aws-sdk/types@"^3.734.0" from @aws-amplify/plugin-types@1.10.1
+
+22
+
+                                    npm warn node_modules/@aws-amplify/data-construct/node_modules/@aws-amplify/ai-constructs/node_modules/@aws-amplify/plugin-types
+
+23
+
+                                    npm warn   @aws-amplify/plugin-types@"^1.10.1" from @aws-amplify/ai-constructs@1.5.3
+
+24
+
+                                    npm warn   node_modules/@aws-amplify/data-construct/node_modules/@aws-amplify/ai-constructs
+
+25
+
+2025-10-26T08:19:07.227Z [WARNING]: npm warn ERESOLVE overriding peer dependency
+
+26
+
+2025-10-26T08:19:07.227Z [WARNING]: npm warn While resolving: @aws-amplify/plugin-types@1.10.1
+
+27
+
+                                    npm warn Found: @aws-sdk/types@3.821.0
+
+28
+
+                                    npm warn node_modules/@aws-amplify/graphql-api-construct/node_modules/@aws-amplify/ai-constructs/node_modules/@aws-amplify/plugin-types/node_modules/@aws-sdk/types
+
+29
+
+                                    npm warn
+
+30
+
+                                    npm warn Could not resolve dependency:
+
+31
+
+                                    npm warn peer @aws-sdk/types@"^3.734.0" from @aws-amplify/plugin-types@1.10.1
+
+32
+
+                                    npm warn node_modules/@aws-amplify/graphql-api-construct/node_modules/@aws-amplify/ai-constructs/node_modules/@aws-amplify/plugin-types
+
+33
+
+                                    npm warn   @aws-amplify/plugin-types@"^1.10.1" from @aws-amplify/ai-constructs@1.5.3
+
+34
+
+                                    npm warn   node_modules/@aws-amplify/graphql-api-construct/node_modules/@aws-amplify/ai-constructs
+
+35
+
+2025-10-26T08:20:14.740Z [WARNING]: npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+
+36
+
+2025-10-26T08:20:15.492Z [WARNING]: npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+40
+
+2025-10-26T08:20:21.650Z [WARNING]: npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+
+41
+
+2025-10-26T08:20:28.239Z [WARNING]: npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+
+42
+
+2025-10-26T08:20:32.007Z [WARNING]: npm warn deprecated core-js@2.6.12: core-js@<3.23.3 is no longer maintained and not recommended for usage due to the number of issues. Because of the V8 engine whims, feature detection in old core-js versions could cause a slowdown up to 100x even if nothing is polyfilled. Some versions have web compatibility issues. Please, upgrade your dependencies to the actual version of core-js.
+
+43
+
+2025-10-26T08:20:36.511Z [INFO]: added 1747 packages, and audited 2593 packages in 2m
+
+44
+
+2025-10-26T08:20:36.517Z [INFO]: 193 packages are looking for funding
+
+45
+
+                                 run `npm fund` for details
+
+46
+
+2025-10-26T08:20:36.518Z [INFO]: 2 vulnerabilities (1 moderate, 1 high)
+
+47
+
+                                 To address all issues possible (including breaking changes), run:
+
+48
+
+                                 npm audit fix --force
+
+49
+
+                                 Some issues need review, and may require choosing
+
+50
+
+                                 a different dependency.
+
+51
+
+                                 Run `npm audit` for details.
+
+52
+
+2025-10-26T08:20:36.548Z [INFO]: # Executing command: npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID
+
+53
+
+2025-10-26T08:20:40.877Z [INFO]: 8:20:40 AM Synthesizing backend...
+
+54
+
+2025-10-26T08:20:40.882Z [INFO]: 
+
+55
+
+2025-10-26T08:20:42.193Z [WARNING]: Bundling asset amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857e134d/AmplifyBranchLinker/CustomResourceLambda/Code/Stage...
+
+56
+
+2025-10-26T08:20:42.530Z [WARNING]: ...06667d3ec629c6f74610a596db01588149494830c1fe5b-building/index.js  934.5kb
+
+57
+
+                                    ⚡ Done in 71ms
+
+58
+
+2025-10-26T08:20:42.663Z [WARNING]: Bundling asset amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857e134d/auth/kondate-ai/Code/Stage...
+
+59
+
+2025-10-26T08:20:42.674Z [WARNING]: [WARNING] aws-cdk-lib.aws_lambda.FunctionOptions#logRetention is deprecated.
+
+60
+
+                                    use `logGroup` instead
+
+61
+
+                                    This API will be removed in the next major release.
+
+62
+
+2025-10-26T08:20:42.674Z [WARNING]: [WARNING] aws-cdk-lib.aws_lambda.FunctionOptions#logRetention is deprecated.
+
+63
+
+                                    use `logGroup` instead
+
+64
+
+                                    This API will be removed in the next major release.
+
+65
+
+2025-10-26T08:20:42.677Z [WARNING]: Bundling asset amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857e134d/function/mealAnalysis-lambda/Code/Stage...
+
+66
+
+2025-10-26T08:20:43.142Z [WARNING]: Be careful when using @auth directives on a field in a root type. @auth directives on field definitions use the source object to perform authorization logic and the source will be an empty object for fields on root types. Static group authorization should perform as expected.
+
+67
+
+2025-10-26T08:20:43.142Z [WARNING]: Be careful when using @auth directives on a field in a root type. @auth directives on field definitions use the source object to perform authorization logic and the source will be an empty object for fields on root types. Static group authorization should perform as expected.
+
+70
+
+2025-10-26T08:20:51.517Z [INFO]: 8:20:51 AM ✔ Type checks completed in 7.34 seconds
+
+71
+
+2025-10-26T08:20:51.524Z [INFO]: 8:20:51 AM Building and publishing assets...
+
+72
+
+2025-10-26T08:20:51.524Z [INFO]: 
+
+73
+
+2025-10-26T08:20:53.131Z [INFO]: 8:20:53 AM ✔ Built and published assets
+
+74
+
+2025-10-26T08:20:56.051Z [INFO]: amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857e134d |   0 | 8:20:53 AM | UPDATE_IN_PROGRESS | AWS::CloudFormation::Stack | amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857e134d User Initiated
+
+75
+
+2025-10-26T08:20:58.161Z [INFO]: amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857e134d |   0 | 8:20:57 AM | UPDATE_IN_PROGRESS | AWS::CloudFormation::Stack | auth.NestedStack/auth.NestedStackResource (auth179371D7)
+
+76
+
+2025-10-26T08:20:58.161Z [INFO]: amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857e134d |   0 | 8:20:57 AM | UPDATE_IN_PROGRESS | AWS::CloudFormation::Stack | function.NestedStack/function.NestedStackResource (function1351588B)
+
+77
+
+2025-10-26T08:21:00.260Z [INFO]: amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857e134d |   1 | 8:20:58 AM | UPDATE_COMPLETE | AWS::CloudFormation::Stack | function.NestedStack/function.NestedStackResource (function1351588B)
+
+78
+
+2025-10-26T08:21:00.264Z [INFO]: amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857e134d |   2 | 8:20:58 AM | UPDATE_COMPLETE | AWS::CloudFormation::Stack | auth.NestedStack/auth.NestedStackResource (auth179371D7)
+
+79
+
+2025-10-26T08:21:02.406Z [INFO]: amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857e134d |   2 | 8:21:00 AM | UPDATE_IN_PROGRESS | AWS::CloudFormation::Stack | data.NestedStack/data.NestedStackResource (data7552DF31)
+
+80
+
+2025-10-26T08:21:02.406Z [INFO]: amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857-data7552DF31-1UOACMJ8QM6GV |   2 | 8:21:00 AM | UPDATE_IN_PROGRESS | AWS::CloudFormation::Stack | amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857-data7552DF31-1UOACMJ8QM6GV User Initiated
+
+81
+
+2025-10-26T08:21:06.817Z [INFO]: amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857-data7552DF31-1UOACMJ8QM6GV |   2 | 8:21:06 AM | UPDATE_IN_PROGRESS | AWS::CloudFormation::Stack | data/amplifyData/AmplifyTableManager.NestedStack/AmplifyTableManager.NestedStackResource (amplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResource86290833)
+
+82
+
+2025-10-26T08:21:06.822Z [INFO]: amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857-data7552DF31-1UOACMJ8QM6GV |   2 | 8:21:06 AM | UPDATE_IN_PROGRESS | AWS::AppSync::ApiKey | data/amplifyData/GraphQLAPI/DefaultApiKey (amplifyDataGraphQLAPIDefaultApiKey1C8ED374)
+
+83
+
+2025-10-26T08:21:09.322Z [INFO]: amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857-data7552DF31-1UOACMJ8QM6GV |   2 | 8:21:06 AM | UPDATE_IN_PROGRESS | AWS::CloudFormation::Stack | data/amplifyData/FunctionDirectiveStack.NestedStack/FunctionDirectiveStack.NestedStackResource (amplifyDataFunctionDirectiveStackNestedStackFunctionDirectiveStackNestedStackResource1246A302)
+
+84
+
+2025-10-26T08:21:09.323Z [INFO]: amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857-data7552DF31-1UOACMJ8QM6GV |   3 | 8:21:07 AM | UPDATE_COMPLETE | AWS::CloudFormation::Stack | data/amplifyData/AmplifyTableManager.NestedStack/AmplifyTableManager.NestedStackResource (amplifyDataAmplifyTableManagerNestedStackAmplifyTableManagerNestedStackResource86290833)
+
+85
+
+                                 amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857-data7552DF31-1UOACMJ8QM6GV |   4 | 8:21:07 AM | UPDATE_COMPLETE | AWS::CloudFormation::Stack | data/amplifyData/FunctionDirectiveStack.NestedStack/FunctionDirectiveStack.NestedStackResource (amplifyDataFunctionDirectiveStackNestedStackFunctionDirectiveStackNestedStackResource1246A302)
+
+86
+
+2025-10-26T08:21:09.323Z [INFO]: amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857-data7552DF31-1UOACMJ8QM6GV |   5 | 8:21:07 AM | UPDATE_COMPLETE | AWS::AppSync::ApiKey | data/amplifyData/GraphQLAPI/DefaultApiKey (amplifyDataGraphQLAPIDefaultApiKey1C8ED374)
+
+87
+
+2025-10-26T08:21:09.323Z [INFO]: amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857-data7552DF31-1UOACMJ8QM6GV |   5 | 8:21:08 AM | UPDATE_IN_PROGRESS | AWS::CloudFormation::Stack | data/amplifyData/Meal.NestedStack/Meal.NestedStackResource (amplifyDataMealNestedStackMealNestedStackResourceDA3F2B9A)
+
+88
+
+2025-10-26T08:21:09.323Z [INFO]: amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857-data7552DF31-1UOACMJ8QM6GV |   5 | 8:21:08 AM | UPDATE_IN_PROGRESS | AWS::CloudFormation::Stack | data/amplifyData/Nutrition.NestedStack/Nutrition.NestedStackResource (amplifyDataNutritionNestedStackNutritionNestedStackResource1D8B8868)
+
+89
+
+2025-10-26T08:21:09.323Z [INFO]: amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857-data7552DF31-1UOACMJ8QM6GV |   5 | 8:21:08 AM | UPDATE_IN_PROGRESS | AWS::CloudFormation::Stack | data/amplifyData/UserProfile.NestedStack/UserProfile.NestedStackResource (amplifyDataUserProfileNestedStackUserProfileNestedStackResource1B3713C5)
+
+90
+
+2025-10-26T08:21:09.323Z [INFO]: amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857-data7552DF31-1UOACMJ8QM6GV |   5 | 8:21:08 AM | UPDATE_IN_PROGRESS | AWS::CloudFormation::Stack | data/amplifyData/DailyRecord.NestedStack/DailyRecord.NestedStackResource (amplifyDataDailyRecordNestedStackDailyRecordNestedStackResource4813BB29)
+
+91
+
+2025-10-26T08:21:09.323Z [INFO]: amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857-data7552DF31-1UOACMJ8QM6GV |   5 | 8:21:08 AM | UPDATE_IN_PROGRESS | AWS::CloudFormation::Stack | data/amplifyData/HealthRecord.NestedStack/HealthRecord.NestedStackResource (amplifyDataHealthRecordNestedStackHealthRecordNestedStackResource888BCDCD)
+
+92
+
+2025-10-26T08:21:11.801Z [INFO]: amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857-data7552DF31-1UOACMJ8QM6GV |   6 | 8:21:08 AM | UPDATE_COMPLETE | AWS::CloudFormation::Stack | data/amplifyData/Meal.NestedStack/Meal.NestedStackResource (amplifyDataMealNestedStackMealNestedStackResourceDA3F2B9A)
+
+93
+
+2025-10-26T08:21:11.805Z [INFO]: amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857-data7552DF31-1UOACMJ8QM6GV |   7 | 8:21:09 AM | UPDATE_COMPLETE | AWS::CloudFormation::Stack | data/amplifyData/Nutrition.NestedStack/Nutrition.NestedStackResource (amplifyDataNutritionNestedStackNutritionNestedStackResource1D8B8868)
+
+94
+
+                                 amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857-data7552DF31-1UOACMJ8QM6GV |   8 | 8:21:09 AM | UPDATE_COMPLETE | AWS::CloudFormation::Stack | data/amplifyData/DailyRecord.NestedStack/DailyRecord.NestedStackResource (amplifyDataDailyRecordNestedStackDailyRecordNestedStackResource4813BB29)
+
+95
+
+                                 amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857-data7552DF31-1UOACMJ8QM6GV |   9 | 8:21:09 AM | UPDATE_COMPLETE | AWS::CloudFormation::Stack | data/amplifyData/UserProfile.NestedStack/UserProfile.NestedStackResource (amplifyDataUserProfileNestedStackUserProfileNestedStackResource1B3713C5)
+
+96
+
+                                 amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857-data7552DF31-1UOACMJ8QM6GV |  10 | 8:21:09 AM | UPDATE_COMPLETE | AWS::CloudFormation::Stack | data/amplifyData/HealthRecord.NestedStack/HealthRecord.NestedStackResource (amplifyDataHealthRecordNestedStackHealthRecordNestedStackResource888BCDCD)
+
+97
+
+2025-10-26T08:21:14.282Z [INFO]: amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857-data7552DF31-1UOACMJ8QM6GV |  11 | 8:21:12 AM | UPDATE_COMPLETE_CLEANUP_IN_PROGRESS | AWS::CloudFormation::Stack | amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857-data7552DF31-1UOACMJ8QM6GV
+
+98
+
+2025-10-26T08:21:24.287Z [INFO]: amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857e134d |  12 | 8:21:22 AM | UPDATE_COMPLETE | AWS::CloudFormation::Stack | data.NestedStack/data.NestedStackResource (data7552DF31)
+
+99
+
+2025-10-26T08:21:26.843Z [INFO]: amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857e134d |  13 | 8:21:23 AM | UPDATE_COMPLETE_CLEANUP_IN_PROGRESS | AWS::CloudFormation::Stack | amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857e134d
+
+100
+
+2025-10-26T08:21:29.325Z [INFO]: amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857-data7552DF31-1UOACMJ8QM6GV |  12 | 8:21:26 AM | UPDATE_COMPLETE | AWS::CloudFormation::Stack | data/amplifyData/HealthRecord.NestedStack/HealthRecord.NestedStackResource (amplifyDataHealthRecordNestedStackHealthRecordNestedStackResource888BCDCD)
+
+101
+
+2025-10-26T08:21:29.330Z [INFO]: amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857-data7552DF31-1UOACMJ8QM6GV |  11 | 8:21:26 AM | UPDATE_COMPLETE | AWS::CloudFormation::Stack | data/amplifyData/UserProfile.NestedStack/UserProfile.NestedStackResource (amplifyDataUserProfileNestedStackUserProfileNestedStackResource1B3713C5)
+
+102
+
+                                 amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857-data7552DF31-1UOACMJ8QM6GV |  10 | 8:21:26 AM | UPDATE_COMPLETE | AWS::CloudFormation::Stack | data/amplifyData/Nutrition.NestedStack/Nutrition.NestedStackResource (amplifyDataNutritionNestedStackNutritionNestedStackResource1D8B8868)
+
+103
+
+                                 amplify-d3jy7yskmr5rp7-task010deploytestfromozawafrommano010-branch-e4857-data7552DF31-1UOACMJ8QM6GV |   9 | 8:21:26 AM | UPDATE_COMPLETE | AWS::CloudFormation::Stack | data/amplifyData/DailyRecord.NestedStack/DailyRecord.NestedStackResource (amplifyDataDailyRecordNestedStackDailyRecordNestedStackResource4813BB29)
+
+
+114
+
+2025-10-26T08:21:39.979Z [INFO]: 8:21:39 AM File written: amplify_outputs.json
+
+115
+
+2025-10-26T08:21:40.647Z [INFO]: # Completed phase: build
+
+116
+
+                                 ## Completed Backend Build
+
+117
+
+2025-10-26T08:21:40.653Z [INFO]: ## Starting Frontend Build
+
+118
+
+                                 # Starting phase: build
+
+119
+
+2025-10-26T08:21:40.653Z [INFO]: # Executing command: npm run build
+
+120
+
+2025-10-26T08:21:40.749Z [INFO]: > aws-amplify-gen2@0.1.0 build
+
+121
+
+                                 > next build
+
+122
+
+2025-10-26T08:21:41.259Z [INFO]: ⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+
+123
+
+2025-10-26T08:21:41.264Z [INFO]: Attention: Next.js now collects completely anonymous telemetry regarding usage.
+
+124
+
+2025-10-26T08:21:41.264Z [INFO]: This information is used to shape Next.js' roadmap and prioritize features.
+
+125
+
+                                 You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+
+126
+
+                                 https://nextjs.org/telemetry
+
+127
+
+2025-10-26T08:21:41.321Z [INFO]: ▲ Next.js 14.2.33
+
+128
+
+2025-10-26T08:21:41.322Z [INFO]: 
+
+129
+
+2025-10-26T08:21:41.389Z [INFO]: Creating an optimized production build ...
+
+130
+
+2025-10-26T08:21:56.986Z [INFO]: ✓ Compiled successfully
+
+131
+
+2025-10-26T08:21:56.992Z [INFO]: Linting and checking validity of types ...
+
+132
+
+2025-10-26T08:22:05.276Z [WARNING]: Failed to compile.
+
+133
+
+2025-10-26T08:22:05.280Z [WARNING]: ./check-env.ts:1:21
+
+134
+
+                                    Type error: Cannot find module './amplify/seed/common' or its corresponding type declarations.
+
+135
+
+                                    [0m[31m[1m>[22m[39m[90m 1 |[39m [36mimport[39m { log } [36mfrom[39m [32m'./amplify/seed/common'[39m[33m;[39m[0m
+
+136
+
+                                    [0m [90m   |[39m                     [31m[1m^[22m[39m[0m
+
+137
+
+                                    [0m [90m 2 |[39m [36mimport[39m [33m*[39m [36mas[39m fs [36mfrom[39m [32m'fs'[39m[33m;[39m[0m
+
+138
+
+                                    [0m [90m 3 |[39m [36mimport[39m [33m*[39m [36mas[39m path [36mfrom[39m [32m'path'[39m[33m;[39m[0m
+
+139
+
+                                    [0m [90m 4 |[39m[0m
+
+140
+
+2025-10-26T08:22:05.312Z [WARNING]: Next.js build worker exited with code: 1 and signal: null
+
+141
+
+2025-10-26T08:22:05.396Z [ERROR]: !!! Build failed
+
+142
+
+2025-10-26T08:22:05.396Z [INFO]: Please read more about Amplify Hosting's support for SSR frameworks to find if your build failure is related to an unsupported feature: https://docs.aws.amazon.com/amplify/latest/userguide/amplify-ssr-framework-support.html. You may also find this troubleshooting guide useful: https://docs.aws.amazon.com/amplify/latest/userguide/troubleshooting-ssr-deployment.html
+
+143
+
+2025-10-26T08:22:05.397Z [ERROR]: !!! Error: Command failed with exit code 1
+
+144
+
+2025-10-26T08:22:05.397Z [INFO]: # Starting environment caching...
+
+145
+
+2025-10-26T08:22:05.397Z [INFO]: # Environment caching completed
+
+
+
+
+
