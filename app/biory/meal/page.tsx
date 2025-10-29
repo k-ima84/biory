@@ -802,7 +802,15 @@ export default function MealPage() {
                         
                         <div className={styles.aiMealDetails}>
                           <div className={styles.aiMenuItem}>
-                            <strong>{meal.menu || '未設定'}</strong>
+                            <strong>
+                              {(meal.menu || '未設定')
+                                .split('、')
+                                .map(item => item.trim())
+                                .filter(item => item.length > 0)
+                                .map(item => `🍽️ ${item}`)
+                                .join('\n')
+                              }
+                            </strong>
                           </div>
                           
                           <div className={styles.aiNutritionInfo}>
