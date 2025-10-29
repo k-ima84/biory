@@ -39,6 +39,7 @@ export default function HomePage() {
   const [userName, setUserName] = useState("");
   const [cognitoUserId, setCognitoUserId] = useState("");
   const [userProfile, setUserProfile] = useState<any>(null); // ユーザープロファイル
+  const [profileLoaded, setProfileLoaded] = useState(false); // プロファイル読み込み完了フラグ
   const [nutritionData, setNutritionData] = useState<NutritionData>({
     calories: 0,
     protein: { value: 0, percentage: 0 },
@@ -126,6 +127,11 @@ export default function HomePage() {
     return Math.round(bmr * activityFactor);
   };
 
+  // ユーザープロファイルがDBに存在するかチェックする関数
+  const checkProfileExists = (profile: any) => {
+    return profile !== null && profile !== undefined;
+  };
+
   // 推奨カロリーを計算
   const recommendedCalories = userProfile ? calculateTDEE(userProfile) : 2000;
 
@@ -201,16 +207,23 @@ export default function HomePage() {
       } else {
         // 該当するUserProfileがない場合はデフォルト名を使用
         setUserName("ユーザー");
+        // プロファイルがない場合はnullのまま
+        setUserProfile(null);
+      }
+      
+      // プロファイル読み込み完了をマーク
+      setProfileLoaded(true);
 
         setHealthData(prev => ({
           ...prev,
           weight: 0
         }));
 
-      }
+      
     } catch (error) {
       console.error("ユーザープロフィール取得エラー:", error);
       setUserName("ゲスト");
+      setProfileLoaded(true);
 
       setHealthData(prev => ({
         ...prev,
@@ -1262,6 +1275,28 @@ export default function HomePage() {
           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
         </svg>
       </button>*/}
+
+      {/* プロファイル設定促進セクション */}
+      {profileLoaded && !checkProfileExists(userProfile) && (
+        <div className="profile-setup-prompt">
+          <div className="prompt-container">
+            <div className="exercise-character">
+              <img src="/exercise.png" alt="エクササイズキャラクター" />
+            </div>
+            <div className="prompt-bubble">
+              <div className="prompt-content">
+                <h3>🎯 まずは基本情報を登録しよう！</h3>
+                <p>
+                  年齢、身長、体重などの基本情報を登録すると、<br />
+                  あなたにぴったりの献立やアドバイスが受けられるよ！<br />
+                  <strong>📱 下のナビから「設定」をタップしてね！</strong>
+                </p>
+              </div>
+              <div className="prompt-tail"></div>
+            </div>
+          </div>
+        </div>
+      )}
     </BioryLayout>
   );
 }
