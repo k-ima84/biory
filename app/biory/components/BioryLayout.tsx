@@ -7,9 +7,11 @@ import "./layout.css";
  
 interface LayoutProps {
   children: React.ReactNode;
+  highlightSettings?: boolean; // 設定ボタンをハイライト表示するかどうか
+  highlightMeal?: boolean; // 献立ボタンをハイライト表示するかどうか
 }
  
-export default function BioryLayout({ children }: LayoutProps) {
+export default function BioryLayout({ children, highlightSettings = false, highlightMeal = false }: LayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [currentPath, setCurrentPath] = useState(pathname);
@@ -103,7 +105,7 @@ export default function BioryLayout({ children }: LayoutProps) {
           <div className="nav-icon home-icon"></div>
         </button>
         <button
-          className={`nav-item ${isActive("meal") ? "active" : ""}`}
+          className={`nav-item ${isActive("meal") ? "active" : ""} ${highlightMeal ? "highlight-meal" : ""}`}
           onClick={() => handleNavClick("meal")}
         >
           <div className="nav-icon meal-icon"></div>
@@ -115,7 +117,7 @@ export default function BioryLayout({ children }: LayoutProps) {
           <div className="nav-icon calendar-icon"></div>
         </button>
         <button
-          className={`nav-item ${isActive("settings") ? "active" : ""}`}
+          className={`nav-item ${isActive("settings") ? "active" : ""} ${highlightSettings ? "highlight-settings" : ""}`}
           onClick={() => handleNavClick("settings")}
         >
           <div className="nav-icon settings-icon"></div>
