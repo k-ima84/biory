@@ -52,70 +52,71 @@
 /* 上部ボタンコンテナ */
 .topButtonsContainer {
   display: flex;
-  gap: 20px;
-  margin-bottom: 20px;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap; /* モバイル対応 */
 }
 
 .aiButton {
-  flex: 3;
-  padding: 16px 32px;
   background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
   color: white;
   border: none;
-  border-radius: 12px;
-  font-size: 1.2rem;
+  border-radius: 50px;
+  padding: 14px 28px;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  min-width: 160px;
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
 }
 
 .aiButton:hover:not(:disabled) {
-  background: linear-gradient(135deg, #357ABD 0%, #2868A6 100%);
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(74, 144, 226, 0.4);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
 }
 
 .aiButton:disabled {
-  background: #cccccc;
+  opacity: 0.7;
   cursor: not-allowed;
-  box-shadow: none;
+  transform: none;
 }
 
 /* 保存ボタン（上部配置用） */
 .saveButton {
-  flex: 1;
-  padding: 16px 32px;
-  background: #B0E0E6;
-  color: #2F4F4F;
+  background: linear-gradient(135deg, #78c8e7 0%, #78b1e7 100%);
+  color: white;
   border: none;
-  border-radius: 12px;
-  font-size: 1.2rem;
+  border-radius: 50px;
+  padding: 14px 28px;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 10, 0, 0.08);
+  min-width: 160px;
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  box-shadow: 0 4px 12px rgba(176, 224, 230, 0.3);
 }
 
 .saveButton:hover:not(:disabled) {
-  background: #6da8c0;
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(176, 224, 230, 0.4);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
 }
 
 .saveButton:disabled {
-  background: #f0f0f0;
-  border-color: #cccccc;
-  color: #999999;
+  opacity: 0.5;
   cursor: not-allowed;
+  transform: none;
+  background: #cccccc;
 }
 
 .spinner {
@@ -376,7 +377,17 @@
   line-height: 1.6;
 }
 
-.aiMenuItem,
+/* 献立名（メニュー名）を大きく */
+.aiMenuItem {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  line-height: 1.6;
+  white-space: pre-line; /* 改行文字を認識 */
+  display: flex;
+  align-items: flex-start;
+}
+
 .aiNutritionInfo,
 .aiCookingSteps,
 .aiNutritionPoint {
@@ -604,6 +615,117 @@
  
 
 
+/* 🆕 追加: インライン（範囲内）ローディング表示 */
+.inlineLoadingContainer {
+  background: #FEFBE8;
+  border-radius: 16px;
+  padding: 60px 40px;
+  margin: 30px 0;
+  text-align: center;
+}
+
+.inlineLoadingContent {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.inlineLoadingRice {
+  width: 100px;
+  height: 100px;
+  animation: riceFloat 2s ease-in-out infinite;
+  margin-bottom: 20px;
+}
+
+.inlineLoadingTitle {
+  color: #8B4513;
+  font-size: 1.3rem;
+  margin-bottom: 20px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.inlineLoadingDots {
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.inlineLoadingDots span {
+  font-size: 2.5rem;
+  color: #FF8C42;
+  animation: dotBounce 1.4s ease-in-out infinite both;
+  font-weight: bold;
+}
+
+.inlineLoadingDots span:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.inlineLoadingDots span:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+/* 🆕 修正されたアニメーション */
+@keyframes riceFloat {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-15px) scale(1.05);
+  }
+}
+
+/* ボタン内のライス画像*/
+.loadingRiceContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.loadingRiceIcon {
+  width: 20px;
+  height: 20px;
+  animation: riceRotate 2s linear infinite;
+}
+
+.loadingText {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+@keyframes riceRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dotBounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+/* ボタンのモバイル対応 */
+@media (max-width: 768px) {
+  .topButtonsContainer {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .aiButton,
+  .saveButton {
+    min-width: 200px;
+    width: 100%;
+    max-width: 280px;
+  }
+}
 
 
 /* レスポンシブデザイン - モバイル対応 */
@@ -657,14 +779,6 @@
   }
 }
 
-
-
-.saveButton {
-  background: #78c8e7; /* 背景を白に */
-  color: #f6f3f3; /* 文字色を灰色に */
-}
-
-
  
 /* 小画面でもPC表示を維持（必要に応じて微調整のみ） */
 @media (max-width: 768px) {
@@ -689,5 +803,99 @@
  
   .dishItem {
     font-size: 0.8rem;
+  }
+}
+
+/* 栄養素カード表示 */
+.nutritionCards {
+  display: flex;
+  gap: 12px;
+  margin: 15px 0;
+  justify-content: space-between;
+}
+
+.nutritionCard {
+  flex: 1;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 8px 6px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.nutritionCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.proteinCard {
+  background: #ffffff;
+}
+
+.carbsCard {
+  background: #ffffff;
+}
+
+.fatCard {
+  background: #ffffff;
+}
+
+.nutritionLabel {
+  font-size: 0.75rem;
+  color: #666;
+  margin-bottom: 2px;
+  font-weight: 500;
+}
+
+.proteinCard .nutritionLabel {
+  color: #4A90E2; /* 青色 */
+}
+
+.fatCard .nutritionLabel {
+  color: #50C878; /* 緑色 */
+}
+
+.carbsCard .nutritionLabel {
+  color: #FFA500; /* 黄色（オレンジ） */
+}
+
+.nutritionValue {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.proteinCard .nutritionValue {
+  color: #666666;
+}
+
+.carbsCard .nutritionValue {
+  color: #666666;
+}
+
+.fatCard .nutritionValue {
+  color: #666666;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .nutritionCards {
+    gap: 8px;
+    margin: 12px 0;
+  }
+  
+  .nutritionCard {
+    padding: 6px 4px;
+    border-radius: 8px;
+  }
+  
+  .nutritionLabel {
+    font-size: 0.65rem;
+  }
+  
+  .nutritionValue {
+    font-size: 1rem;
   }
 }

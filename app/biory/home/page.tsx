@@ -8,7 +8,7 @@ import outputs from "../../../amplify_outputs.json";
 import type { Schema } from "../../../amplify/data/resource";
 import BioryLayout from "../components/BioryLayout";
 import "./home.css";
-import { getCognitoUserId, fetchCognitoUserInfo } from '../components/function';
+import { getCognitoUserId, fetchCognitoUserInfo, setMealGeneratedFlag, checkHasGeneratedMeal } from '../components/function';
 
 
 Amplify.configure(outputs);
@@ -39,6 +39,8 @@ export default function HomePage() {
   const [userName, setUserName] = useState("");
   const [cognitoUserId, setCognitoUserId] = useState("");
   const [userProfile, setUserProfile] = useState<any>(null); // ユーザープロファイル
+  const [profileLoaded, setProfileLoaded] = useState(false); // プロファイル読み込み完了フラグ
+  const [hasGeneratedMeal, setHasGeneratedMeal] = useState(false); // 初回AI献立生成フラグ
   const [nutritionData, setNutritionData] = useState<NutritionData>({
     calories: 0,
     protein: { value: 0, percentage: 0 },
@@ -53,16 +55,16 @@ export default function HomePage() {
   });
 
   const [healthData, setHealthData] = useState<HealthData>({
-    condition: "とても良い 😊",
-    mood: "ポジティブ",
+    condition: "今日の体調を入力しよう 📝",
+    mood: "今日の気分を入力しよう 💭",
     weight: 0,
   });
 
   // 「本日の調子」編集機能用のstate
   const [isHealthEditMode, setIsHealthEditMode] = useState(false);
   const [healthEditData, setHealthEditData] = useState<HealthData>({
-    condition: "とても良い 😊",
-    mood: "ポジティブ",
+    condition: "今日の体調を入力しよう 📝",
+    mood: "今日の気分を入力しよう 💭",
     weight: 0,
   });
 
@@ -76,6 +78,12 @@ export default function HomePage() {
     lunch: "—",
     dinner: "—",
   });
+
+  // 栄養価計算中フラグ
+  const [isCalculatingNutrition, setIsCalculatingNutrition] = useState(false);
+
+  // 初期データロード中フラグ
+  const [isLoading, setIsLoading] = useState(true);
 
   // 日本語の曜日配列
   const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
@@ -102,16 +110,16 @@ export default function HomePage() {
     switch (exerciseFrequency) {
       case "ほとんど運動しない":
         return 1.2;
-      case "週1〜3回の運動":
+      case "週1〜3回の軽い運動":    // ← "の軽い運動"
         return 1.375;
-      case "週3〜5回の運動":
+      case "週3〜5回の中程度の運動": // ← "の中程度の運動"
         return 1.55;
-      case "週6〜7回の運動":
+      case "週6〜7回の激しい運動":   // ← "の激しい運動"
         return 1.725;
       case "毎日2回の運動や肉体労働":
         return 1.9;
       default:
-        return 1.2; // デフォルト値（ほとんど運動しない）
+        return 1.2;
     }
   };
 
@@ -125,6 +133,13 @@ export default function HomePage() {
     const activityFactor = getActivityFactor(profile.exerciseFrequency || "ほとんど運動しない");
     return Math.round(bmr * activityFactor);
   };
+
+  // ユーザープロファイルがDBに存在するかチェックする関数
+  const checkProfileExists = (profile: any) => {
+    return profile !== null && profile !== undefined;
+  };
+
+
 
   // 推奨カロリーを計算
   const recommendedCalories = userProfile ? calculateTDEE(userProfile) : 2000;
@@ -149,172 +164,12 @@ export default function HomePage() {
     const month = now.getMonth() + 1; // 0-11 → 1-12
     const date = now.getDate();
     const dayOfWeek = dayNames[now.getDay()];
-    const formattedDate = `${month}/${date} (${dayOfWeek})`;
+    const formattedDate = `${month}月${date}日 (${dayOfWeek})`;
     setCurrentDate(formattedDate);
   };
 
 
-  // より詳細な FoodNutrition データベースチェック関数
-  const checkFoodNutritionData = async () => {
-    try {
-      console.log("🔍 FoodNutritionデータベースの詳細チェック開始...");
-      
-      // 全件数を取得（詳細ログ付き）
-      let totalCount = 0;
-      let nextToken: string | null = null;
-      let pageCount = 0;
-      
-      do {
-        pageCount++;
-        console.log(`📄 ページ ${pageCount} を取得中...`);
-        
-        const result: any = await client.models.FoodNutrition.list({
-          limit: 1000,
-          nextToken: nextToken || undefined
-        });
-        
-        if (result.data) {
-          totalCount += result.data.length;
-          console.log(`📊 ページ ${pageCount}: ${result.data.length}件取得 (累計: ${totalCount}件)`);
-          
-          // 最初の5件のサンプルデータを表示
-          if (pageCount === 1) {
-            console.log("📋 サンプルデータ:", result.data.slice(0, 5).map((item: any) => ({
-              id: item.id,
-              foodId: item.foodId,
-              foodName: item.foodName,
-              calories: item.energyKcal
-            })));
-          }
-        } else {
-          console.log(`⚠️ ページ ${pageCount}: データが空です`);
-        }
-        
-        nextToken = result.nextToken;
-        console.log(`🔗 NextToken: ${nextToken ? 'あり' : 'なし'}`);
-        
-        // 無限ループ防止（最大50ページまで）
-        if (pageCount >= 50) {
-          console.log("⚠️ 50ページに達したため処理を停止します");
-          break;
-        }
-        
-      } while (nextToken);
 
-      console.log(`🎯 最終データ件数: ${totalCount}件 (${pageCount}ページ取得)`);
-
-      if (totalCount >= 2538) {
-        console.log(`✅ FoodNutritionデータベースに十分なデータが存在します (${totalCount}件)`);
-        return true;
-      } else {
-        console.log(`⚠️ FoodNutritionデータベースのデータが不足しています (${totalCount}/2538件)`);
-        console.log("💡 CSVデータを自動取り込み中...");
-        
-        // CSV再取り込みを実行
-        await importCSVData();
-        return false;
-      }
-    } catch (error) {
-      console.error("❌ FoodNutritionデータベースチェックエラー:", error);
-      console.log("💡 データベース接続を確認してください");
-      return false;
-    }
-  };
-
-  // CSV自動取り込み関数
-  const importCSVData = async () => {
-    try {
-      console.log("📁 CSVファイルを読み込み中...");
-      
-      // nutrition-data.csvファイルを読み込み
-      const response = await fetch('/nutrition-data.csv');
-      if (!response.ok) {
-        throw new Error('CSVファイルが見つかりません');
-      }
-      
-      const csvText = await response.text();
-      const lines = csvText.trim().split('\n');
-      
-      console.log(`📊 CSVファイル読み込み完了: ${lines.length}行`);
-      
-      let successCount = 0;
-      let errorCount = 0;
-      
-      // 100件ずつバッチ処理
-      const batchSize = 100;
-      for (let i = 0; i < lines.length; i += batchSize) {
-        const batch = lines.slice(i, i + batchSize);
-        const promises = batch.map(async (line, index) => {
-          try {
-            const columns = line.split(',');
-            if (columns.length >= 6) {
-              await client.models.FoodNutrition.create({
-                foodId: parseInt(columns[0]) || (i + index + 1),
-                foodName: columns[1] || 'Unknown',
-                energyKcal: parseFloat(columns[2]) || 0,
-                protein: parseFloat(columns[3]) || 0,
-                fat: parseFloat(columns[4]) || 0,
-                carbs: parseFloat(columns[5]) || 0
-              });
-              return true;
-            }
-            return false;
-          } catch (error) {
-            console.error(`データ挿入エラー (行 ${i + index + 1}):`, error);
-            return false;
-          }
-        });
-        
-        const results = await Promise.all(promises);
-        successCount += results.filter(r => r).length;
-        errorCount += results.filter(r => !r).length;
-        
-        // 進捗表示
-        const progress = Math.round(((i + batch.length) / lines.length) * 100);
-        console.log(`📈 インポート進捗: ${progress}% (${successCount}件成功, ${errorCount}件エラー)`);
-      }
-      
-      console.log(`✅ CSVインポート完了: ${successCount}件成功, ${errorCount}件エラー`);
-      
-      // 最終件数確認
-      await checkFinalCount();
-      
-    } catch (error) {
-      console.error("❌ CSV自動取り込みエラー:", error);
-      alert("栄養データの自動取り込みに失敗しました。管理者にお問い合わせください。");
-    }
-  };
-
-  // 最終件数確認関数
-  const checkFinalCount = async () => {
-    try {
-      let totalCount = 0;
-      let nextToken: string | null = null;
-      
-      do {
-        const result: any = await client.models.FoodNutrition.list({
-          limit: 1000,
-          nextToken: nextToken || undefined
-        });
-        
-        if (result.data) {
-          totalCount += result.data.length;
-        }
-        
-        nextToken = result.nextToken;
-      } while (nextToken);
-
-      console.log(`🎯 最終データ件数: ${totalCount}件`);
-      
-      if (totalCount >= 2538) {
-        console.log("🎉 栄養データベースの構築が完了しました！");
-      } else {
-        console.log(`⚠️ まだデータが不足しています (${totalCount}/2538件)`);
-      }
-    } catch (error) {
-      console.error("最終件数確認エラー:", error);
-    }
-  };
 
   // Cognitoユーザー情報を取得する関数
   const fetchCognitoUserData = async () => {
@@ -326,9 +181,6 @@ export default function HomePage() {
         userId: userInfo.userId,
         email: userInfo.email
       });
-      
-      // 初回ログイン時にFoodNutritionデータをチェック（2538件確認）
-      await checkFoodNutritionData();
       
     } catch (error) {
       console.error('ホーム画面でのCognitoユーザー情報取得エラー:', error);
@@ -364,17 +216,24 @@ export default function HomePage() {
       } else {
         // 該当するUserProfileがない場合はデフォルト名を使用
         setUserName("ユーザー");
-
+        // プロファイルがない場合はnullのまま
+        setUserProfile(null);
+        // プロファイルがない場合のみ0に設定
         setHealthData(prev => ({
           ...prev,
           weight: 0
         }));
-
       }
+      
+      // プロファイル読み込み完了をマーク
+      setProfileLoaded(true);
+      
     } catch (error) {
       console.error("ユーザープロフィール取得エラー:", error);
       setUserName("ゲスト");
+      setProfileLoaded(true);
 
+      // エラー時のみ0に設定
       setHealthData(prev => ({
         ...prev,
         weight: 0
@@ -395,16 +254,16 @@ export default function HomePage() {
       if (todayHealthRecord) {
         setHealthData(prev => ({
           ...prev,
-          condition: todayHealthRecord.condition || "とても良い 😊",
-          mood: todayHealthRecord.mood || "ポジティブ",
+          condition: todayHealthRecord.condition || "今日の体調を入力しよう 📝",
+          mood: todayHealthRecord.mood || "今日の気分を入力しよう 💭",
           // 体重はUserProfileから取得するのでここでは更新しない
         }));
       } else {
         // デフォルト値を設定（体重は除く）
         setHealthData(prev => ({
           ...prev,
-          condition: "とても良い 😊",
-          mood: "ポジティブ",
+          condition: "今日の体調を入力しよう 📝",
+          mood: "今日の気分を入力しよう 💭",
         }));
       }
     } catch (error) {
@@ -412,87 +271,14 @@ export default function HomePage() {
       // エラー時はデフォルト値を設定（体重は除く）
       setHealthData(prev => ({
         ...prev,
-        condition: "とても良い 😊",
-        mood: "ポジティブ",
+        condition: "今日の体調を入力しよう 📝",
+        mood: "今日の気分を入力しよう 💭",
       }));
     }
   };
  
 
-  // FoodNutritionから食品を検索する関数
-  const searchFoodNutrition = async (foodName: string) => {
-    try {
-      // 全件取得（ページネーション対応）
-      let allFoodData: any[] = [];
-      let nextToken: string | null = null;
-      
-      do {
-        const result: any = await client.models.FoodNutrition.list({
-          limit: 1000,
-          nextToken: nextToken || undefined
-        });
-        
-        if (result.data) {
-          allFoodData = allFoodData.concat(result.data);
-        }
-        
-        nextToken = result.nextToken;
-      } while (nextToken);
-      
-      // あいまい検索（部分一致）
-      const matchedFood = allFoodData.find(food => 
-        food.foodName?.includes(foodName) || foodName.includes(food.foodName || '')
-      );
-      
-      if (matchedFood) {
-        console.log(`食品発見: ${matchedFood.foodName} -> カロリー:${matchedFood.energyKcal}, P:${matchedFood.protein}g`);
-        return {
-          calories: matchedFood.energyKcal || 0,
-          protein: matchedFood.protein || 0,
-          fat: matchedFood.fat || 0,
-          carbs: matchedFood.carbs || 0,
-        };
-      }
-    } catch (error) {
-      console.error(`食品検索エラー (${foodName}):`, error);
-    }
-    
-    console.log(`食品未発見: ${foodName}`);
-    // デフォルト値
-    return { calories: 0, protein: 0, fat: 0, carbs: 0 };
-  };
 
-  // 食事記録から栄養価を自動計算する関数
-  const calculateNutritionFromMeals = async (meals: string[]) => {
-    let totalCalories = 0;
-    let totalProtein = 0;
-    let totalFat = 0;
-    let totalCarbs = 0;
-    
-    for (const mealContent of meals) {
-      if (mealContent && mealContent !== "—" && mealContent.trim() !== "") {
-        // 複数の食材が含まれている場合は分割
-        const foods = mealContent.split(/[、,，]+/).map(food => food.trim());
-        
-        for (const food of foods) {
-          if (food) {
-            const nutrition = await searchFoodNutrition(food);
-            totalCalories += nutrition.calories;
-            totalProtein += nutrition.protein;
-            totalFat += nutrition.fat;
-            totalCarbs += nutrition.carbs;
-          }
-        }
-      }
-    }
-    
-    return {
-      calories: Math.round(totalCalories),
-      protein: Math.round(totalProtein * 10) / 10,
-      fat: Math.round(totalFat * 10) / 10,
-      carbs: Math.round(totalCarbs * 10) / 10,
-    };
-  };
 
   // 栄養データを取得する関数（分割データから合算値を計算）
   const fetchNutritionData = async (dateString: string) => {
@@ -546,32 +332,12 @@ export default function HomePage() {
             },
           });
         } else {
-          // 栄養データがない場合は、食事内容から自動計算
-          console.log("栄養データがないため、食事内容から計算します");
-          
-          const mealContents = [
-            todayRecord.breakfast || '',
-            todayRecord.lunch || '',
-            todayRecord.dinner || ''
-          ];
-
-          const calculatedNutrition = await calculateNutritionFromMeals(mealContents);
-          console.log("計算された栄養データ:", calculatedNutrition);
-          
+          // 栄養データがない場合はゼロで初期化
           setNutritionData({
-            calories: calculatedNutrition.calories,
-            protein: { 
-              value: calculatedNutrition.protein, 
-              percentage: Math.round((calculatedNutrition.protein / targetPFC.protein) * 100)
-            },
-            fat: { 
-              value: calculatedNutrition.fat, 
-              percentage: Math.round((calculatedNutrition.fat / targetPFC.fat) * 100)
-            },
-            carbs: { 
-              value: calculatedNutrition.carbs, 
-              percentage: Math.round((calculatedNutrition.carbs / targetPFC.carbs) * 100)
-            },
+            calories: 0,
+            protein: { value: 0, percentage: 0 },
+            fat: { value: 0, percentage: 0 },
+            carbs: { value: 0, percentage: 0 },
           });
         }
       } else {
@@ -672,14 +438,33 @@ export default function HomePage() {
   useEffect(() => {
     if (cognitoUserId) {
       console.log("cognitoUserId が取得できました:", cognitoUserId);
-      fetchUserProfile();
       
-      // 食事データと栄養データを取得
-      const dateString = getCurrentDateString();
-      console.log("食事データと栄養データを取得します。日付:", dateString);
-      fetchMealData(dateString);
-      fetchHealthDataFromDailyRecord(dateString);
-      fetchNutritionData(dateString);
+      // 初回献立生成フラグをチェック
+      const hasGenerated = checkHasGeneratedMeal(cognitoUserId);
+      setHasGeneratedMeal(hasGenerated);
+      
+      // 初期データ取得処理
+      const loadInitialData = async () => {
+        try {
+          setIsLoading(true);
+          
+          // ユーザープロフィールを取得
+          await fetchUserProfile();
+          
+          // 食事データと栄養データを取得
+          const dateString = getCurrentDateString();
+          console.log("食事データと栄養データを取得します。日付:", dateString);
+          await Promise.all([
+            fetchMealData(dateString),
+            fetchHealthDataFromDailyRecord(dateString),
+            fetchNutritionData(dateString)
+          ]);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      loadInitialData();
     }
   }, [cognitoUserId]);
 
@@ -869,6 +654,80 @@ export default function HomePage() {
     }));
   };
 
+  // 食事分析API呼び出し関数
+  const analyzeMealWithAPI = async (mealType: string, mealContent: string) => {
+    try {
+      if (!mealContent || mealContent.trim() === "" || mealContent === "—") {
+        return { calories: 0, protein: 0, fat: 0, carbs: 0 };
+      }
+
+      // 食材を分割
+      const mealItems = mealContent.split(/[、,，]+/).map(item => item.trim()).filter(item => item);
+      
+      console.log(`${mealType}の分析開始:`, mealItems);
+      
+      // GraphQL mealAnalysis クエリを呼び出し
+      const result = await client.queries.mealAnalysis({ mealItems });
+      
+      console.log(`${mealType}のAPI応答:`, result);
+      
+      if (result.data) {
+        console.log(`${mealType}の生データ:`, result.data);
+        console.log(`データ型: ${typeof result.data}`);
+        
+        // 文字列の場合は最初の100文字を表示
+        if (typeof result.data === 'string') {
+          console.log(`${mealType}の文字列データ（最初の100文字）:`, result.data.substring(0, 100));
+        }
+        
+        let analysisResult;
+        
+        // result.dataが文字列の場合はJSON.parse、オブジェクトの場合はそのまま使用
+        if (typeof result.data === 'string') {
+          console.log(`${mealType}: 文字列をパース中...`);
+          try {
+            analysisResult = JSON.parse(result.data);
+            console.log(`${mealType}: パース成功`);
+          } catch (parseError) {
+            console.error(`${mealType}: JSON.parseエラー:`, parseError);
+            console.error(`${mealType}: パース失敗した文字列:`, result.data);
+            throw parseError;
+          }
+        } else if (typeof result.data === 'object') {
+          console.log(`${mealType}: オブジェクトをそのまま使用`);
+          analysisResult = result.data;
+        } else {
+          console.error(`${mealType}: 予期しないデータ型:`, typeof result.data);
+          throw new Error(`予期しないデータ型: ${typeof result.data}`);
+        }
+        
+        console.log(`${mealType}の分析結果:`, analysisResult);
+        
+        // エラーチェック
+        if (analysisResult.error) {
+          console.error(`${mealType}でAPIエラー:`, analysisResult.error);
+          alert(`栄養分析エラー\n\n${mealType}の栄養価計算に失敗しました。\n\nエラー詳細: ${analysisResult.error}\n\n栄養価は0として保存されます。`);
+          return { calories: 0, protein: 0, fat: 0, carbs: 0 };
+        }
+        
+        return {
+          calories: Math.round(analysisResult.totalCalories || 0),
+          protein: Math.round((analysisResult.totalProtein || 0) * 10) / 10,
+          fat: Math.round((analysisResult.totalFat || 0) * 10) / 10,
+          carbs: Math.round((analysisResult.totalCarbs || 0) * 10) / 10,
+        };
+      }
+    } catch (error) {
+      console.error(`${mealType}のmealAnalysis呼び出しエラー:`, error);
+      const errorMessage = error instanceof Error ? error.message : '不明なエラー';
+      alert(`栄養分析エラー\n\n${mealType}の栄養価計算に失敗しました。\n\nエラー詳細: ${errorMessage}\n\n栄養価は0として保存されます。`);
+      return { calories: 0, protein: 0, fat: 0, carbs: 0 };
+    }
+    
+    // データがない場合はデフォルト値
+    return { calories: 0, protein: 0, fat: 0, carbs: 0 };
+  };
+
   const handleMealSave = async () => {
     try {
       console.log("=== handleMealSave 開始 ===");
@@ -878,46 +737,35 @@ export default function HomePage() {
       const dateString = getCurrentDateString();
       console.log("保存対象日付:", dateString);
       
-      // 各食事の栄養価を個別に計算
-      const breakfastNutrition = mealEditData.breakfast ? await calculateNutritionFromMeals([mealEditData.breakfast]) : { calories: 0, protein: 0, fat: 0, carbs: 0 };
-      const lunchNutrition = mealEditData.lunch ? await calculateNutritionFromMeals([mealEditData.lunch]) : { calories: 0, protein: 0, fat: 0, carbs: 0 };
-      const dinnerNutrition = mealEditData.dinner ? await calculateNutritionFromMeals([mealEditData.dinner]) : { calories: 0, protein: 0, fat: 0, carbs: 0 };
-      
-      console.log("個別栄養価:", {
-        breakfast: breakfastNutrition,
-        lunch: lunchNutrition,
-        dinner: dinnerNutrition
-      });
-      
-      // DailyRecordテーブルから今日の食事データを検索
+      // 既存レコード取得
       const { data: dailyRecords } = await client.models.DailyRecord.list();
-      console.log("DailyRecord検索結果:", dailyRecords?.length || 0, "件");
-      
       const todayMealRecord = dailyRecords?.find(record => 
         record.userId === cognitoUserId && record.date === dateString
       );
       
+      // 変更検出
+      const changedMeals: { type: 'breakfast' | 'lunch' | 'dinner', content: string }[] = [];
+      
+      if (mealEditData.breakfast !== mealData.breakfast) {
+        changedMeals.push({ type: 'breakfast', content: mealEditData.breakfast });
+      }
+      if (mealEditData.lunch !== mealData.lunch) {
+        changedMeals.push({ type: 'lunch', content: mealEditData.lunch });
+      }
+      if (mealEditData.dinner !== mealData.dinner) {
+        changedMeals.push({ type: 'dinner', content: mealEditData.dinner });
+      }
+      
       console.log("既存レコード:", todayMealRecord);
 
+      // Step 1: まず食事内容だけを保存（栄養価は既存値を保持）
       if (todayMealRecord) {
-        // 既存のレコードを更新（食事内容と分割PFCを保存）
-        console.log("既存レコードを更新します:", {
+        // 既存のレコードを更新（食事内容のみ、栄養価は既存値を保持）
+        console.log("既存レコードを更新します（食事内容のみ）:", {
           id: todayMealRecord.id,
           breakfast: mealEditData.breakfast,
           lunch: mealEditData.lunch,
           dinner: mealEditData.dinner,
-          calories_bre: breakfastNutrition.calories,
-          calories_lun: lunchNutrition.calories,
-          calories_din: dinnerNutrition.calories,
-          protein_bre: breakfastNutrition.protein,
-          protein_lun: lunchNutrition.protein,
-          protein_din: dinnerNutrition.protein,
-          fat_bre: breakfastNutrition.fat,
-          fat_lun: lunchNutrition.fat,
-          fat_din: dinnerNutrition.fat,
-          carbs_bre: breakfastNutrition.carbs,
-          carbs_lun: lunchNutrition.carbs,
-          carbs_din: dinnerNutrition.carbs,
         });
         
         const { data: updatedRecord, errors } = await client.models.DailyRecord.update({
@@ -925,18 +773,6 @@ export default function HomePage() {
           breakfast: mealEditData.breakfast,
           lunch: mealEditData.lunch,
           dinner: mealEditData.dinner,
-          calories_bre: breakfastNutrition.calories,
-          calories_lun: lunchNutrition.calories,
-          calories_din: dinnerNutrition.calories,
-          protein_bre: breakfastNutrition.protein,
-          protein_lun: lunchNutrition.protein,
-          protein_din: dinnerNutrition.protein,
-          fat_bre: breakfastNutrition.fat,
-          fat_lun: lunchNutrition.fat,
-          fat_din: dinnerNutrition.fat,
-          carbs_bre: breakfastNutrition.carbs,
-          carbs_lun: lunchNutrition.carbs,
-          carbs_din: dinnerNutrition.carbs,
         });
         
         if (errors) {
@@ -944,27 +780,27 @@ export default function HomePage() {
           throw new Error("更新に失敗しました");
         }
         
-        console.log("食事データと分割PFCを更新しました:", updatedRecord);
+        console.log("食事データを更新しました:", updatedRecord);
       } else {
-        // 新しいレコードを作成（食事内容と分割PFCを保存）
+        // 新しいレコードを作成（食事内容のみ、栄養価は0）
         const newRecord = {
           userId: cognitoUserId,
           date: dateString,
           breakfast: mealEditData.breakfast,
           lunch: mealEditData.lunch,
           dinner: mealEditData.dinner,
-          calories_bre: breakfastNutrition.calories,
-          calories_lun: lunchNutrition.calories,
-          calories_din: dinnerNutrition.calories,
-          protein_bre: breakfastNutrition.protein,
-          protein_lun: lunchNutrition.protein,
-          protein_din: dinnerNutrition.protein,
-          fat_bre: breakfastNutrition.fat,
-          fat_lun: lunchNutrition.fat,
-          fat_din: dinnerNutrition.fat,
-          carbs_bre: breakfastNutrition.carbs,
-          carbs_lun: lunchNutrition.carbs,
-          carbs_din: dinnerNutrition.carbs,
+          calories_bre: 0,
+          calories_lun: 0,
+          calories_din: 0,
+          protein_bre: 0,
+          protein_lun: 0,
+          protein_din: 0,
+          fat_bre: 0,
+          fat_lun: 0,
+          fat_din: 0,
+          carbs_bre: 0,
+          carbs_lun: 0,
+          carbs_din: 0,
         };
         console.log("新規レコードを作成します:", newRecord);
         
@@ -975,20 +811,108 @@ export default function HomePage() {
           throw new Error("作成に失敗しました");
         }
         
-        console.log("新しい食事データと分割PFCを作成しました:", createdRecord);
+        console.log("新しい食事データを作成しました:", createdRecord);
       }
 
-      // 画面の状態を更新
+      // 画面の状態を更新（先に編集モードを終了してユーザーに保存完了を知らせる）
       setMealData(mealEditData);
       setIsMealEditMode(false);
       
-      // 栄養価を再計算して表示を更新
-      await fetchNutritionData(dateString);
+      console.log("「本日の食事」が保存されました:", mealEditData);
+      
+      // Step 2: バックグラウンドで栄養価を計算して更新
+      if (changedMeals.length > 0) {
+        console.log("バックグラウンドで栄養価を計算中...");
+        
+        // ローディング表示を開始
+        setIsCalculatingNutrition(true);
+        
+        // 非同期で栄養価計算を実行（await不要）
+        (async () => {
+          try {
+            // 再度レコードを取得（先ほど保存したレコードを取得）
+            const { data: updatedDailyRecords } = await client.models.DailyRecord.list();
+            const currentRecord = updatedDailyRecords?.find(record => 
+              record.userId === cognitoUserId && record.date === dateString
+            );
+
+            if (!currentRecord) {
+              console.error("保存後のレコードが見つかりません");
+              setIsCalculatingNutrition(false);
+              return;
+            }
+
+            // 既存栄養価を保持
+            let breakfastNutrition = {
+              calories: currentRecord.calories_bre || 0,
+              protein: currentRecord.protein_bre || 0,
+              fat: currentRecord.fat_bre || 0,
+              carbs: currentRecord.carbs_bre || 0,
+            };
+            let lunchNutrition = {
+              calories: currentRecord.calories_lun || 0,
+              protein: currentRecord.protein_lun || 0,
+              fat: currentRecord.fat_lun || 0,
+              carbs: currentRecord.carbs_lun || 0,
+            };
+            let dinnerNutrition = {
+              calories: currentRecord.calories_din || 0,
+              protein: currentRecord.protein_din || 0,
+              fat: currentRecord.fat_din || 0,
+              carbs: currentRecord.carbs_din || 0,
+            };
+
+            // 変更された食事のみ栄養価を計算
+            for (const meal of changedMeals) {
+              const nutrition = await analyzeMealWithAPI(meal.type, meal.content);
+              
+              if (meal.type === 'breakfast') breakfastNutrition = nutrition;
+              else if (meal.type === 'lunch') lunchNutrition = nutrition;
+              else if (meal.type === 'dinner') dinnerNutrition = nutrition;
+            }
+
+            console.log("計算された栄養価:", {
+              breakfast: breakfastNutrition,
+              lunch: lunchNutrition,
+              dinner: dinnerNutrition
+            });
+
+            // 栄養価をデータベースに保存
+            await client.models.DailyRecord.update({
+              id: currentRecord.id,
+              calories_bre: breakfastNutrition.calories,
+              calories_lun: lunchNutrition.calories,
+              calories_din: dinnerNutrition.calories,
+              protein_bre: breakfastNutrition.protein,
+              protein_lun: lunchNutrition.protein,
+              protein_din: dinnerNutrition.protein,
+              fat_bre: breakfastNutrition.fat,
+              fat_lun: lunchNutrition.fat,
+              fat_din: dinnerNutrition.fat,
+              carbs_bre: breakfastNutrition.carbs,
+              carbs_lun: lunchNutrition.carbs,
+              carbs_din: dinnerNutrition.carbs,
+            });
+
+            console.log("栄養価の更新が完了しました");
+
+            // 画面の栄養価表示を更新
+            await fetchNutritionData(dateString);
+            
+            // ローディング表示を終了
+            setIsCalculatingNutrition(false);
+          } catch (error) {
+            console.error("バックグラウンド栄養価計算エラー:", error);
+            // エラーが発生してもユーザーには通知しない（保存自体は成功しているため）
+            // ローディング表示を終了
+            setIsCalculatingNutrition(false);
+          }
+        })();
+      }
       
       // 食事データを再取得して表示を確実に更新
       await fetchMealData(dateString);
       
-      console.log("「本日の食事」が保存されました:", mealEditData);
       console.log("=== handleMealSave 完了 ===");
     } catch (error) {
       console.error("=== 食事データ保存エラー ===");
@@ -1007,34 +931,98 @@ export default function HomePage() {
   };
 
   return (
-    <BioryLayout>
+    <BioryLayout 
+      highlightSettings={profileLoaded && !checkProfileExists(userProfile)}
+      highlightMeal={profileLoaded && checkProfileExists(userProfile) && !hasGeneratedMeal}
+    >
       {/* 日付・挨拶セクション */}
       <section className="date-greeting">
         <div className="date">{currentDate}</div>
-        <div className="greeting">{getGreeting()} {userName}さん</div>
+        {isLoading ? (
+          <div className="skeleton skeleton-text" style={{ width: '200px', margin: '0 auto' }}></div>
+        ) : (
+          <div className="greeting">{getGreeting()} {userName}さん</div>
+        )}
       </section>
 
       {/* 栄養情報セクション */}
       <section className="nutrition-section">
         <h3 className="section-title-highlight">食事バランス</h3>
-        <div className="nutrition-header">
-          <span className="nutrition-label">カロリー</span>
-          <span className="calories-value">{nutritionData.calories} kcal / {recommendedCalories} kcal</span>
-        </div>
-        <div className="nutrition-details">
-          <div className="nutrition-row">
-            <span className="nutrition-type">P（タンパク質）</span>
-            <span className="nutrition-values">{nutritionData.protein.value}g / {calculateTargetPFC(recommendedCalories).protein}g</span>
-          </div>
-          <div className="nutrition-row">
-            <span className="nutrition-type">F（脂質）</span>
-            <span className="nutrition-values">{nutritionData.fat.value}g / {calculateTargetPFC(recommendedCalories).fat}g</span>
-          </div>
-          <div className="nutrition-row">
-            <span className="nutrition-type">C（炭水化物）</span>
-            <span className="nutrition-values">{nutritionData.carbs.value}g / {calculateTargetPFC(recommendedCalories).carbs}g</span>
-          </div>
-        </div>
+        {isLoading ? (
+          <>
+            <div className="nutrition-header">
+              <span className="nutrition-label">概算カロリー</span>
+              <div className="skeleton skeleton-text" style={{ width: '180px', height: '16px' }}></div>
+            </div>
+            <div className="nutrition-details">
+              <div className="nutrition-row">
+                <span className="nutrition-type">P（タンパク質）</span>
+                <div className="skeleton skeleton-text" style={{ width: '100px', height: '14px' }}></div>
+              </div>
+              <div className="nutrition-row">
+                <span className="nutrition-type">F（脂質）</span>
+                <div className="skeleton skeleton-text" style={{ width: '100px', height: '14px' }}></div>
+              </div>
+              <div className="nutrition-row">
+                <span className="nutrition-type">C（炭水化物）</span>
+                <div className="skeleton skeleton-text" style={{ width: '100px', height: '14px' }}></div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="nutrition-header">
+              <span className="nutrition-label">概算カロリー</span>
+              <span className="calories-value">
+                {isCalculatingNutrition ? (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <span className="spinner"></span> kcal / {recommendedCalories} kcal
+                  </span>
+                ) : (
+                  `${Math.round(nutritionData.calories)} kcal / ${recommendedCalories} kcal`
+                )}
+              </span>
+            </div>
+            <div className="nutrition-details">
+              <div className="nutrition-row">
+                <span className="nutrition-type">P（タンパク質）</span>
+                <span className="nutrition-values">
+                  {isCalculatingNutrition ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <span className="spinner"></span>g / {Math.round(calculateTargetPFC(recommendedCalories).protein)}g
+                    </span>
+                  ) : (
+                    `${Math.round(nutritionData.protein.value)}g / ${Math.round(calculateTargetPFC(recommendedCalories).protein)}g`
+                  )}
+                </span>
+              </div>
+              <div className="nutrition-row">
+                <span className="nutrition-type">F（脂質）</span>
+                <span className="nutrition-values">
+                  {isCalculatingNutrition ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <span className="spinner"></span>g / {Math.round(calculateTargetPFC(recommendedCalories).fat)}g
+                    </span>
+                  ) : (
+                    `${Math.round(nutritionData.fat.value)}g / ${Math.round(calculateTargetPFC(recommendedCalories).fat)}g`
+                  )}
+                </span>
+              </div>
+              <div className="nutrition-row">
+                <span className="nutrition-type">C（炭水化物）</span>
+                <span className="nutrition-values">
+                  {isCalculatingNutrition ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <span className="spinner"></span>g / {Math.round(calculateTargetPFC(recommendedCalories).carbs)}g
+                    </span>
+                  ) : (
+                    `${Math.round(nutritionData.carbs.value)}g / ${Math.round(calculateTargetPFC(recommendedCalories).carbs)}g`
+                  )}
+                </span>
+              </div>
+            </div>
+          </>
+        )}
       </section>
 
       {/* 食事記録セクション */}
@@ -1052,7 +1040,7 @@ export default function HomePage() {
           }}
         >
           <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold', color: 'white' }}>本日の食事</h3>
-          {!isMealEditMode && (
+          {!isMealEditMode && !isLoading && (
             <button 
               className="change-button"
               onClick={handleMealEditToggle}
@@ -1081,7 +1069,25 @@ export default function HomePage() {
           )}
         </div>
         
-        {isMealEditMode ? (
+        {isLoading ? (
+          <div className="meal-list">
+            <div className="meal-row">
+              <span className="meal-time">朝</span>
+              <span className="meal-separator">：</span>
+              <div className="skeleton skeleton-text" style={{ flex: 1, height: '14px' }}></div>
+            </div>
+            <div className="meal-row">
+              <span className="meal-time">昼</span>
+              <span className="meal-separator">：</span>
+              <div className="skeleton skeleton-text" style={{ flex: 1, height: '14px' }}></div>
+            </div>
+            <div className="meal-row">
+              <span className="meal-time">夜</span>
+              <span className="meal-separator">：</span>
+              <div className="skeleton skeleton-text" style={{ flex: 1, height: '14px' }}></div>
+            </div>
+          </div>
+        ) : isMealEditMode ? (
           <div className="meal-list">
             <div className="meal-row">
               <span className="meal-time">朝</span>
@@ -1225,7 +1231,7 @@ export default function HomePage() {
           }}
         >
           <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold', color: 'white' }}>本日の調子</h3>
-          {!isHealthEditMode && (
+          {!isHealthEditMode && !isLoading && (
             <button 
               className="change-button"
               onClick={handleHealthEditToggle}
@@ -1251,7 +1257,22 @@ export default function HomePage() {
           )}
         </div>
         
-        {isHealthEditMode ? (
+        {isLoading ? (
+          <div className="health-content">
+            <div className="health-row">
+              <span className="health-label">体調：</span>
+              <div className="skeleton skeleton-text" style={{ flex: 1, height: '14px', maxWidth: '200px' }}></div>
+            </div>
+            <div className="health-row">
+              <span className="health-label">気分：</span>
+              <div className="skeleton skeleton-text" style={{ flex: 1, height: '14px', maxWidth: '200px' }}></div>
+            </div>
+            <div className="health-row">
+              <span className="health-label">体重：</span>
+              <div className="skeleton skeleton-text" style={{ flex: 1, height: '14px', maxWidth: '100px' }}></div>
+            </div>
+          </div>
+        ) : isHealthEditMode ? (
           <div className="health-content">
             <div className="health-row">
               <span className="health-label">体調：</span>
@@ -1265,6 +1286,7 @@ export default function HomePage() {
                   fontSize: '14px'
                 }}
               >
+                <option value="今日の体調を入力しよう 📝">今日の体調を入力しよう 📝</option>
                 <option value="とても良い 😊">とても良い 😊</option>
                 <option value="良い 😌">良い 😌</option>
                 <option value="普通 😐">普通 😐</option>
@@ -1284,6 +1306,7 @@ export default function HomePage() {
                   fontSize: '14px'
                 }}
               >
+                <option value="今日の気分を入力しよう 💭">今日の気分を入力しよう 💭</option>
                 <option value="ポジティブ">ポジティブ</option>
                 <option value="普通">普通</option>
                 <option value="ネガティブ">ネガティブ</option>
@@ -1405,6 +1428,50 @@ export default function HomePage() {
           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
         </svg>
       </button>*/}
+
+      {/* プロファイル設定促進セクション */}
+      {profileLoaded && !checkProfileExists(userProfile) && (
+        <div className="profile-setup-prompt">
+          <div className="prompt-container">
+            <div className="exercise-character">
+              <img src="/exercise.png" alt="エクササイズキャラクター" />
+            </div>
+            <div className="prompt-bubble">
+              <div className="prompt-content">
+                <h3> まずは基本情報を登録しよう！</h3>
+                <p>
+                  年齢、身長、体重などの基本情報を登録すると、<br />
+                  あなたにぴったりの献立やアドバイスが受けられるよ！<br />
+                  <strong>下のナビから「⚙設定」をタップしてね！</strong>
+                </p>
+              </div>
+              <div className="prompt-tail"></div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI献立生成案内セクション */}
+      {profileLoaded && checkProfileExists(userProfile) && !hasGeneratedMeal && (
+        <div className="profile-setup-prompt">
+          <div className="prompt-container">
+            <div className="exercise-character">
+              <img src="/exercise.png" alt="エクササイズキャラクター" />
+            </div>
+            <div className="prompt-bubble">
+              <div className="prompt-content">
+                <h3>次はAI献立生成をしてみよう！</h3>
+                <p>
+                  基本情報の登録が完了しました！🎉<br />
+                  次は「🍽献立」画面に移って、<br />
+                  <strong>あなた専用のAI献立を作成してみてね！</strong>
+                </p>
+              </div>
+              <div className="prompt-tail"></div>
+            </div>
+          </div>
+        </div>
+      )}
     </BioryLayout>
   );
 }

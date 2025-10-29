@@ -2,6 +2,7 @@ import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
 
 //小澤追記
 import { kondateAIFunctionHandler } from "../backend/function/kondateAI/resource"
+import { mealAnalysisFunctionHandler } from "../backend/function/mealAnalysis/resource"
 
 
 /*== STEP 1 ===============================================================
@@ -17,11 +18,23 @@ export const schema = a.schema({
     .arguments({
       name: a.string(),
       allergies: a.string(),
+      recommendedCalories: a.integer(), // 🆕 推奨カロリーを追加
+      condition: a.string(), // 🆕 体調情報を追加
+      mood: a.string(), // 🆕 気分情報を追加
     })
     .returns(a.string())
     //.authorization((allow) => [allow.authenticated()]) // 認証ルール追加
     .authorization((allow) => [allow.publicApiKey()])
     .handler(a.handler.function(kondateAIFunctionHandler)),
+
+  mealAnalysis: a
+    .query()
+    .arguments({
+      mealItems: a.string().array(),
+    })
+    .returns(a.string())
+    .authorization((allow) => [allow.publicApiKey()])
+    .handler(a.handler.function(mealAnalysisFunctionHandler)),
 
 
   // 既存のユーザープロファイルモデル
@@ -87,23 +100,6 @@ export const schema = a.schema({
     })
     .authorization((allow) => [allow.publicApiKey()]),
 
-  // 【新規追加】食品栄養データベースモデル
-  FoodNutrition: a
-    .model({
-      foodId: a.integer(), // 食品名（検索キー）
-      foodName: a.string().required(), // 食品名（検索キー）
-      energyKj: a.integer(), // エネルギー(KJ)
-      energyKcal: a.integer().required(), // エネルギー(Kcal)
-      water: a.float(), // 水分(g)
-      protein: a.float().required(), // たんぱく質(g)
-      fat: a.float().required(), // 脂質(g)
-      carbs: a.float().required(), // 炭水化物(g)
-      per100g: a.boolean().default(true), // 100gあたりの値かどうか
-      createdAt: a.datetime(),
-      updatedAt: a.datetime(),
-    })
-    .authorization((allow) => [allow.publicApiKey()]),
-
   // 【新規追加】DailyRecordモデル - すべてのデータを統合
   DailyRecord: a
     .model({
@@ -116,22 +112,22 @@ export const schema = a.schema({
       dinner: a.string(),
 
       // 朝食栄養関連
-    　calories_bre: a.integer(),
-    　protein_bre: a.float(),
-    　fat_bre: a.float(),
-    　carbs_bre: a.float(),
+      calories_bre: a.integer(),
+      protein_bre: a.float(),
+      fat_bre: a.float(),
+      carbs_bre: a.float(),
 
-    　// 昼食栄養関連
-    　calories_lun: a.integer(),
-    　protein_lun: a.float(),
-    　fat_lun: a.float(),
-    　carbs_lun: a.float(),
+      // 昼食栄養関連
+      calories_lun: a.integer(),
+      protein_lun: a.float(),
+      fat_lun: a.float(),
+      carbs_lun: a.float(),
 
-    　// 夕食栄養関連
-    　calories_din: a.integer(),
-    　protein_din: a.float(),
-    　fat_din: a.float(),
-    　carbs_din: a.float(),
+      // 夕食栄養関連
+      calories_din: a.integer(),
+      protein_din: a.float(),
+      fat_din: a.float(),
+      carbs_din: a.float(),
 
     
 

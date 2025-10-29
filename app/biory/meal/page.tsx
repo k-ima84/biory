@@ -6,31 +6,17 @@ import { getCurrentUser } from "aws-amplify/auth";
 import type { Schema } from "@/amplify/data/resource";
 import BioryLayout from "../components/BioryLayout";
 import styles from "./meal.module.css";
-import { fetchCognitoUserInfo } from '../components/function';
+import { fetchCognitoUserInfo, setMealGeneratedFlag } from '../components/function';
 import { useRouter } from "next/navigation";
 
 const client = generateClient<Schema>();
 
-//const API_ENDPOINT = "https://5obkiuclsb.execute-api.ap-northeast-1.amazonaws.com/prod/meal/suggestion";
-const API_ENDPOINT = "https://u1a3a1qi9h.execute-api.ap-northeast-1.amazonaws.com/prod/meal/suggestion";
-
-interface MealData {
-  mealType: string;
-  calories: number;
-  dishes: string[];
-  color: string;
-  imageUrl?: string;
-}
- 
 export default function MealPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [meals, setMeals] = useState<MealData[]>([]); // 初期値は空
-  const [showMeals, setShowMeals] = useState(false); // 献立表示フラグ
   const [cognitoUserId, setCognitoUserId] = useState("");
   const [userProfile, setUserProfile] = useState<any>(null); // ユーザープロファイル
-  const [debugInfo, setDebugInfo] = useState<any>(null); // デバッグ情報
 
   // 🆕 kondateAI関連のstate　小澤
   const [kondateResult, setKondateResult] = useState<string>('');
@@ -318,6 +304,9 @@ export default function MealPage() {
       // DynamoDBからユーザープロファイルを取得してアレルギー情報を取得
       let allergiesInfo = "なし";
       let userName = "ユーザー";
+      let recommendedCalories = 2000; // デフォルト値
+      let conditionInfo = ""; // 体調情報
+      let moodInfo = ""; // 気分情報
       
       if (cognitoUserId) {
         try {
@@ -334,14 +323,58 @@ export default function MealPage() {
             allergiesInfo = profile.allergies || "なし";
             userName = profile.name || "ユーザー";
             
-            console.log('✅ DynamoDBからアレルギー情報を取得:', {
+            // 推奨カロリー（TDEE）を計算
+            recommendedCalories = calculateTDEE(profile);
+            
+            console.log('✅ DynamoDBからユーザー情報を取得:', {
               userName: userName,
               allergies: allergiesInfo,
+              recommendedCalories: recommendedCalories,
               profileData: profile
             });
           } else {
             console.log('⚠️ UserProfileが見つかりませんでした');
           }
+
+          // DailyRecordから本日の体調・気分を取得
+          console.log('🔍 DynamoDB DailyRecord取得開始...');
+          const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD形式
+          
+          const { data: dailyRecords } = await client.models.DailyRecord.list({
+            filter: {
+              userId: { eq: cognitoUserId },
+              date: { eq: today }
+            }
+          });
+          
+          console.log('📊 取得したDailyRecord数:', dailyRecords?.length || 0);
+          
+          if (dailyRecords && dailyRecords.length > 0) {
+            const dailyRecord = dailyRecords[0];
+            
+            // 有効な体調・気分のみを設定（絵文字付き）
+            const validConditions = ['とても良い 😊', '良い 😌', '普通 😐', '少し悪い 😟', '悪い 😵'];
+            const validMoods = ['ポジティブ', '普通', 'ネガティブ', 'リラックス', 'やる気満々', '疲れ気味'];
+            
+            if (dailyRecord.condition && validConditions.includes(dailyRecord.condition)) {
+              conditionInfo = dailyRecord.condition;
+            }
+            
+            if (dailyRecord.mood && validMoods.includes(dailyRecord.mood)) {
+              moodInfo = dailyRecord.mood;
+            }
+            
+            console.log('✅ DailyRecordから体調・気分を取得:', {
+              condition: conditionInfo || '未設定',
+              mood: moodInfo || '未設定',
+              rawCondition: dailyRecord.condition,
+              rawMood: dailyRecord.mood,
+              dailyRecordData: dailyRecord
+            });
+          } else {
+            console.log('⚠️ 本日のDailyRecordが見つかりませんでした');
+          }
+          
         } catch (dbError) {
           console.error('❌ DynamoDB取得エラー:', dbError);
           // エラーの場合はデフォルト値を使用
@@ -355,25 +388,55 @@ export default function MealPage() {
         userName: userName,
         userId: cognitoUserId,
         allergies: allergiesInfo,
+        recommendedCalories: recommendedCalories,
+        condition: conditionInfo || "未設定",
+        mood: moodInfo || "未設定",
         timestamp: new Date().toISOString(),
-        source: 'DynamoDB UserProfile'
+        source: 'DynamoDB UserProfile & DailyRecord'
       };
       
       setKondateDebugInfo(debugData);
       console.log('🔍 デバッグ情報を設定:', debugData);
       
-      console.log('🤖 呼び出しパラメータ:', { userName, allergies: allergiesInfo });
+      console.log('🤖 呼び出しパラメータ:', { 
+        userName, 
+        allergies: allergiesInfo, 
+        recommendedCalories,
+        condition: conditionInfo || "未設定",
+        mood: moodInfo || "未設定"
+      });
       
       const result = await client.queries.kondateAI({
         name: userName,
-        allergies: allergiesInfo
+        allergies: allergiesInfo,
+        recommendedCalories: recommendedCalories,
+        condition: conditionInfo,
+        mood: moodInfo
       });
       
       console.log('🤖 kondateAI結果:', result);
       
+      // エラーチェック（GraphQLエラー）
+      if (result.errors && result.errors.length > 0) {
+        console.error('❌ GraphQLエラー:', result.errors);
+        alert('❌ エラーが発生しました。再度「AI献立を作成」ボタンを押してください。');
+        setKondateResult(`エラー: ${JSON.stringify(result.errors)}`);
+        setShowKondateResult(true);
+        return;
+      }
+      
       if (result.data) {
         console.log('📝 AIからのRawデータ (文字列長):', result.data.length);
         console.log('📝 AIからのRawデータ (最初の500文字):', result.data.substring(0, 500));
+        
+        // データ形式エラーチェック
+        if (typeof result.data !== 'string' || result.data.trim().length === 0) {
+          console.error('❌ データ形式エラー: 空または無効なレスポンス');
+          alert('❌ エラーが発生しました。再度「AI献立を作成」ボタンを押してください。');
+          setKondateResult('エラー: AIから無効なレスポンスを受信しました');
+          setShowKondateResult(true);
+          return;
+        }
         
         // JSONレスポンスをパース
         let responseData;
@@ -381,6 +444,15 @@ export default function MealPage() {
         try {
           responseData = JSON.parse(result.data);
           markdownContent = responseData.response;
+          
+          // エラーメッセージチェック（Lambda関数内でのエラー）
+          if (markdownContent && markdownContent.includes('管理栄養士AI エラー')) {
+            console.error('❌ Lambda関数エラー:', markdownContent);
+            alert('❌ エラーが発生しました。再度「AI献立を作成」ボタンを押してください。');
+            setKondateResult(markdownContent);
+            setShowKondateResult(true);
+            return;
+          }
           
           // デバッグ情報を保存
           if (responseData.debug) {
@@ -397,34 +469,94 @@ export default function MealPage() {
         setKondateResult(markdownContent);
         setShowKondateResult(true);
         
+        // 🔍 デバッグ情報をコンソールに出力
+        console.group('🔍 ===== AI献立デバッグ情報 =====');
+        console.log('📝 AIからのRawデータ:', markdownContent);
+        console.groupEnd();
+        
         // Markdownをパースして構造化データに変換
         const parsed = parseKondateMarkdown(markdownContent);
         if (parsed) {
           setParsedKondate(parsed);
           console.log('🍽️ パース結果:', parsed);
           console.log('🍽️ パース結果 - 食事数:', parsed.meals.length);
+          
+          // 🔍 各食事の詳細をコンソールに出力
+          console.group('🍽️ ===== パース結果の詳細 =====');
           parsed.meals.forEach((meal, index) => {
-            console.log(`🍽️ 食事 ${index + 1} (${meal.mealType}):`, {
-              menu: meal.menu,
-              calories: meal.calories,
-              ingredientsCount: meal.ingredients.length,
-              ingredients: meal.ingredients,
-              cookingSteps: meal.cookingSteps,
-              nutritionPoint: meal.nutritionPoint
-            });
+            console.group(`� 食事 ${index + 1}: ${meal.mealType} (${meal.calories})`);
+            console.log('メニュー:', meal.menu);
+            console.log('栄養バランス:', `タンパク質${meal.nutrition.protein}g、炭水化物${meal.nutrition.carbs}g、脂質${meal.nutrition.fat}g`);
+            console.log('食材数:', meal.ingredients.length);
+            console.log('食材リスト:', meal.ingredients);
+            console.log('調理手順:', meal.cookingSteps || '(なし)');
+            console.log('栄養ポイント:', meal.nutritionPoint || '(なし)');
+            console.groupEnd();
           });
+          console.groupEnd();
+          
+          // 🔍 DynamoDBから取得した情報をコンソールに出力
+          if (kondateDebugInfo || responseData?.debug) {
+            const debugInfo = responseData?.debug || kondateDebugInfo;
+            console.group('💾 ===== DynamoDBから取得した情報 =====');
+            console.log('📋 ユーザープロファイル情報');
+            console.log('  ユーザー名:', debugInfo.userName || '不明');
+            console.log('  ユーザーID:', debugInfo.userId || '不明');
+            console.log('  アレルギー情報:', debugInfo.allergies || 'なし');
+            console.log('  推奨カロリー:', debugInfo.recommendedCalories || 'N/A');
+            console.log('  体調:', debugInfo.condition || '未設定');
+            console.log('  気分:', debugInfo.mood || '未設定');
+            console.log('  データ取得元:', debugInfo.source || 'N/A');
+            console.log('  取得日時:', debugInfo.timestamp ? new Date(debugInfo.timestamp).toLocaleString('ja-JP') : 'N/A');
+            
+            if (debugInfo.systemPrompt) {
+              console.log('🤖 システムプロンプト:', debugInfo.systemPrompt);
+            }
+            if (debugInfo.userMessage) {
+              console.log('💬 ユーザーメッセージ:', debugInfo.userMessage);
+            }
+            console.groupEnd();
+          }
+          
+          // 🔍 パース結果のJSON全体をコンソールに出力
+          console.group('📊 ===== パース結果 (JSON) =====');
+          console.log(JSON.stringify(parsed, null, 2));
+          console.groupEnd();
           
           // AI献立提案の結果をlocalStorageに保存
           saveAIKondateToStorage(parsed, markdownContent, responseData?.debug);
+          
+          // 🎯 初回AI献立生成フラグを設定
+          if (cognitoUserId) {
+            setMealGeneratedFlag(cognitoUserId);
+            console.log('✅ 初回AI献立生成フラグを設定しました');
+          }
         } else {
           console.error('❌ パース失敗: parseKondateMarkdownがnullを返しました');
+          alert('❌ 献立データの解析に失敗しました。再度「AI献立を作成」ボタンを押してください。');
         }
-      } else if (result.errors) {
-        setKondateResult(`エラー: ${JSON.stringify(result.errors)}`);
+      } else {
+        // データが存在しない場合
+        console.error('❌ レスポンスにデータが含まれていません');
+        alert('❌ エラーが発生しました。再度「AI献立を作成」ボタンを押してください。');
+        setKondateResult('エラー: レスポンスにデータが含まれていません');
         setShowKondateResult(true);
       }
     } catch (error) {
       console.error('🤖 kondateAI呼び出しエラー:', error);
+      
+      // エラーの種類に応じたメッセージ
+      let errorMessage = 'エラーが発生しました。';
+      
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        errorMessage = 'ネットワークエラーが発生しました。インターネット接続を確認してください。';
+      } else if (error instanceof Error && error.message.includes('timeout')) {
+        errorMessage = 'タイムアウトしました。時間をおいて再度お試しください。';
+      } else if (error instanceof Error && error.message.includes('Unauthorized')) {
+        errorMessage = '認証エラーが発生しました。再度ログインしてください。';
+      }
+      
+      alert(`❌ ${errorMessage}\n再度「AI献立を作成」ボタンを押してください。`);
       setKondateResult(`エラー: ${error}`);
       setShowKondateResult(true);
     } finally {
@@ -434,9 +566,7 @@ export default function MealPage() {
   // ここまで
 
   // カロリー計算
-  const currentCalories = meals.reduce((total, meal) => total + meal.calories, 0);
   const maxCalories = userProfile ? calculateTDEE(userProfile) : 2000; // TDEEに基づく推奨カロリー
-  const percentage = Math.min((currentCalories / maxCalories) * 100, 100);
  
   useEffect(() => {
     loadUserInfo();
@@ -457,7 +587,6 @@ export default function MealPage() {
   const loadMealsFromStorage = () => {
     try {
       const today = new Date().toISOString().split('T')[0];
-      const storageKey = `meals_${today}`;
       const aiKondateKey = `ai_kondate_${today}`;
       
       // 古いデータをクリア（過去3日より古いデータを削除）
@@ -479,29 +608,8 @@ export default function MealPage() {
           console.error('AI献立データのパースエラー:', parseError);
         }
       }
-      
-      // 既存の献立データの復元
-      const savedMeals = localStorage.getItem(storageKey);
-      if (savedMeals) {
-        const parsedMeals = JSON.parse(savedMeals);
-        setMeals(parsedMeals);
-        setShowMeals(true);
-        console.log('保存された献立データを復元しました:', parsedMeals);
-      }
     } catch (error) {
       console.error('献立データの復元エラー:', error);
-    }
-  };
-
-  // localStorageに献立データを保存する関数
-  const saveMealsToStorage = (mealsData: MealData[]) => {
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      const storageKey = `meals_${today}`;
-      localStorage.setItem(storageKey, JSON.stringify(mealsData));
-      console.log('献立データをlocalStorageに保存しました');
-    } catch (error) {
-      console.error('献立データの保存エラー:', error);
     }
   };
 
@@ -532,14 +640,8 @@ export default function MealPage() {
       // localStorageの全キーをチェック
       for (let i = localStorage.length - 1; i >= 0; i--) {
         const key = localStorage.key(i);
-        if (key && (key.startsWith('meals_') || key.startsWith('ai_kondate_'))) {
-          let dateStr = '';
-          if (key.startsWith('meals_')) {
-            dateStr = key.replace('meals_', '');
-          } else if (key.startsWith('ai_kondate_')) {
-            dateStr = key.replace('ai_kondate_', '');
-          }
-          
+        if (key && key.startsWith('ai_kondate_')) {
+          const dateStr = key.replace('ai_kondate_', '');
           const itemDate = new Date(dateStr);
           
           // 3日より古いデータは削除
@@ -586,41 +688,6 @@ export default function MealPage() {
     });
   };
 
-  // Bedrock AIの返答をMealData[]に変換する関数
-  function parseAISuggestion(suggestion: string): MealData[] {
-    try {
-      const jsonMatch = suggestion.match(/```\s*JSON\s*\n([\s\S]*?)\n```/) || suggestion.match(/{[\s\S]*}/);
-      if (jsonMatch) {
-        const jsonStr = jsonMatch[1] || jsonMatch[0];
-        const data = JSON.parse(jsonStr);
-        if (data.meals && Array.isArray(data.meals)) {
-          return data.meals.map((meal: any) => {
-            // dishesが配列でない場合の処理
-            let dishes: string[] = [];
-            if (Array.isArray(meal.dishes)) {
-              dishes = meal.dishes.map((dish: any) => 
-                typeof dish === 'string' ? dish : dish.dish || dish.name || String(dish)
-              );
-            } else if (meal.dishes) {
-              // オブジェクトの場合は文字列に変換
-              dishes = [String(meal.dishes)];
-            }
-            
-            return {
-              mealType: meal.mealType || '食事',
-              calories: meal.calories || 0,
-              dishes: dishes,
-              color: "#FF8C42"
-            };
-          });
-        }
-      }
-    } catch (error) {
-      console.error('JSON parse error:', error);
-    }
-    return [];
-  }
-
   // ユーザープロファイル取得または作成
   const getUserProfile = async (userId = cognitoUserId) => {
     try {
@@ -640,8 +707,8 @@ export default function MealPage() {
 
   // 献立を保存する関数（PFCデータ対応版）
   const saveMealPlan = async () => {
-    // AI献立提案データまたは既存のmealsデータをチェック
-    if (!parsedKondate && (!meals || meals.length === 0)) {
+    // AI献立提案データをチェック
+    if (!parsedKondate) {
       alert('保存する献立がありません');
       return;
     }
@@ -718,40 +785,6 @@ export default function MealPage() {
               break;
           }
         });
-      } else if (meals) {
-        // 既存のmealsデータを使用（栄養価は自動計算）
-        console.log("既存献立データから食事内容を抽出中...");
-        
-        for (const meal of meals) {
-          const dishesText = meal.dishes.join(', ');
-          
-          // 栄養価を自動計算（FoodNutritionから検索）
-          const nutrition = await calculateNutritionFromMeals(meal.dishes);
-          
-          switch (meal.mealType) {
-            case '朝食':
-              mealData.breakfast = dishesText;
-              mealData.calories_bre = nutrition.calories;
-              mealData.protein_bre = nutrition.protein;
-              mealData.fat_bre = nutrition.fat;
-              mealData.carbs_bre = nutrition.carbs;
-              break;
-            case '昼食':
-              mealData.lunch = dishesText;
-              mealData.calories_lun = nutrition.calories;
-              mealData.protein_lun = nutrition.protein;
-              mealData.fat_lun = nutrition.fat;
-              mealData.carbs_lun = nutrition.carbs;
-              break;
-            case '夕食':
-              mealData.dinner = dishesText;
-              mealData.calories_din = nutrition.calories;
-              mealData.protein_din = nutrition.protein;
-              mealData.fat_din = nutrition.fat;
-              mealData.carbs_din = nutrition.carbs;
-              break;
-          }
-        }
       }
 
       console.log('保存予定データ:', mealData);
@@ -827,196 +860,6 @@ export default function MealPage() {
       setLoading(false);
     }
   };
-
-  // 栄養価自動計算関数（FoodNutritionから検索）
-  const calculateNutritionFromMeals = async (dishes: string[]) => {
-    let totalCalories = 0;
-    let totalProtein = 0;
-    let totalFat = 0;
-    let totalCarbs = 0;
-    
-    for (const dish of dishes) {
-      if (dish && dish.trim() !== "") {
-        try {
-          // FoodNutritionデータベースから検索
-          const { data: foods } = await client.models.FoodNutrition.list();
-          const matchedFood = foods?.find(food => 
-            food.foodName?.includes(dish) || dish.includes(food.foodName || '')
-          );
-          
-          if (matchedFood) {
-            totalCalories += matchedFood.energyKcal || 0;
-            totalProtein += matchedFood.protein || 0;
-            totalFat += matchedFood.fat || 0;
-            totalCarbs += matchedFood.carbs || 0;
-            console.log(`栄養価検索成功: ${dish} -> ${matchedFood.energyKcal}kcal`);
-          } else {
-            console.log(`栄養価未発見: ${dish}`);
-            // デフォルト値（推定）
-            totalCalories += 200;
-            totalProtein += 10;
-            totalFat += 5;
-            totalCarbs += 30;
-          }
-        } catch (error) {
-          console.error(`栄養価計算エラー (${dish}):`, error);
-        }
-      }
-    }
-    
-    return {
-      calories: Math.round(totalCalories),
-      protein: Math.round(totalProtein * 10) / 10,
-      fat: Math.round(totalFat * 10) / 10,
-      carbs: Math.round(totalCarbs * 10) / 10,
-    };
-  };
-
-  // 献立再生成ボタン押下時の処理
-  const generateMeals = async () => {
-    setLoading(true);
-    setShowMeals(false);
-    try {
-      // ユーザープロファイル取得
-      const userProfile = await getUserProfile();
-      
-      // 推奨カロリーを計算
-      const recommendedCalories = userProfile ? calculateTDEE(userProfile) : 2000;
-      
-      const requestBody = {
-        userId: cognitoUserId,
-        targetCalories: recommendedCalories,
-        timestamp: new Date().toISOString()
-      };
-      
-      console.log('送信データ:', requestBody);
-      
-      const response = await fetch(API_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody)
-      });
-      
-      const data = await response.json();
-      console.log('APIレスポンス:', data);
-      
-      console.log('Response status:', response.status);
-      console.log('Response data:', data);
-      
-          console.log('Full API response:', data); // デバッグ用
-          
-          // AI質問内容とレスポンスをコンソールに表示
-          if (data.debug) {
-            console.log('🤖 AI PROMPT SENT:', data.debug.promptSent);
-            console.log('📝 AI RESPONSE:', data.debug.aiResponse);
-            console.log('📊 MEAL SOURCE:', data.debug.mealSource || (data.debug.usingFallback ? 'FALLBACK' : 'AI_GENERATED'));
-            console.log('🔍 DEBUG INFO:', data.debug);
-            
-            // 献立ソースによる警告表示
-            if (data.debug.usingFallback || data.debug.mealSource === 'FALLBACK') {
-              console.warn('⚠️ NOTICE: Using fallback meals (AI generation failed)');
-              alert('⚠️ 注意: AIによる献立生成に失敗しました。テンプレート献立を表示しています。');
-            } else {
-              console.log('✅ SUCCESS: Using AI-generated meals');
-            }
-            
-            setDebugInfo(data.debug); // デバッグ情報を状態に保存
-          }      if (response.ok) {
-        // データ構造を詳細にチェック
-        console.log('data.meals:', data.meals);
-        console.log('data.meals type:', typeof data.meals);
-        console.log('data.meals isArray:', Array.isArray(data.meals));
-        
-        if (data.meals && Array.isArray(data.meals) && data.meals.length > 0) {
-          console.log('Processing meals data:', data.meals);
-          // 料理名の詳細チェック
-          data.meals.forEach((meal: any, index: number) => {
-            console.log(`Meal ${index} dishes:`, meal.dishes);
-            if (meal.dishes) {
-              meal.dishes.forEach((dish: any, dishIndex: number) => {
-                console.log(`  Dish ${dishIndex}: "${dish}" (type: ${typeof dish})`);
-              });
-            }
-          });
-          
-          // データを正規化
-          const normalizedMeals = data.meals.map((meal: any, index: number) => {
-            console.log(`Processing meal ${index}:`, meal);
-            
-            // dishesの処理を強化
-            let dishes: string[] = [];
-            if (Array.isArray(meal.dishes)) {
-              dishes = meal.dishes
-                .map((dish: any) => {
-                  if (typeof dish === 'string') {
-                    return dish.trim();
-                  } else if (dish && typeof dish === 'object') {
-                    return dish.dish || dish.name || String(dish);
-                  } else {
-                    return String(dish);
-                  }
-                })
-                .filter((dish: string) => dish && dish.length > 0);
-            } else if (meal.dishes) {
-              dishes = [String(meal.dishes)];
-            }
-            
-            // 抽象的な名前を検出して警告
-            const abstractNames = ['主菜', '副菜', '汁物', '主食'];
-            const hasAbstractNames = dishes.some(dish => abstractNames.includes(dish));
-            if (hasAbstractNames) {
-              console.warn(`⚠️ Abstract dish names found in meal ${index}:`, dishes);
-            }
-            
-            return {
-              mealType: meal.mealType || '食事',
-              calories: meal.calories || 0,
-              dishes: dishes.length > 0 ? dishes : ['和食'],
-              color: meal.color || "#FF8C42"
-            };
-          });
-          
-          console.log('Normalized meals:', normalizedMeals);
-          setMeals(normalizedMeals);
-          setShowMeals(true);
-          saveMealsToStorage(normalizedMeals); // localStorageに保存
-        }
-        else if (data.suggestion) {
-          console.log('Parsing suggestion:', data.suggestion);
-          const newMeals = parseAISuggestion(data.suggestion);
-          if (newMeals.length > 0) {
-            setMeals(newMeals);
-            setShowMeals(true);
-            saveMealsToStorage(newMeals); // localStorageに保存
-          } else {
-            console.error('パースされた献立が空です');
-            alert('AIからの献立提案が取得できませんでした。もう一度お試しください。');
-          }
-        }
-        else {
-          console.error('レスポンスに献立データがありません:', data);
-          console.log('Available data keys:', Object.keys(data));
-          
-          // 空の配列が返された場合の処理
-          if (data.meals && Array.isArray(data.meals) && data.meals.length === 0) {
-            console.log('Empty meals array received');
-            alert('AIからの献立提案が空でした。もう一度お試しください。');
-          } else {
-            alert('AIからの献立提案が取得できませんでした。もう一度お試しください。');
-          }
-        }
-      } else {
-        console.error('APIエラー - Status:', response.status, 'Data:', data);
-        alert('APIエラーが発生しました。もう一度お試しください。');
-      }
-    } catch (error) {
-      console.error('献立生成エラー:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
  
   return (
     <BioryLayout>
@@ -1036,10 +879,14 @@ export default function MealPage() {
               className={styles.aiButton}
             >
               {kondateLoading ? (
-                <>
-                  <span className={styles.spinner}></span>
-                  AI献立作成中...
-                </>
+                <div className={styles.loadingRiceContainer}>
+                  <img 
+                    src="/riceicon.png" 
+                    alt="献立作成中" 
+                    className={styles.loadingRiceIcon}
+                  />
+                  <span className={styles.loadingText}>AI献立作成中...</span>
+                </div>
               ) : (
                 <>
                   🍽️ AI献立を作成
@@ -1055,6 +902,27 @@ export default function MealPage() {
               💾 献立を保存
             </button>
           </div>
+
+          {/* 🆕 ボタン下の範囲内でのローディング表示 */}
+          {kondateLoading && (
+            <div className={styles.inlineLoadingContainer}>
+              <div className={styles.inlineLoadingContent}>
+                <img 
+                  src="/riceicon.png" 
+                  alt="献立作成中" 
+                  className={styles.inlineLoadingRice}
+                />
+                <h3 className={styles.inlineLoadingTitle}>
+                  あなたにぴったりの献立を作成中...
+                </h3>
+                <div className={styles.inlineLoadingDots}>
+                  <span>.</span>
+                  <span>.</span>
+                  <span>.</span>
+                </div>
+              </div>
+            </div>
+          )}
           
           {parsedKondate && (
             <div className={styles.kondateResultContainer}>
@@ -1062,11 +930,23 @@ export default function MealPage() {
               <div className={styles.mealAndCalorieSection}>
                 {/* 食事カードコンテナ */}
                 <div className={styles.aiMealsContainer}>
-                {parsedKondate.meals.map((meal, index) => {
-                  const colors = ['#FF8C42', '#FFA500', '#FF6B35'];
-                  const mealColor = colors[index % colors.length];
+                {(() => {
+                  // 全ての食事のメニュー数を調べて最大値を取得
+                  const maxMenuCount = Math.max(
+                    ...parsedKondate.meals.map(meal => 
+                      (meal.menu || '未設定')
+                        .split('、')
+                        .map(item => item.trim())
+                        .filter(item => item.length > 0)
+                        .length
+                    )
+                  );
                   
-                  return (
+                  return parsedKondate.meals.map((meal, index) => {
+                    const colors = ['#FF8C42', '#FFA500', '#FF6B35'];
+                    const mealColor = colors[index % colors.length];
+                    
+                    return (
                     <div key={index} className={styles.aiMealCard}>
                       <div
                         className={styles.aiMealHeader}
@@ -1080,12 +960,37 @@ export default function MealPage() {
                         
                         <div className={styles.aiMealDetails}>
                           <div className={styles.aiMenuItem}>
-                            <strong>{meal.menu || '未設定'}</strong>
+                            <strong>
+                              {(() => {
+                                const menuItems = (meal.menu || '未設定')
+                                  .split('、')
+                                  .map(item => item.trim())
+                                  .filter(item => item.length > 0)
+                                  .map(item => `🍽️ ${item}`);
+                                
+                                // 最大メニュー数に合わせて空行を追加
+                                while (menuItems.length < maxMenuCount) {
+                                  menuItems.push('\u00A0'); // 非改行スペース（空行として表示）
+                                }
+                                
+                                return menuItems.join('\n');
+                              })()}
+                            </strong>
                           </div>
                           
-                          <div className={styles.aiNutritionInfo}>
-                            <strong>栄養バランス:</strong> タンパク質{meal.nutrition.protein}g、
-                            炭水化物{meal.nutrition.carbs}g、脂質{meal.nutrition.fat}g
+                          <div className={styles.nutritionCards}>
+                            <div className={`${styles.nutritionCard} ${styles.proteinCard}`}>
+                              <div className={styles.nutritionLabel}>タンパク質</div>
+                              <div className={styles.nutritionValue}>{meal.nutrition.protein}g</div>
+                            </div>
+                            <div className={`${styles.nutritionCard} ${styles.fatCard}`}>
+                              <div className={styles.nutritionLabel}>脂質</div>
+                              <div className={styles.nutritionValue}>{meal.nutrition.fat}g</div>
+                            </div>
+                            <div className={`${styles.nutritionCard} ${styles.carbsCard}`}>
+                              <div className={styles.nutritionLabel}>炭水化物</div>
+                              <div className={styles.nutritionValue}>{meal.nutrition.carbs}g</div>
+                            </div>
                           </div>
                           
                           <div className={styles.aiIngredients}>
@@ -1130,7 +1035,8 @@ export default function MealPage() {
                       </div>
                     </div>
                   );
-                })}
+                });
+                })()}
                 </div>
                 
                 {/* 円形カロリー表示 */}
@@ -1215,216 +1121,6 @@ export default function MealPage() {
                   </div>
                 )}
               </div>
-            </div>
-          )}
-          
-          {/* デバッグ情報: AIからのRawデータ */}
-          {kondateResult && (
-            <div style={{
-              marginTop: '30px',
-              padding: '20px',
-              backgroundColor: '#f5f5f5',
-              borderRadius: '8px',
-              border: '2px solid #ddd'
-            }}>
-              <h3 style={{
-                margin: '0 0 15px 0',
-                color: '#333',
-                fontSize: '1.1rem',
-                fontWeight: 'bold'
-              }}>
-                🔍 デバッグ情報: AIからの回答 (Raw Data)
-              </h3>
-              <details>
-                <summary style={{
-                  cursor: 'pointer',
-                  padding: '10px',
-                  backgroundColor: '#e0e0e0',
-                  borderRadius: '4px',
-                  fontWeight: 'bold',
-                  marginBottom: '10px'
-                }}>
-                  クリックして表示
-                </summary>
-                <pre style={{
-                  whiteSpace: 'pre-wrap',
-                  wordWrap: 'break-word',
-                  backgroundColor: '#fff',
-                  padding: '15px',
-                  borderRadius: '4px',
-                  border: '1px solid #ccc',
-                  fontSize: '0.85rem',
-                  lineHeight: '1.5',
-                  maxHeight: '500px',
-                  overflow: 'auto',
-                  margin: '10px 0 0 0'
-                }}>
-{kondateResult}
-                </pre>
-              </details>
-              
-              {kondateDebugInfo && (
-                <details style={{ marginTop: '15px' }} open>
-                  <summary style={{
-                    cursor: 'pointer',
-                    padding: '10px',
-                    backgroundColor: '#e3f2fd',
-                    borderRadius: '4px',
-                    fontWeight: 'bold',
-                    marginBottom: '10px'
-                  }}>
-                    �️ DynamoDBから取得した情報
-                  </summary>
-                  <div style={{
-                    backgroundColor: '#fff',
-                    padding: '15px',
-                    borderRadius: '4px',
-                    border: '2px solid #2196f3',
-                    fontSize: '0.85rem',
-                    lineHeight: '1.5',
-                    margin: '10px 0 0 0'
-                  }}>
-                    <h4 style={{ marginTop: 0, color: '#2196f3' }}>📋 ユーザープロファイル情報</h4>
-                    <pre style={{ 
-                      whiteSpace: 'pre-wrap', 
-                      backgroundColor: '#f9f9f9', 
-                      padding: '15px', 
-                      borderRadius: '4px',
-                      border: '1px solid #ddd',
-                      fontSize: '0.9rem'
-                    }}>
-{`ユーザー名: ${kondateDebugInfo.userName || '不明'}
-ユーザーID: ${kondateDebugInfo.userId || '不明'}
-アレルギー情報: ${kondateDebugInfo.allergies || 'なし'}
-データ取得元: ${kondateDebugInfo.source || 'N/A'}
-取得日時: ${kondateDebugInfo.timestamp ? new Date(kondateDebugInfo.timestamp).toLocaleString('ja-JP') : 'N/A'}`}
-                    </pre>
-                    
-                    <div style={{
-                      marginTop: '15px',
-                      padding: '10px',
-                      backgroundColor: kondateDebugInfo.allergies && kondateDebugInfo.allergies !== 'なし' ? '#fff3e0' : '#e8f5e9',
-                      borderRadius: '4px',
-                      border: `2px solid ${kondateDebugInfo.allergies && kondateDebugInfo.allergies !== 'なし' ? '#ff9800' : '#4caf50'}`
-                    }}>
-                      <strong style={{ color: kondateDebugInfo.allergies && kondateDebugInfo.allergies !== 'なし' ? '#e65100' : '#2e7d32' }}>
-                        {kondateDebugInfo.allergies && kondateDebugInfo.allergies !== 'なし' 
-                          ? `⚠️ アレルギー情報: ${kondateDebugInfo.allergies}`
-                          : '✅ アレルギーなし'}
-                      </strong>
-                    </div>
-                    
-                    {/* Lambda関数からのデバッグ情報（もし存在すれば） */}
-                    {kondateDebugInfo.systemPrompt && (
-                      <>
-                        <h4 style={{ marginTop: '20px', color: '#ff9800' }}>� システムプロンプト</h4>
-                        <pre style={{ whiteSpace: 'pre-wrap', backgroundColor: '#f9f9f9', padding: '10px', borderRadius: '4px', maxHeight: '300px', overflow: 'auto' }}>
-{kondateDebugInfo.systemPrompt}
-                        </pre>
-                        
-                        <h4 style={{ color: '#ff9800' }}>💬 ユーザーメッセージ</h4>
-                        <pre style={{ whiteSpace: 'pre-wrap', backgroundColor: '#f9f9f9', padding: '10px', borderRadius: '4px' }}>
-{kondateDebugInfo.userMessage}
-                        </pre>
-                      </>
-                    )}
-                  </div>
-                </details>
-              )}
-              
-              {parsedKondate && (
-                <>
-                  <details style={{ marginTop: '15px' }}>
-                    <summary style={{
-                      cursor: 'pointer',
-                      padding: '10px',
-                      backgroundColor: '#e0e0e0',
-                      borderRadius: '4px',
-                      fontWeight: 'bold',
-                      marginBottom: '10px'
-                    }}>
-                      パース結果 (JSON)
-                    </summary>
-                    <pre style={{
-                      whiteSpace: 'pre-wrap',
-                      wordWrap: 'break-word',
-                      backgroundColor: '#fff',
-                      padding: '15px',
-                      borderRadius: '4px',
-                      border: '1px solid #ccc',
-                      fontSize: '0.85rem',
-                      lineHeight: '1.5',
-                      maxHeight: '500px',
-                      overflow: 'auto',
-                      margin: '10px 0 0 0'
-                    }}>
-{JSON.stringify(parsedKondate, null, 2)}
-                    </pre>
-                  </details>
-                  
-                  <details style={{ marginTop: '15px' }}>
-                    <summary style={{
-                      cursor: 'pointer',
-                      padding: '10px',
-                      backgroundColor: '#e0e0e0',
-                      borderRadius: '4px',
-                      fontWeight: 'bold',
-                      marginBottom: '10px'
-                    }}>
-                      パース結果の詳細 (各食事)
-                    </summary>
-                    <div style={{
-                      backgroundColor: '#fff',
-                      padding: '15px',
-                      borderRadius: '4px',
-                      border: '1px solid #ccc',
-                      marginTop: '10px'
-                    }}>
-                      {parsedKondate.meals.map((meal, index) => (
-                        <div key={index} style={{
-                          marginBottom: '20px',
-                          padding: '15px',
-                          backgroundColor: '#f9f9f9',
-                          borderRadius: '8px',
-                          border: '1px solid #ddd'
-                        }}>
-                          <h4 style={{ margin: '0 0 10px 0', color: '#333' }}>
-                            {meal.mealType} ({meal.calories})
-                          </h4>
-                          <div style={{ fontSize: '0.9rem', lineHeight: '1.6' }}>
-                            <p><strong>メニュー:</strong> {meal.menu || '(なし)'}</p>
-                            <p><strong>栄養:</strong> タンパク質{meal.nutrition.protein}g、炭水化物{meal.nutrition.carbs}g、脂質{meal.nutrition.fat}g</p>
-                            <p><strong>食材数:</strong> {meal.ingredients.length}個</p>
-                            <div style={{ marginLeft: '20px' }}>
-                              {meal.ingredients.length > 0 ? (
-                                <ul style={{ margin: '5px 0' }}>
-                                  {meal.ingredients.map((ing, idx) => (
-                                    <li key={idx}>{ing}</li>
-                                  ))}
-                                </ul>
-                              ) : (
-                                <p style={{ color: '#999', fontStyle: 'italic' }}>食材情報なし</p>
-                              )}
-                            </div>
-                            <p><strong>調理手順:</strong></p>
-                            <pre style={{
-                              whiteSpace: 'pre-wrap',
-                              backgroundColor: '#fff',
-                              padding: '10px',
-                              borderRadius: '4px',
-                              fontSize: '0.85rem',
-                              border: '1px solid #ddd'
-                            }}>
-{meal.cookingSteps || '(なし)'}
-                            </pre>
-                            <p><strong>栄養ポイント:</strong> {meal.nutritionPoint || '(なし)'}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </details>
-                </>
-              )}
             </div>
           )}
         </div>

@@ -225,3 +225,26 @@ const MyComponent = () => {
 };
 ```
 */
+
+/**
+ * 初回AI献立生成フラグを設定する関数
+ * @param userId CognitoユーザーID
+ */
+export const setMealGeneratedFlag = (userId: string): void => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(`hasGeneratedMeal_${userId}`, 'true');
+  }
+};
+
+/**
+ * 初回AI献立生成フラグをチェックする関数
+ * @param userId CognitoユーザーID
+ * @returns boolean 初回献立生成済みかどうか
+ */
+export const checkHasGeneratedMeal = (userId: string): boolean => {
+  if (typeof window !== 'undefined') {
+    const hasGenerated = localStorage.getItem(`hasGeneratedMeal_${userId}`);
+    return hasGenerated === 'true';
+  }
+  return false;
+};
