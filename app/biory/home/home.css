@@ -262,6 +262,47 @@
   100% { transform: rotate(360deg); }
 }
 
+/* スケルトンスクリーン */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton-line {
+  height: 20px;
+  margin-bottom: 12px;
+}
+
+.skeleton-line.short {
+  width: 60%;
+}
+
+.skeleton-line.medium {
+  width: 80%;
+}
+
+.skeleton-text {
+  height: 16px;
+  margin-bottom: 10px;
+}
+
+.skeleton-title {
+  height: 24px;
+  width: 50%;
+  margin-bottom: 15px;
+}
+
 /* 栄養価計算中ローディングアニメーション（使用しない - 削除予定） */
 @keyframes riceFloat {
   0%, 100% {

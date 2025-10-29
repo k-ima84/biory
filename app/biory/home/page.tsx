@@ -80,6 +80,9 @@ export default function HomePage() {
   // 栄養価計算中フラグ
   const [isCalculatingNutrition, setIsCalculatingNutrition] = useState(false);
 
+  // 初期データロード中フラグ
+  const [isLoading, setIsLoading] = useState(true);
+
   // 日本語の曜日配列
   const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
 
@@ -419,14 +422,29 @@ export default function HomePage() {
   useEffect(() => {
     if (cognitoUserId) {
       console.log("cognitoUserId が取得できました:", cognitoUserId);
-      fetchUserProfile();
       
-      // 食事データと栄養データを取得
-      const dateString = getCurrentDateString();
-      console.log("食事データと栄養データを取得します。日付:", dateString);
-      fetchMealData(dateString);
-      fetchHealthDataFromDailyRecord(dateString);
-      fetchNutritionData(dateString);
+      // 初期データ取得処理
+      const loadInitialData = async () => {
+        try {
+          setIsLoading(true);
+          
+          // ユーザープロフィールを取得
+          await fetchUserProfile();
+          
+          // 食事データと栄養データを取得
+          const dateString = getCurrentDateString();
+          console.log("食事データと栄養データを取得します。日付:", dateString);
+          await Promise.all([
+            fetchMealData(dateString),
+            fetchHealthDataFromDailyRecord(dateString),
+            fetchNutritionData(dateString)
+          ]);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      loadInitialData();
     }
   }, [cognitoUserId]);
 
@@ -896,63 +914,97 @@ export default function HomePage() {
     <BioryLayout>
       {/* 日付・挨拶セクション */}
       <section className="date-greeting">
-        <div className="date">{currentDate}</div>
-        <div className="greeting">{getGreeting()} {userName}さん</div>
+        {isLoading ? (
+          <>
+            <div className="skeleton skeleton-line" style={{ width: '150px', margin: '0 auto 8px' }}></div>
+            <div className="skeleton skeleton-text" style={{ width: '200px', margin: '0 auto' }}></div>
+          </>
+        ) : (
+          <>
+            <div className="date">{currentDate}</div>
+            <div className="greeting">{getGreeting()} {userName}さん</div>
+          </>
+        )}
       </section>
 
       {/* 栄養情報セクション */}
       <section className="nutrition-section">
         <h3 className="section-title-highlight">食事バランス</h3>
-        <div className="nutrition-header">
-          <span className="nutrition-label">概算カロリー</span>
-          <span className="calories-value">
-            {isCalculatingNutrition ? (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                <span className="spinner"></span> kcal / {recommendedCalories} kcal
+        {isLoading ? (
+          <>
+            <div className="nutrition-header">
+              <span className="nutrition-label">概算カロリー</span>
+              <div className="skeleton skeleton-text" style={{ width: '180px', height: '16px' }}></div>
+            </div>
+            <div className="nutrition-details">
+              <div className="nutrition-row">
+                <span className="nutrition-type">P（タンパク質）</span>
+                <div className="skeleton skeleton-text" style={{ width: '100px', height: '14px' }}></div>
+              </div>
+              <div className="nutrition-row">
+                <span className="nutrition-type">F（脂質）</span>
+                <div className="skeleton skeleton-text" style={{ width: '100px', height: '14px' }}></div>
+              </div>
+              <div className="nutrition-row">
+                <span className="nutrition-type">C（炭水化物）</span>
+                <div className="skeleton skeleton-text" style={{ width: '100px', height: '14px' }}></div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="nutrition-header">
+              <span className="nutrition-label">概算カロリー</span>
+              <span className="calories-value">
+                {isCalculatingNutrition ? (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <span className="spinner"></span> kcal / {recommendedCalories} kcal
+                  </span>
+                ) : (
+                  `${Math.round(nutritionData.calories)} kcal / ${recommendedCalories} kcal`
+                )}
               </span>
-            ) : (
-              `${Math.round(nutritionData.calories)} kcal / ${recommendedCalories} kcal`
-            )}
-          </span>
-        </div>
-        <div className="nutrition-details">
-          <div className="nutrition-row">
-            <span className="nutrition-type">P（タンパク質）</span>
-            <span className="nutrition-values">
-              {isCalculatingNutrition ? (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                  <span className="spinner"></span>g / {Math.round(calculateTargetPFC(recommendedCalories).protein)}g
+            </div>
+            <div className="nutrition-details">
+              <div className="nutrition-row">
+                <span className="nutrition-type">P（タンパク質）</span>
+                <span className="nutrition-values">
+                  {isCalculatingNutrition ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <span className="spinner"></span>g / {Math.round(calculateTargetPFC(recommendedCalories).protein)}g
+                    </span>
+                  ) : (
+                    `${Math.round(nutritionData.protein.value)}g / ${Math.round(calculateTargetPFC(recommendedCalories).protein)}g`
+                  )}
                 </span>
-              ) : (
-                `${Math.round(nutritionData.protein.value)}g / ${Math.round(calculateTargetPFC(recommendedCalories).protein)}g`
-              )}
-            </span>
-          </div>
-          <div className="nutrition-row">
-            <span className="nutrition-type">F（脂質）</span>
-            <span className="nutrition-values">
-              {isCalculatingNutrition ? (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                  <span className="spinner"></span>g / {Math.round(calculateTargetPFC(recommendedCalories).fat)}g
+              </div>
+              <div className="nutrition-row">
+                <span className="nutrition-type">F（脂質）</span>
+                <span className="nutrition-values">
+                  {isCalculatingNutrition ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <span className="spinner"></span>g / {Math.round(calculateTargetPFC(recommendedCalories).fat)}g
+                    </span>
+                  ) : (
+                    `${Math.round(nutritionData.fat.value)}g / ${Math.round(calculateTargetPFC(recommendedCalories).fat)}g`
+                  )}
                 </span>
-              ) : (
-                `${Math.round(nutritionData.fat.value)}g / ${Math.round(calculateTargetPFC(recommendedCalories).fat)}g`
-              )}
-            </span>
-          </div>
-          <div className="nutrition-row">
-            <span className="nutrition-type">C（炭水化物）</span>
-            <span className="nutrition-values">
-              {isCalculatingNutrition ? (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                  <span className="spinner"></span>g / {Math.round(calculateTargetPFC(recommendedCalories).carbs)}g
+              </div>
+              <div className="nutrition-row">
+                <span className="nutrition-type">C（炭水化物）</span>
+                <span className="nutrition-values">
+                  {isCalculatingNutrition ? (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                      <span className="spinner"></span>g / {Math.round(calculateTargetPFC(recommendedCalories).carbs)}g
+                    </span>
+                  ) : (
+                    `${Math.round(nutritionData.carbs.value)}g / ${Math.round(calculateTargetPFC(recommendedCalories).carbs)}g`
+                  )}
                 </span>
-              ) : (
-                `${Math.round(nutritionData.carbs.value)}g / ${Math.round(calculateTargetPFC(recommendedCalories).carbs)}g`
-              )}
-            </span>
-          </div>
-        </div>
+              </div>
+            </div>
+          </>
+        )}
       </section>
 
       {/* 食事記録セクション */}
@@ -970,7 +1022,7 @@ export default function HomePage() {
           }}
         >
           <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold', color: 'white' }}>本日の食事</h3>
-          {!isMealEditMode && (
+          {!isMealEditMode && !isLoading && (
             <button 
               className="change-button"
               onClick={handleMealEditToggle}
@@ -999,7 +1051,25 @@ export default function HomePage() {
           )}
         </div>
         
-        {isMealEditMode ? (
+        {isLoading ? (
+          <div className="meal-list">
+            <div className="meal-row">
+              <span className="meal-time">朝</span>
+              <span className="meal-separator">：</span>
+              <div className="skeleton skeleton-text" style={{ flex: 1, height: '14px' }}></div>
+            </div>
+            <div className="meal-row">
+              <span className="meal-time">昼</span>
+              <span className="meal-separator">：</span>
+              <div className="skeleton skeleton-text" style={{ flex: 1, height: '14px' }}></div>
+            </div>
+            <div className="meal-row">
+              <span className="meal-time">夜</span>
+              <span className="meal-separator">：</span>
+              <div className="skeleton skeleton-text" style={{ flex: 1, height: '14px' }}></div>
+            </div>
+          </div>
+        ) : isMealEditMode ? (
           <div className="meal-list">
             <div className="meal-row">
               <span className="meal-time">朝</span>
@@ -1143,7 +1213,7 @@ export default function HomePage() {
           }}
         >
           <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold', color: 'white' }}>本日の調子</h3>
-          {!isHealthEditMode && (
+          {!isHealthEditMode && !isLoading && (
             <button 
               className="change-button"
               onClick={handleHealthEditToggle}
@@ -1169,7 +1239,22 @@ export default function HomePage() {
           )}
         </div>
         
-        {isHealthEditMode ? (
+        {isLoading ? (
+          <div className="health-content">
+            <div className="health-row">
+              <span className="health-label">体調：</span>
+              <div className="skeleton skeleton-text" style={{ flex: 1, height: '14px', maxWidth: '200px' }}></div>
+            </div>
+            <div className="health-row">
+              <span className="health-label">気分：</span>
+              <div className="skeleton skeleton-text" style={{ flex: 1, height: '14px', maxWidth: '200px' }}></div>
+            </div>
+            <div className="health-row">
+              <span className="health-label">体重：</span>
+              <div className="skeleton skeleton-text" style={{ flex: 1, height: '14px', maxWidth: '100px' }}></div>
+            </div>
+          </div>
+        ) : isHealthEditMode ? (
           <div className="health-content">
             <div className="health-row">
               <span className="health-label">体調：</span>
