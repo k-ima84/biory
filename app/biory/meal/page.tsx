@@ -6,7 +6,7 @@ import { getCurrentUser } from "aws-amplify/auth";
 import type { Schema } from "@/amplify/data/resource";
 import BioryLayout from "../components/BioryLayout";
 import styles from "./meal.module.css";
-import { fetchCognitoUserInfo } from '../components/function';
+import { fetchCognitoUserInfo, setMealGeneratedFlag } from '../components/function';
 import { useRouter } from "next/navigation";
 
 const client = generateClient<Schema>();
@@ -461,6 +461,12 @@ export default function MealPage() {
           
           // AI献立提案の結果をlocalStorageに保存
           saveAIKondateToStorage(parsed, markdownContent, responseData?.debug);
+          
+          // 🎯 初回AI献立生成フラグを設定
+          if (cognitoUserId) {
+            setMealGeneratedFlag(cognitoUserId);
+            console.log('✅ 初回AI献立生成フラグを設定しました');
+          }
         } else {
           console.error('❌ パース失敗: parseKondateMarkdownがnullを返しました');
         }
