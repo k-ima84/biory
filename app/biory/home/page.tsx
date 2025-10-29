@@ -164,7 +164,7 @@ export default function HomePage() {
     const month = now.getMonth() + 1; // 0-11 → 1-12
     const date = now.getDate();
     const dayOfWeek = dayNames[now.getDay()];
-    const formattedDate = `${month}/${date} (${dayOfWeek})`;
+    const formattedDate = `${month}月${date}日 (${dayOfWeek})`;
     setCurrentDate(formattedDate);
   };
 
@@ -934,16 +934,11 @@ export default function HomePage() {
     <BioryLayout>
       {/* 日付・挨拶セクション */}
       <section className="date-greeting">
+        <div className="date">{currentDate}</div>
         {isLoading ? (
-          <>
-            <div className="skeleton skeleton-line" style={{ width: '150px', margin: '0 auto 8px' }}></div>
-            <div className="skeleton skeleton-text" style={{ width: '200px', margin: '0 auto' }}></div>
-          </>
+          <div className="skeleton skeleton-text" style={{ width: '200px', margin: '0 auto' }}></div>
         ) : (
-          <>
-            <div className="date">{currentDate}</div>
-            <div className="greeting">{getGreeting()} {userName}さん</div>
-          </>
+          <div className="greeting">{getGreeting()} {userName}さん</div>
         )}
       </section>
 
