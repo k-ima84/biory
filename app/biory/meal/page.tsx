@@ -416,9 +416,27 @@ export default function MealPage() {
       
       console.log('🤖 kondateAI結果:', result);
       
+      // エラーチェック（GraphQLエラー）
+      if (result.errors && result.errors.length > 0) {
+        console.error('❌ GraphQLエラー:', result.errors);
+        alert('❌ エラーが発生しました。再度「AI献立を作成」ボタンを押してください。');
+        setKondateResult(`エラー: ${JSON.stringify(result.errors)}`);
+        setShowKondateResult(true);
+        return;
+      }
+      
       if (result.data) {
         console.log('📝 AIからのRawデータ (文字列長):', result.data.length);
         console.log('📝 AIからのRawデータ (最初の500文字):', result.data.substring(0, 500));
+        
+        // データ形式エラーチェック
+        if (typeof result.data !== 'string' || result.data.trim().length === 0) {
+          console.error('❌ データ形式エラー: 空または無効なレスポンス');
+          alert('❌ エラーが発生しました。再度「AI献立を作成」ボタンを押してください。');
+          setKondateResult('エラー: AIから無効なレスポンスを受信しました');
+          setShowKondateResult(true);
+          return;
+        }
         
         // JSONレスポンスをパース
         let responseData;
@@ -426,6 +444,15 @@ export default function MealPage() {
         try {
           responseData = JSON.parse(result.data);
           markdownContent = responseData.response;
+          
+          // エラーメッセージチェック（Lambda関数内でのエラー）
+          if (markdownContent && markdownContent.includes('管理栄養士AI エラー')) {
+            console.error('❌ Lambda関数エラー:', markdownContent);
+            alert('❌ エラーが発生しました。再度「AI献立を作成」ボタンを押してください。');
+            setKondateResult(markdownContent);
+            setShowKondateResult(true);
+            return;
+          }
           
           // デバッグ情報を保存
           if (responseData.debug) {
@@ -442,34 +469,88 @@ export default function MealPage() {
         setKondateResult(markdownContent);
         setShowKondateResult(true);
         
+        // 🔍 デバッグ情報をコンソールに出力
+        console.group('🔍 ===== AI献立デバッグ情報 =====');
+        console.log('📝 AIからのRawデータ:', markdownContent);
+        console.groupEnd();
+        
         // Markdownをパースして構造化データに変換
         const parsed = parseKondateMarkdown(markdownContent);
         if (parsed) {
           setParsedKondate(parsed);
           console.log('🍽️ パース結果:', parsed);
           console.log('🍽️ パース結果 - 食事数:', parsed.meals.length);
+          
+          // 🔍 各食事の詳細をコンソールに出力
+          console.group('🍽️ ===== パース結果の詳細 =====');
           parsed.meals.forEach((meal, index) => {
-            console.log(`🍽️ 食事 ${index + 1} (${meal.mealType}):`, {
-              menu: meal.menu,
-              calories: meal.calories,
-              ingredientsCount: meal.ingredients.length,
-              ingredients: meal.ingredients,
-              cookingSteps: meal.cookingSteps,
-              nutritionPoint: meal.nutritionPoint
-            });
+            console.group(`� 食事 ${index + 1}: ${meal.mealType} (${meal.calories})`);
+            console.log('メニュー:', meal.menu);
+            console.log('栄養バランス:', `タンパク質${meal.nutrition.protein}g、炭水化物${meal.nutrition.carbs}g、脂質${meal.nutrition.fat}g`);
+            console.log('食材数:', meal.ingredients.length);
+            console.log('食材リスト:', meal.ingredients);
+            console.log('調理手順:', meal.cookingSteps || '(なし)');
+            console.log('栄養ポイント:', meal.nutritionPoint || '(なし)');
+            console.groupEnd();
           });
+          console.groupEnd();
+          
+          // 🔍 DynamoDBから取得した情報をコンソールに出力
+          if (kondateDebugInfo || responseData?.debug) {
+            const debugInfo = responseData?.debug || kondateDebugInfo;
+            console.group('💾 ===== DynamoDBから取得した情報 =====');
+            console.log('📋 ユーザープロファイル情報');
+            console.log('  ユーザー名:', debugInfo.userName || '不明');
+            console.log('  ユーザーID:', debugInfo.userId || '不明');
+            console.log('  アレルギー情報:', debugInfo.allergies || 'なし');
+            console.log('  推奨カロリー:', debugInfo.recommendedCalories || 'N/A');
+            console.log('  体調:', debugInfo.condition || '未設定');
+            console.log('  気分:', debugInfo.mood || '未設定');
+            console.log('  データ取得元:', debugInfo.source || 'N/A');
+            console.log('  取得日時:', debugInfo.timestamp ? new Date(debugInfo.timestamp).toLocaleString('ja-JP') : 'N/A');
+            
+            if (debugInfo.systemPrompt) {
+              console.log('🤖 システムプロンプト:', debugInfo.systemPrompt);
+            }
+            if (debugInfo.userMessage) {
+              console.log('💬 ユーザーメッセージ:', debugInfo.userMessage);
+            }
+            console.groupEnd();
+          }
+          
+          // 🔍 パース結果のJSON全体をコンソールに出力
+          console.group('📊 ===== パース結果 (JSON) =====');
+          console.log(JSON.stringify(parsed, null, 2));
+          console.groupEnd();
           
           // AI献立提案の結果をlocalStorageに保存
           saveAIKondateToStorage(parsed, markdownContent, responseData?.debug);
         } else {
           console.error('❌ パース失敗: parseKondateMarkdownがnullを返しました');
+          alert('❌ 献立データの解析に失敗しました。再度「AI献立を作成」ボタンを押してください。');
         }
-      } else if (result.errors) {
-        setKondateResult(`エラー: ${JSON.stringify(result.errors)}`);
+      } else {
+        // データが存在しない場合
+        console.error('❌ レスポンスにデータが含まれていません');
+        alert('❌ エラーが発生しました。再度「AI献立を作成」ボタンを押してください。');
+        setKondateResult('エラー: レスポンスにデータが含まれていません');
         setShowKondateResult(true);
       }
     } catch (error) {
       console.error('🤖 kondateAI呼び出しエラー:', error);
+      
+      // エラーの種類に応じたメッセージ
+      let errorMessage = 'エラーが発生しました。';
+      
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        errorMessage = 'ネットワークエラーが発生しました。インターネット接続を確認してください。';
+      } else if (error instanceof Error && error.message.includes('timeout')) {
+        errorMessage = 'タイムアウトしました。時間をおいて再度お試しください。';
+      } else if (error instanceof Error && error.message.includes('Unauthorized')) {
+        errorMessage = '認証エラーが発生しました。再度ログインしてください。';
+      }
+      
+      alert(`❌ ${errorMessage}\n再度「AI献立を作成」ボタンを押してください。`);
       setKondateResult(`エラー: ${error}`);
       setShowKondateResult(true);
     } finally {
@@ -1004,216 +1085,6 @@ export default function MealPage() {
                   </div>
                 )}
               </div>
-            </div>
-          )}
-          
-          {/* デバッグ情報: AIからのRawデータ */}
-          {kondateResult && (
-            <div style={{
-              marginTop: '30px',
-              padding: '20px',
-              backgroundColor: '#f5f5f5',
-              borderRadius: '8px',
-              border: '2px solid #ddd'
-            }}>
-              <h3 style={{
-                margin: '0 0 15px 0',
-                color: '#333',
-                fontSize: '1.1rem',
-                fontWeight: 'bold'
-              }}>
-                🔍 デバッグ情報: AIからの回答 (Raw Data)
-              </h3>
-              <details>
-                <summary style={{
-                  cursor: 'pointer',
-                  padding: '10px',
-                  backgroundColor: '#e0e0e0',
-                  borderRadius: '4px',
-                  fontWeight: 'bold',
-                  marginBottom: '10px'
-                }}>
-                  クリックして表示
-                </summary>
-                <pre style={{
-                  whiteSpace: 'pre-wrap',
-                  wordWrap: 'break-word',
-                  backgroundColor: '#fff',
-                  padding: '15px',
-                  borderRadius: '4px',
-                  border: '1px solid #ccc',
-                  fontSize: '0.85rem',
-                  lineHeight: '1.5',
-                  maxHeight: '500px',
-                  overflow: 'auto',
-                  margin: '10px 0 0 0'
-                }}>
-{kondateResult}
-                </pre>
-              </details>
-              
-              {kondateDebugInfo && (
-                <details style={{ marginTop: '15px' }} open>
-                  <summary style={{
-                    cursor: 'pointer',
-                    padding: '10px',
-                    backgroundColor: '#e3f2fd',
-                    borderRadius: '4px',
-                    fontWeight: 'bold',
-                    marginBottom: '10px'
-                  }}>
-                    �️ DynamoDBから取得した情報
-                  </summary>
-                  <div style={{
-                    backgroundColor: '#fff',
-                    padding: '15px',
-                    borderRadius: '4px',
-                    border: '2px solid #2196f3',
-                    fontSize: '0.85rem',
-                    lineHeight: '1.5',
-                    margin: '10px 0 0 0'
-                  }}>
-                    <h4 style={{ marginTop: 0, color: '#2196f3' }}>📋 ユーザープロファイル情報</h4>
-                    <pre style={{ 
-                      whiteSpace: 'pre-wrap', 
-                      backgroundColor: '#f9f9f9', 
-                      padding: '15px', 
-                      borderRadius: '4px',
-                      border: '1px solid #ddd',
-                      fontSize: '0.9rem'
-                    }}>
-{`ユーザー名: ${kondateDebugInfo.userName || '不明'}
-ユーザーID: ${kondateDebugInfo.userId || '不明'}
-アレルギー情報: ${kondateDebugInfo.allergies || 'なし'}
-データ取得元: ${kondateDebugInfo.source || 'N/A'}
-取得日時: ${kondateDebugInfo.timestamp ? new Date(kondateDebugInfo.timestamp).toLocaleString('ja-JP') : 'N/A'}`}
-                    </pre>
-                    
-                    <div style={{
-                      marginTop: '15px',
-                      padding: '10px',
-                      backgroundColor: kondateDebugInfo.allergies && kondateDebugInfo.allergies !== 'なし' ? '#fff3e0' : '#e8f5e9',
-                      borderRadius: '4px',
-                      border: `2px solid ${kondateDebugInfo.allergies && kondateDebugInfo.allergies !== 'なし' ? '#ff9800' : '#4caf50'}`
-                    }}>
-                      <strong style={{ color: kondateDebugInfo.allergies && kondateDebugInfo.allergies !== 'なし' ? '#e65100' : '#2e7d32' }}>
-                        {kondateDebugInfo.allergies && kondateDebugInfo.allergies !== 'なし' 
-                          ? `⚠️ アレルギー情報: ${kondateDebugInfo.allergies}`
-                          : '✅ アレルギーなし'}
-                      </strong>
-                    </div>
-                    
-                    {/* Lambda関数からのデバッグ情報（もし存在すれば） */}
-                    {kondateDebugInfo.systemPrompt && (
-                      <>
-                        <h4 style={{ marginTop: '20px', color: '#ff9800' }}>� システムプロンプト</h4>
-                        <pre style={{ whiteSpace: 'pre-wrap', backgroundColor: '#f9f9f9', padding: '10px', borderRadius: '4px', maxHeight: '300px', overflow: 'auto' }}>
-{kondateDebugInfo.systemPrompt}
-                        </pre>
-                        
-                        <h4 style={{ color: '#ff9800' }}>💬 ユーザーメッセージ</h4>
-                        <pre style={{ whiteSpace: 'pre-wrap', backgroundColor: '#f9f9f9', padding: '10px', borderRadius: '4px' }}>
-{kondateDebugInfo.userMessage}
-                        </pre>
-                      </>
-                    )}
-                  </div>
-                </details>
-              )}
-              
-              {parsedKondate && (
-                <>
-                  <details style={{ marginTop: '15px' }}>
-                    <summary style={{
-                      cursor: 'pointer',
-                      padding: '10px',
-                      backgroundColor: '#e0e0e0',
-                      borderRadius: '4px',
-                      fontWeight: 'bold',
-                      marginBottom: '10px'
-                    }}>
-                      パース結果 (JSON)
-                    </summary>
-                    <pre style={{
-                      whiteSpace: 'pre-wrap',
-                      wordWrap: 'break-word',
-                      backgroundColor: '#fff',
-                      padding: '15px',
-                      borderRadius: '4px',
-                      border: '1px solid #ccc',
-                      fontSize: '0.85rem',
-                      lineHeight: '1.5',
-                      maxHeight: '500px',
-                      overflow: 'auto',
-                      margin: '10px 0 0 0'
-                    }}>
-{JSON.stringify(parsedKondate, null, 2)}
-                    </pre>
-                  </details>
-                  
-                  <details style={{ marginTop: '15px' }}>
-                    <summary style={{
-                      cursor: 'pointer',
-                      padding: '10px',
-                      backgroundColor: '#e0e0e0',
-                      borderRadius: '4px',
-                      fontWeight: 'bold',
-                      marginBottom: '10px'
-                    }}>
-                      パース結果の詳細 (各食事)
-                    </summary>
-                    <div style={{
-                      backgroundColor: '#fff',
-                      padding: '15px',
-                      borderRadius: '4px',
-                      border: '1px solid #ccc',
-                      marginTop: '10px'
-                    }}>
-                      {parsedKondate.meals.map((meal, index) => (
-                        <div key={index} style={{
-                          marginBottom: '20px',
-                          padding: '15px',
-                          backgroundColor: '#f9f9f9',
-                          borderRadius: '8px',
-                          border: '1px solid #ddd'
-                        }}>
-                          <h4 style={{ margin: '0 0 10px 0', color: '#333' }}>
-                            {meal.mealType} ({meal.calories})
-                          </h4>
-                          <div style={{ fontSize: '0.9rem', lineHeight: '1.6' }}>
-                            <p><strong>メニュー:</strong> {meal.menu || '(なし)'}</p>
-                            <p><strong>栄養:</strong> タンパク質{meal.nutrition.protein}g、炭水化物{meal.nutrition.carbs}g、脂質{meal.nutrition.fat}g</p>
-                            <p><strong>食材数:</strong> {meal.ingredients.length}個</p>
-                            <div style={{ marginLeft: '20px' }}>
-                              {meal.ingredients.length > 0 ? (
-                                <ul style={{ margin: '5px 0' }}>
-                                  {meal.ingredients.map((ing, idx) => (
-                                    <li key={idx}>{ing}</li>
-                                  ))}
-                                </ul>
-                              ) : (
-                                <p style={{ color: '#999', fontStyle: 'italic' }}>食材情報なし</p>
-                              )}
-                            </div>
-                            <p><strong>調理手順:</strong></p>
-                            <pre style={{
-                              whiteSpace: 'pre-wrap',
-                              backgroundColor: '#fff',
-                              padding: '10px',
-                              borderRadius: '4px',
-                              fontSize: '0.85rem',
-                              border: '1px solid #ddd'
-                            }}>
-{meal.cookingSteps || '(なし)'}
-                            </pre>
-                            <p><strong>栄養ポイント:</strong> {meal.nutritionPoint || '(なし)'}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </details>
-                </>
-              )}
             </div>
           )}
         </div>
