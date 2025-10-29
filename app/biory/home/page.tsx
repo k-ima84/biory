@@ -215,22 +215,22 @@ export default function HomePage() {
         setUserName("ユーザー");
         // プロファイルがない場合はnullのまま
         setUserProfile(null);
-      }
-      
-      // プロファイル読み込み完了をマーク
-      setProfileLoaded(true);
-
+        // プロファイルがない場合のみ0に設定
         setHealthData(prev => ({
           ...prev,
           weight: 0
         }));
-
+      }
+      
+      // プロファイル読み込み完了をマーク
+      setProfileLoaded(true);
       
     } catch (error) {
       console.error("ユーザープロフィール取得エラー:", error);
       setUserName("ゲスト");
       setProfileLoaded(true);
 
+      // エラー時のみ0に設定
       setHealthData(prev => ({
         ...prev,
         weight: 0
