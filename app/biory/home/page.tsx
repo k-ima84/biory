@@ -931,7 +931,10 @@ export default function HomePage() {
   };
 
   return (
-    <BioryLayout>
+    <BioryLayout 
+      highlightSettings={profileLoaded && !checkProfileExists(userProfile)}
+      highlightMeal={profileLoaded && checkProfileExists(userProfile) && !hasGeneratedMeal}
+    >
       {/* 日付・挨拶セクション */}
       <section className="date-greeting">
         {isLoading ? (

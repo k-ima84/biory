@@ -394,3 +394,145 @@
     font-size: 40px; /* 統一されたフォントサイズ */
   }
 }
+
+/* 設定ボタンのハイライト効果（神々しい黄色の光） */
+.highlight-settings {
+  position: relative;
+  animation: divineBreathe 2.5s ease-in-out infinite;
+}
+
+.highlight-settings::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70px;
+  height: 70px;
+  background: radial-gradient(circle, 
+    rgba(255, 223, 0, 0.4) 0%, 
+    rgba(255, 215, 0, 0.3) 20%, 
+    rgba(255, 193, 7, 0.2) 40%, 
+    rgba(255, 165, 0, 0.1) 60%, 
+    transparent 80%);
+  z-index: -1;
+  animation: divineExpand 2.5s ease-in-out infinite;
+  pointer-events: none;
+  border: none;
+  outline: none;
+}
+
+.highlight-settings::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, 
+    transparent 0%, 
+    rgba(255, 215, 0, 0.15) 30%, 
+    rgba(255, 193, 7, 0.08) 50%, 
+    rgba(255, 165, 0, 0.05) 70%, 
+    transparent 100%);
+  z-index: -2;
+  animation: divineExpand 2.5s ease-in-out infinite 0.8s;
+  pointer-events: none;
+  border: none;
+  outline: none;
+}
+
+@keyframes divineBreathe {
+  0%, 100% {
+    box-shadow: 
+      0 0 20px rgba(255, 215, 0, 0.6),
+      0 0 40px rgba(255, 193, 7, 0.4),
+      0 0 60px rgba(255, 165, 0, 0.2);
+    filter: brightness(1);
+  }
+  50% {
+    box-shadow: 
+      0 0 35px rgba(255, 215, 0, 0.8),
+      0 0 60px rgba(255, 193, 7, 0.6),
+      0 0 90px rgba(255, 165, 0, 0.3);
+    filter: brightness(1.2);
+  }
+}
+
+@keyframes divineExpand {
+  0%, 100% {
+    opacity: 0.2;
+    transform: translate(-50%, -50%) scale(0.6);
+  }
+  50% {
+    opacity: 0.6;
+    transform: translate(-50%, -50%) scale(1.4);
+  }
+}
+
+/* ハイライト時の背景を透明にして光が自然に見えるようにする */
+.highlight-settings {
+  background: transparent !important;
+  border-radius: 0 !important;
+}
+
+.highlight-settings:hover {
+  background: transparent !important;
+  border-radius: 0 !important;
+}
+
+/* 献立ボタンのハイライト効果（設定ボタンと同じ神々しい黄色の光） */
+.highlight-meal {
+  position: relative;
+  animation: divineBreathe 2.5s ease-in-out infinite;
+  background: transparent !important;
+  border-radius: 0 !important;
+}
+
+.highlight-meal:hover {
+  background: transparent !important;
+  border-radius: 0 !important;
+}
+
+.highlight-meal::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 70px;
+  height: 70px;
+  background: radial-gradient(circle, 
+    rgba(255, 223, 0, 0.4) 0%, 
+    rgba(255, 215, 0, 0.3) 20%, 
+    rgba(255, 193, 7, 0.2) 40%, 
+    rgba(255, 165, 0, 0.1) 60%, 
+    transparent 80%);
+  z-index: -1;
+  animation: divineExpand 2.5s ease-in-out infinite;
+  pointer-events: none;
+  border: none;
+  outline: none;
+}
+
+.highlight-meal::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, 
+    transparent 0%, 
+    rgba(255, 215, 0, 0.15) 30%, 
+    rgba(255, 193, 7, 0.08) 50%, 
+    rgba(255, 165, 0, 0.05) 70%, 
+    transparent 100%);
+  z-index: -2;
+  animation: divineExpand 2.5s ease-in-out infinite 0.8s;
+  pointer-events: none;
+  border: none;
+  outline: none;
+}
