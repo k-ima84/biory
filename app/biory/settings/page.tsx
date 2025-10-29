@@ -60,6 +60,7 @@ export default function SettingsPage() {
  
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true); // 初期データロード中フラグ
  
   // 運動頻度の選択肢
   const exerciseOptions = [
@@ -103,7 +104,15 @@ export default function SettingsPage() {
   // currentUserIdが取得できた後にプロフィールを取得
   useEffect(() => {
     if (currentUserId) {
-      fetchUserProfile();
+      const loadInitialData = async () => {
+        setIsInitialLoading(true);
+        try {
+          await fetchUserProfile();
+        } finally {
+          setIsInitialLoading(false);
+        }
+      };
+      loadInitialData();
     }
   }, [currentUserId]);
  
@@ -416,19 +425,28 @@ export default function SettingsPage() {
           <div className="section-header">
             <h3 className="section-title-highlight">🙍 ユーザ情報</h3>
           </div>
-          <div className="user-info-content">
-            <div className="user-info-row">
-              <span className="user-info-label">ID（メールアドレス）：</span>
-              <span className="user-info-value">{userEmail || "読み込み中..."}</span>
+          {isInitialLoading ? (
+            <div className="user-info-content">
+              <div className="user-info-row">
+                <span className="user-info-label">ID（メールアドレス）：</span>
+                <div className="skeleton skeleton-text" style={{ flex: 1, height: '14px', maxWidth: '300px' }}></div>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="user-info-content">
+              <div className="user-info-row">
+                <span className="user-info-label">ID（メールアドレス）：</span>
+                <span className="user-info-value">{userEmail || "読み込み中..."}</span>
+              </div>
+            </div>
+          )}
         </section>
  
       {/* 基礎情報セクション */}
       <section className="basic-info-section">
         <div className="section-header">
           <h3 className="section-title-highlight">📄 基礎情報</h3>
-          {!isEditMode && (
+          {!isEditMode && !isInitialLoading && (
             <button
               className="change-button"
               onClick={() => {
@@ -442,7 +460,56 @@ export default function SettingsPage() {
           )}
         </div>
  
-        <form id="user-profile-form" onSubmit={handleSubmit} className="profile-form">
+        {isInitialLoading ? (
+          <div className="profile-form">
+            {/* ニックネーム */}
+            <div className="skeleton-row">
+              <div className="skeleton skeleton-text skeleton-label" style={{ height: '16px' }}></div>
+              <div className="skeleton skeleton-text" style={{ flex: 1, height: '16px', maxWidth: '200px' }}></div>
+            </div>
+            {/* 身長 */}
+            <div className="skeleton-row">
+              <div className="skeleton skeleton-text skeleton-label" style={{ height: '16px' }}></div>
+              <div className="skeleton skeleton-text" style={{ flex: 1, height: '16px', maxWidth: '150px' }}></div>
+            </div>
+            {/* 体重 */}
+            <div className="skeleton-row">
+              <div className="skeleton skeleton-text skeleton-label" style={{ height: '16px' }}></div>
+              <div className="skeleton skeleton-text" style={{ flex: 1, height: '16px', maxWidth: '150px' }}></div>
+            </div>
+            {/* 年齢 */}
+            <div className="skeleton-row">
+              <div className="skeleton skeleton-text skeleton-label" style={{ height: '16px' }}></div>
+              <div className="skeleton skeleton-text" style={{ flex: 1, height: '16px', maxWidth: '100px' }}></div>
+            </div>
+            {/* 性別 */}
+            <div className="skeleton-row">
+              <div className="skeleton skeleton-text skeleton-label" style={{ height: '16px' }}></div>
+              <div className="skeleton skeleton-text" style={{ flex: 1, height: '16px', maxWidth: '100px' }}></div>
+            </div>
+            {/* 好きな食べ物 */}
+            <div className="skeleton-row">
+              <div className="skeleton skeleton-text skeleton-label" style={{ height: '16px' }}></div>
+              <div className="skeleton skeleton-text" style={{ flex: 1, height: '16px', maxWidth: '250px' }}></div>
+            </div>
+            {/* 嫌いな食べ物 */}
+            <div className="skeleton-row">
+              <div className="skeleton skeleton-text skeleton-label" style={{ height: '16px' }}></div>
+              <div className="skeleton skeleton-text" style={{ flex: 1, height: '16px', maxWidth: '250px' }}></div>
+            </div>
+            {/* アレルギー */}
+            <div className="skeleton-row">
+              <div className="skeleton skeleton-text skeleton-label" style={{ height: '16px' }}></div>
+              <div className="skeleton skeleton-text" style={{ flex: 1, height: '16px', maxWidth: '200px' }}></div>
+            </div>
+            {/* 運動量 */}
+            <div className="skeleton-row">
+              <div className="skeleton skeleton-text skeleton-label" style={{ height: '16px' }}></div>
+              <div className="skeleton skeleton-text" style={{ flex: 1, height: '16px', maxWidth: '200px' }}></div>
+            </div>
+          </div>
+        ) : (
+          <form id="user-profile-form" onSubmit={handleSubmit} className="profile-form">
           {/* 名前 */}
           <div className="form-group">
             <label className="form-label">ニックネーム</label>
@@ -643,7 +710,8 @@ export default function SettingsPage() {
               />
             </div>
           )}
-        </form>
+          </form>
+        )}
  
         {/* 編集モード時のボタン群 */}
         {isEditMode && (
