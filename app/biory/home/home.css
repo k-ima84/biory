@@ -50,6 +50,7 @@
   font-style: italic;
 }
 
+
 /* メインコンテンツエリア */
 .main-content {
   display: grid;
@@ -246,6 +247,138 @@
   font-size: 16px;
 }
 
+/* プロファイル設定促進セクション */
+.profile-setup-prompt {
+  position: fixed;
+  bottom: 80px; /* ナビゲーションの上に表示 */
+  right: 20px;
+  z-index: 1000;
+  width: 400px; /* 固定幅でより横長に */
+  max-width: calc(100vw - 40px); /* 画面幅に応じて調整 */
+}
+
+.prompt-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.exercise-character {
+  width: 70px;
+  height: 70px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+
+.exercise-character img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+}
+
+.prompt-bubble {
+  position: relative;
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  padding: 20px 25px;
+  border-radius: 20px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  animation: bounceIn 0.8s ease-out;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.prompt-content h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.1rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+.prompt-content p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.prompt-content strong {
+  color: #ffeb3b;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.prompt-tail {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 15px solid transparent;
+  border-right: 15px solid transparent;
+  border-top: 15px solid #4CAF50;
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) translateY(50px);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05) translateY(-10px);
+  }
+  70% {
+    transform: scale(0.95) translateY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* モバイル対応 */
+@media (max-width: 768px) {
+  .profile-setup-prompt {
+    position: fixed;
+    bottom: 90px; /* モバイルでもナビゲーションの上に表示 */
+    left: 20px;
+    right: 20px;
+    max-width: none;
+    margin: 0;
+  }
+  
+  .prompt-container {
+    align-items: center;
+  }
+  
+  .exercise-character {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .exercise-character img {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .prompt-bubble {
+    max-width: 280px;
+    padding: 15px;
+  }
+  
+  .prompt-content h3 {
+    font-size: 0.9rem;
+  }
+  
+  .prompt-content p {
+    font-size: 0.8rem;
 /* スピナー（くるくる回るローディング） */
 .spinner {
   display: inline-block;
