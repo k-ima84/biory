@@ -13,7 +13,7 @@ export const kondateAIFunctionHandler = defineFunction(
     const lambdaFunction = new Function(scope, "kondate-ai", {
       handler: "index.handler",
       runtime: Runtime.PYTHON_3_9, // or any other python version
-      timeout: Duration.seconds(20), //  default is 3 seconds
+      timeout: Duration.seconds(60), // タイムアウトを60秒に設定
       code: Code.fromAsset(functionDir, {
         bundling: {
           image: DockerImage.fromRegistry("dummy"), // replace with desired image from AWS ECR Public Gallery

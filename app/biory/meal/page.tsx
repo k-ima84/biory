@@ -304,6 +304,7 @@ export default function MealPage() {
       // DynamoDBからユーザープロファイルを取得してアレルギー情報を取得
       let allergiesInfo = "なし";
       let userName = "ユーザー";
+      let recommendedCalories = 2000; // デフォルト値
       
       if (cognitoUserId) {
         try {
@@ -320,9 +321,13 @@ export default function MealPage() {
             allergiesInfo = profile.allergies || "なし";
             userName = profile.name || "ユーザー";
             
-            console.log('✅ DynamoDBからアレルギー情報を取得:', {
+            // 推奨カロリー（TDEE）を計算
+            recommendedCalories = calculateTDEE(profile);
+            
+            console.log('✅ DynamoDBからユーザー情報を取得:', {
               userName: userName,
               allergies: allergiesInfo,
+              recommendedCalories: recommendedCalories,
               profileData: profile
             });
           } else {
@@ -341,6 +346,7 @@ export default function MealPage() {
         userName: userName,
         userId: cognitoUserId,
         allergies: allergiesInfo,
+        recommendedCalories: recommendedCalories,
         timestamp: new Date().toISOString(),
         source: 'DynamoDB UserProfile'
       };
@@ -348,11 +354,12 @@ export default function MealPage() {
       setKondateDebugInfo(debugData);
       console.log('🔍 デバッグ情報を設定:', debugData);
       
-      console.log('🤖 呼び出しパラメータ:', { userName, allergies: allergiesInfo });
+      console.log('🤖 呼び出しパラメータ:', { userName, allergies: allergiesInfo, recommendedCalories });
       
       const result = await client.queries.kondateAI({
         name: userName,
-        allergies: allergiesInfo
+        allergies: allergiesInfo,
+        recommendedCalories: recommendedCalories
       });
       
       console.log('🤖 kondateAI結果:', result);
