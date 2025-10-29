@@ -930,11 +930,23 @@ export default function MealPage() {
               <div className={styles.mealAndCalorieSection}>
                 {/* 食事カードコンテナ */}
                 <div className={styles.aiMealsContainer}>
-                {parsedKondate.meals.map((meal, index) => {
-                  const colors = ['#FF8C42', '#FFA500', '#FF6B35'];
-                  const mealColor = colors[index % colors.length];
+                {(() => {
+                  // 全ての食事のメニュー数を調べて最大値を取得
+                  const maxMenuCount = Math.max(
+                    ...parsedKondate.meals.map(meal => 
+                      (meal.menu || '未設定')
+                        .split('、')
+                        .map(item => item.trim())
+                        .filter(item => item.length > 0)
+                        .length
+                    )
+                  );
                   
-                  return (
+                  return parsedKondate.meals.map((meal, index) => {
+                    const colors = ['#FF8C42', '#FFA500', '#FF6B35'];
+                    const mealColor = colors[index % colors.length];
+                    
+                    return (
                     <div key={index} className={styles.aiMealCard}>
                       <div
                         className={styles.aiMealHeader}
@@ -949,19 +961,36 @@ export default function MealPage() {
                         <div className={styles.aiMealDetails}>
                           <div className={styles.aiMenuItem}>
                             <strong>
-                              {(meal.menu || '未設定')
-                                .split('、')
-                                .map(item => item.trim())
-                                .filter(item => item.length > 0)
-                                .map(item => `🍽️ ${item}`)
-                                .join('\n')
-                              }
+                              {(() => {
+                                const menuItems = (meal.menu || '未設定')
+                                  .split('、')
+                                  .map(item => item.trim())
+                                  .filter(item => item.length > 0)
+                                  .map(item => `🍽️ ${item}`);
+                                
+                                // 最大メニュー数に合わせて空行を追加
+                                while (menuItems.length < maxMenuCount) {
+                                  menuItems.push('\u00A0'); // 非改行スペース（空行として表示）
+                                }
+                                
+                                return menuItems.join('\n');
+                              })()}
                             </strong>
                           </div>
                           
-                          <div className={styles.aiNutritionInfo}>
-                            <strong>栄養バランス:</strong> タンパク質{meal.nutrition.protein}g、
-                            炭水化物{meal.nutrition.carbs}g、脂質{meal.nutrition.fat}g
+                          <div className={styles.nutritionCards}>
+                            <div className={`${styles.nutritionCard} ${styles.proteinCard}`}>
+                              <div className={styles.nutritionLabel}>タンパク質</div>
+                              <div className={styles.nutritionValue}>{meal.nutrition.protein}g</div>
+                            </div>
+                            <div className={`${styles.nutritionCard} ${styles.fatCard}`}>
+                              <div className={styles.nutritionLabel}>脂質</div>
+                              <div className={styles.nutritionValue}>{meal.nutrition.fat}g</div>
+                            </div>
+                            <div className={`${styles.nutritionCard} ${styles.carbsCard}`}>
+                              <div className={styles.nutritionLabel}>炭水化物</div>
+                              <div className={styles.nutritionValue}>{meal.nutrition.carbs}g</div>
+                            </div>
                           </div>
                           
                           <div className={styles.aiIngredients}>
@@ -1006,7 +1035,8 @@ export default function MealPage() {
                       </div>
                     </div>
                   );
-                })}
+                });
+                })()}
                 </div>
                 
                 {/* 円形カロリー表示 */}

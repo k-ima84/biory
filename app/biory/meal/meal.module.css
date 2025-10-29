@@ -384,6 +384,8 @@
   margin-bottom: 12px;
   line-height: 1.6;
   white-space: pre-line; /* 改行文字を認識 */
+  display: flex;
+  align-items: flex-start;
 }
 
 .aiNutritionInfo,
@@ -801,5 +803,99 @@
  
   .dishItem {
     font-size: 0.8rem;
+  }
+}
+
+/* 栄養素カード表示 */
+.nutritionCards {
+  display: flex;
+  gap: 12px;
+  margin: 15px 0;
+  justify-content: space-between;
+}
+
+.nutritionCard {
+  flex: 1;
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 8px 6px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.nutritionCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.proteinCard {
+  background: #ffffff;
+}
+
+.carbsCard {
+  background: #ffffff;
+}
+
+.fatCard {
+  background: #ffffff;
+}
+
+.nutritionLabel {
+  font-size: 0.75rem;
+  color: #666;
+  margin-bottom: 2px;
+  font-weight: 500;
+}
+
+.proteinCard .nutritionLabel {
+  color: #4A90E2; /* 青色 */
+}
+
+.fatCard .nutritionLabel {
+  color: #50C878; /* 緑色 */
+}
+
+.carbsCard .nutritionLabel {
+  color: #FFA500; /* 黄色（オレンジ） */
+}
+
+.nutritionValue {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.proteinCard .nutritionValue {
+  color: #666666;
+}
+
+.carbsCard .nutritionValue {
+  color: #666666;
+}
+
+.fatCard .nutritionValue {
+  color: #666666;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+  .nutritionCards {
+    gap: 8px;
+    margin: 12px 0;
+  }
+  
+  .nutritionCard {
+    padding: 6px 4px;
+    border-radius: 8px;
+  }
+  
+  .nutritionLabel {
+    font-size: 0.65rem;
+  }
+  
+  .nutritionValue {
+    font-size: 1rem;
   }
 }
