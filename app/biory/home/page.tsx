@@ -70,6 +70,10 @@ export default function HomePage() {
   // 体重入力のエラー状態
   const [weightError, setWeightError] = useState<string>("");
 
+  // 🆕 UserProfile存在チェック用のstate
+  const [hasUserProfile, setHasUserProfile] = useState<boolean | null>(null);
+  const [isCheckingProfile, setIsCheckingProfile] = useState(true);
+
   // 「本日の食事」編集機能用のstate
   const [isMealEditMode, setIsMealEditMode] = useState(false);
   const [mealEditData, setMealEditData] = useState<MealData>({
@@ -177,6 +181,30 @@ export default function HomePage() {
       console.error('ホーム画面でのCognitoユーザー情報取得エラー:', error);
       // 認証エラーの場合はログイン画面へリダイレクト
       router.push("/biory/login");
+    }
+  };
+
+  // 🆕 UserProfile存在チェック関数
+  const checkUserProfile = async () => {
+    if (!cognitoUserId) return;
+    
+    setIsCheckingProfile(true);
+    try {
+      console.log('🔍 UserProfile存在チェック開始:', cognitoUserId);
+      
+      const { data: profiles } = await client.models.UserProfile.list({
+        filter: { userId: { eq: cognitoUserId } }
+      });
+      
+      const userExists = profiles && profiles.length > 0;
+      console.log('📊 UserProfile存在:', userExists);
+      
+      setHasUserProfile(userExists);
+    } catch (error) {
+      console.error('❌ UserProfile確認エラー:', error);
+      setHasUserProfile(false);
+    } finally {
+      setIsCheckingProfile(false);
     }
   };
 
@@ -429,6 +457,7 @@ export default function HomePage() {
   useEffect(() => {
     if (cognitoUserId) {
       console.log("cognitoUserId が取得できました:", cognitoUserId);
+      checkUserProfile(); // 🆕 UserProfile存在チェック
       fetchUserProfile();
       
       // 食事データと栄養データを取得
@@ -881,6 +910,31 @@ export default function HomePage() {
         <div className="date">{currentDate}</div>
         <div className="greeting">{getGreeting()} {userName}さん</div>
       </section>
+
+      {/* コンテンツグリッド */}
+      <div className="content-grid">
+        {/* 🆕 UserProfile未設定アナウンス */}
+        {!isCheckingProfile && hasUserProfile === false && (
+          <div className="settings-prompt">
+            <div className="settings-prompt-content">
+              <img 
+                src="/exercise.png" 
+                alt="運動アイコン" 
+                className="exercise-icon"
+              />
+              <div className="speech-bubble">
+                <div className="prompt-title">
+                  はじめまして！ 🎉
+                </div>
+                <div className="prompt-message">
+                  bioryを始めるために、まずは設定画面でユーザー情報を入力しましょう！<br />
+                  身長・体重・アレルギー情報などを登録すると、あなたにピッタリの献立をAIが提案してくれます。
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* 栄養情報セクション */}
       <section className="nutrition-section">
