@@ -11,13 +11,33 @@ def handler(event, context):
         name = event.get('arguments', {}).get('name', 'World')
         allergies = event.get('arguments', {}).get('allergies', 'なし')
         recommended_calories = event.get('arguments', {}).get('recommendedCalories', 2000)
+        condition = event.get('arguments', {}).get('condition', '')  # 体調情報
+        mood = event.get('arguments', {}).get('mood', '')  # 気分情報
         
         print(f"=== 管理栄養士AI Claude 3 v11.0 === {name}")
         print(f"受け取ったアレルギー情報: {allergies}")
         print(f"受け取った推奨カロリー: {recommended_calories}kcal")
+        print(f"受け取った体調情報: {condition}")
+        print(f"受け取った気分情報: {mood}")
         
         # アレルギー情報の正規化
         allergies_text = allergies if allergies and allergies.strip() else "なし"
+        
+        # 体調・気分情報の正規化と有効性判定
+        valid_conditions = ['とても良い 😊', '良い 😌', '普通 😐', '少し悪い 😟', '悪い 😵']
+        valid_moods = ['ポジティブ', '普通', 'ネガティブ', 'リラックス', 'やる気満々', '疲れ気味']
+        
+        condition_text = condition if condition and condition.strip() and condition in valid_conditions else ""
+        mood_text = mood if mood and mood.strip() and mood in valid_moods else ""
+        
+        # 絵文字を除去したテキストを作成（AIへの入力用）
+        condition_for_ai = condition_text.split(' ')[0] if condition_text else ""
+        mood_for_ai = mood_text
+        
+        print(f"正規化後の体調: {condition_text if condition_text else '未設定'}")
+        print(f"正規化後の気分: {mood_text if mood_text else '未設定'}")
+        print(f"AI用体調テキスト: {condition_for_ai if condition_for_ai else '未設定'}")
+        print(f"AI用気分テキスト: {mood_for_ai if mood_for_ai else '未設定'}")
         
         # Bedrock クライアント
         bedrock = boto3.client('bedrock-runtime', region_name='ap-northeast-1')
@@ -37,6 +57,7 @@ def handler(event, context):
 - アレルギーのある食材は絶対に使用しない
 - 実際に調理可能なメニューを提案
 - 塩分・糖分に配慮
+- 体調や気分の情報がある場合は、それに配慮した献立を作成する
 
 ## 出力形式（Markdown）
 ```markdown
@@ -78,7 +99,7 @@ def handler(event, context):
 - **総カロリー**: 約XXXkcal
 - **栄養バランス**: タンパク質XXg、炭水化物XXg、脂質XXg
 
-## 配慮したこと(アレルギー食材、好き嫌い、運動量など)
+## 配慮したこと(アレルギー食材、好き嫌い、運動量、体調、気分など)
 - 
 
 ## 健康アドバイス
@@ -98,6 +119,8 @@ def handler(event, context):
 - 食事スタイル: 日本の家庭料理中心
 - 調理難易度: 初心者でも作れるレベル
 - アレルギー: {allergies_text}
+- 本日の体調：{condition_for_ai if condition_for_ai else '未設定'}
+- 本日の気分：{mood_for_ai if mood_for_ai else '未設定'}
 - 総カロリーは各食事のカロリーを合計した値としてください。
 - 特別な要望: なし（標準的な健康献立）
 
@@ -110,7 +133,7 @@ def handler(event, context):
         bedrock_start = time.time()
         body = json.dumps({
             "anthropic_version": "bedrock-2023-05-31",
-            "max_tokens": 5000,  # 献立提案のため増量
+            "max_tokens": 3000,  # レスポンス時間短縮のため調整（5000→3000）
             "temperature": 0.7,
             "system": system_prompt,  # 詳細なシステムプロンプト
             "messages": [
@@ -146,7 +169,9 @@ def handler(event, context):
                 "userMessage": user_message,
                 "userName": name,
                 "allergies": allergies_text,
-                "recommendedCalories": recommended_calories
+                "recommendedCalories": recommended_calories,
+                "condition": condition_for_ai if condition_for_ai else "未設定",
+                "mood": mood_for_ai if mood_for_ai else "未設定"
             }
         }
         
@@ -159,7 +184,7 @@ def handler(event, context):
         
     except Exception as e:
         error_response = {
-            "response": f"管理栄養士AI エラー v11.0: {str(e)}",
+            "response": f"管理栄養士AI エラー v12.0: {str(e)}",
             "debug": None
         }
         return json.dumps(error_response, ensure_ascii=False)
