@@ -62,6 +62,7 @@ export default function CalendarPage() {
   const [monthlyMealData, setMonthlyMealData] = useState<Set<string>>(new Set());
   const [monthlyHealthData, setMonthlyHealthData] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
+  const [registrationCount, setRegistrationCount] = useState(0);
 
   // Cognitoユーザー認証とデータ取得
   const fetchCognitoUserData = async () => {
@@ -92,6 +93,12 @@ export default function CalendarPage() {
       fetchMonthlyHealthData(currentDate);
     }
   }, [currentUserId, currentDate]);
+
+  // 登録日数を更新
+  useEffect(() => {
+    const count = calculateRegistrationCount();
+    setRegistrationCount(count);
+  }, [monthlyMealData, monthlyHealthData]);
 
   // 月次の食事データを取得（ダイジェスト用）
   const fetchMonthlyMealData = async (date: Date) => {
@@ -573,6 +580,59 @@ export default function CalendarPage() {
   ];
   const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
 
+  // 登録日数を計算する関数
+  const calculateRegistrationCount = () => {
+    const registeredDates = new Set([...monthlyMealData, ...monthlyHealthData]);
+    return registeredDates.size;
+  };
+
+  // 登録日数に基づくメッセージを生成する関数
+  const getMotivationMessage = (count: number) => {
+    if (count === 0) {
+      return {
+        message: "アプリを使って健康管理を始めてみましょう！",
+        emoji: "🌱",
+        color: "#FF6B6B",
+        title: "始めてみよう！"
+      };
+    } else if (count <= 3) {
+      return {
+        message: "記録開始おめでとう！この調子で続けていきましょう！",
+        emoji: "🌟",
+        color: "#4ECDC4",
+        title: "いいスタート！"
+      };
+    } else if (count <= 10) {
+      return {
+        message: `${count}日間登録できてますね！健康意識が高まってきています！`,
+        emoji: "💪",
+        color: "#45B7D1",
+        title: "継続中！"
+      };
+    } else if (count <= 20) {
+      return {
+        message: `${count}日間登録できてますね！健康的な習慣が身についてます！`,
+        emoji: "🏆",
+        color: "#96CEB4",
+        title: "素晴らしい！"
+      };
+    } else if (count <= 29) {
+      return {
+        message: `${count}日間も登録できてますね！健康管理のプロですね！`,
+        emoji: "👑",
+        color: "#FECA57",
+        title: "健康マスター！"
+      };
+    } else {
+      return {
+        message: "長期間の継続、本当に素晴らしいです！",
+        emoji: "🌈",
+        color: "#FF9FF3",
+        title: "健康のカリスマ！"
+      };
+    }
+  };
+
   return (
     <BioryLayout>
       <div className="calendar-container">
@@ -603,6 +663,25 @@ export default function CalendarPage() {
             今日
           </button>
         </div>
+
+        {/* モチベーションメッセージ */}
+        {(() => {
+          const motivationData = getMotivationMessage(registrationCount);
+          return (
+            <div className="motivation-card" style={{ borderLeftColor: motivationData.color }}>
+              <div className="motivation-header">
+                <span className="motivation-emoji">{motivationData.emoji}</span>
+                <h3 className="motivation-title" style={{ color: motivationData.color }}>
+                  {motivationData.title}
+                </h3>
+                <span className="registration-count">
+                  {registrationCount}日記録中
+                </span>
+              </div>
+              <p className="motivation-message">{motivationData.message}</p>
+            </div>
+          );
+        })()}
 
         {/* カレンダー本体 */}
         <div className="calendar-grid-container">
