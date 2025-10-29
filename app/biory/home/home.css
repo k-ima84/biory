@@ -379,6 +379,9 @@
   
   .prompt-content p {
     font-size: 0.8rem;
+  }
+}
+
 /* スピナー（くるくる回るローディング） */
 .spinner {
   display: inline-block;
@@ -454,3 +457,4 @@
     transform: scale(1);
   }
 }
+  
