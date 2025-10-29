@@ -73,6 +73,7 @@
   min-height: 160px; /* 200px→160pxに削減 */
   display: flex;
   flex-direction: column;
+  margin-bottom: 20px; /* カード間の隙間を追加 */
 }
 
 .nutrition-header {
@@ -143,6 +144,7 @@
   min-height: 160px; /* 150px→160pxに微調整 */
   display: flex;
   flex-direction: column;
+  margin-bottom: 20px; /* カード間の隙間を追加 */
 }
 
 /* 基本のセクションタイトル（背景なし） */
@@ -212,7 +214,7 @@
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   grid-column: 1 / -1;
-  margin-bottom: 10px; /* 10px→20pxに戻す */
+  margin-bottom: 20px; /* カード間の隙間を維持 */
   /* 高さを適切に設定 */
   min-height: 60px; /* 50px→80pxに調整 */
   display: flex;
