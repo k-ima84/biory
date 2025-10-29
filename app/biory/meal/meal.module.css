@@ -377,7 +377,13 @@
   line-height: 1.6;
 }
 
-.aiMenuItem,
+/* 献立名（メニュー名）を大きく */
+.aiMenuItem {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
 .aiNutritionInfo,
 .aiCookingSteps,
 .aiNutritionPoint {
