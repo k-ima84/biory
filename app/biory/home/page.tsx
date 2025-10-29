@@ -77,6 +77,9 @@ export default function HomePage() {
     dinner: "—",
   });
 
+  // 栄養価計算中フラグ
+  const [isCalculatingNutrition, setIsCalculatingNutrition] = useState(false);
+
   // 日本語の曜日配列
   const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
 
@@ -715,64 +718,16 @@ export default function HomePage() {
         changedMeals.push({ type: 'dinner', content: mealEditData.dinner });
       }
       
-      // 既存栄養価保持
-      let breakfastNutrition = {
-        calories: todayMealRecord?.calories_bre || 0,
-        protein: todayMealRecord?.protein_bre || 0,
-        fat: todayMealRecord?.fat_bre || 0,
-        carbs: todayMealRecord?.carbs_bre || 0,
-      };
-      let lunchNutrition = {
-        calories: todayMealRecord?.calories_lun || 0,
-        protein: todayMealRecord?.protein_lun || 0,
-        fat: todayMealRecord?.fat_lun || 0,
-        carbs: todayMealRecord?.carbs_lun || 0,
-      };
-      let dinnerNutrition = {
-        calories: todayMealRecord?.calories_din || 0,
-        protein: todayMealRecord?.protein_din || 0,
-        fat: todayMealRecord?.fat_din || 0,
-        carbs: todayMealRecord?.carbs_din || 0,
-      };
-      
-      // 変更部分のみmealAnalysis実行
-      for (const meal of changedMeals) {
-        const nutrition = await analyzeMealWithAPI(meal.type, meal.content);
-        
-        if (meal.type === 'breakfast') breakfastNutrition = nutrition;
-        else if (meal.type === 'lunch') lunchNutrition = nutrition;
-        else if (meal.type === 'dinner') dinnerNutrition = nutrition;
-      }
-      
-      console.log("個別栄養価:", {
-        breakfast: breakfastNutrition,
-        lunch: lunchNutrition,
-        dinner: dinnerNutrition
-      });
-      
-
-      
       console.log("既存レコード:", todayMealRecord);
 
+      // Step 1: まず食事内容だけを保存（栄養価は既存値を保持）
       if (todayMealRecord) {
-        // 既存のレコードを更新（食事内容と分割PFCを保存）
-        console.log("既存レコードを更新します:", {
+        // 既存のレコードを更新（食事内容のみ、栄養価は既存値を保持）
+        console.log("既存レコードを更新します（食事内容のみ）:", {
           id: todayMealRecord.id,
           breakfast: mealEditData.breakfast,
           lunch: mealEditData.lunch,
           dinner: mealEditData.dinner,
-          calories_bre: breakfastNutrition.calories,
-          calories_lun: lunchNutrition.calories,
-          calories_din: dinnerNutrition.calories,
-          protein_bre: breakfastNutrition.protein,
-          protein_lun: lunchNutrition.protein,
-          protein_din: dinnerNutrition.protein,
-          fat_bre: breakfastNutrition.fat,
-          fat_lun: lunchNutrition.fat,
-          fat_din: dinnerNutrition.fat,
-          carbs_bre: breakfastNutrition.carbs,
-          carbs_lun: lunchNutrition.carbs,
-          carbs_din: dinnerNutrition.carbs,
         });
         
         const { data: updatedRecord, errors } = await client.models.DailyRecord.update({
@@ -780,18 +735,6 @@ export default function HomePage() {
           breakfast: mealEditData.breakfast,
           lunch: mealEditData.lunch,
           dinner: mealEditData.dinner,
-          calories_bre: breakfastNutrition.calories,
-          calories_lun: lunchNutrition.calories,
-          calories_din: dinnerNutrition.calories,
-          protein_bre: breakfastNutrition.protein,
-          protein_lun: lunchNutrition.protein,
-          protein_din: dinnerNutrition.protein,
-          fat_bre: breakfastNutrition.fat,
-          fat_lun: lunchNutrition.fat,
-          fat_din: dinnerNutrition.fat,
-          carbs_bre: breakfastNutrition.carbs,
-          carbs_lun: lunchNutrition.carbs,
-          carbs_din: dinnerNutrition.carbs,
         });
         
         if (errors) {
@@ -799,27 +742,27 @@ export default function HomePage() {
           throw new Error("更新に失敗しました");
         }
         
-        console.log("食事データと分割PFCを更新しました:", updatedRecord);
+        console.log("食事データを更新しました:", updatedRecord);
       } else {
-        // 新しいレコードを作成（食事内容と分割PFCを保存）
+        // 新しいレコードを作成（食事内容のみ、栄養価は0）
         const newRecord = {
           userId: cognitoUserId,
           date: dateString,
           breakfast: mealEditData.breakfast,
           lunch: mealEditData.lunch,
           dinner: mealEditData.dinner,
-          calories_bre: breakfastNutrition.calories,
-          calories_lun: lunchNutrition.calories,
-          calories_din: dinnerNutrition.calories,
-          protein_bre: breakfastNutrition.protein,
-          protein_lun: lunchNutrition.protein,
-          protein_din: dinnerNutrition.protein,
-          fat_bre: breakfastNutrition.fat,
-          fat_lun: lunchNutrition.fat,
-          fat_din: dinnerNutrition.fat,
-          carbs_bre: breakfastNutrition.carbs,
-          carbs_lun: lunchNutrition.carbs,
-          carbs_din: dinnerNutrition.carbs,
+          calories_bre: 0,
+          calories_lun: 0,
+          calories_din: 0,
+          protein_bre: 0,
+          protein_lun: 0,
+          protein_din: 0,
+          fat_bre: 0,
+          fat_lun: 0,
+          fat_din: 0,
+          carbs_bre: 0,
+          carbs_lun: 0,
+          carbs_din: 0,
         };
         console.log("新規レコードを作成します:", newRecord);
         
@@ -830,20 +773,108 @@ export default function HomePage() {
           throw new Error("作成に失敗しました");
         }
         
-        console.log("新しい食事データと分割PFCを作成しました:", createdRecord);
+        console.log("新しい食事データを作成しました:", createdRecord);
       }
 
-      // 画面の状態を更新
+      // 画面の状態を更新（先に編集モードを終了してユーザーに保存完了を知らせる）
       setMealData(mealEditData);
       setIsMealEditMode(false);
       
-      // 栄養価を再計算して表示を更新
-      await fetchNutritionData(dateString);
+      console.log("「本日の食事」が保存されました:", mealEditData);
+      
+      // Step 2: バックグラウンドで栄養価を計算して更新
+      if (changedMeals.length > 0) {
+        console.log("バックグラウンドで栄養価を計算中...");
+        
+        // ローディング表示を開始
+        setIsCalculatingNutrition(true);
+        
+        // 非同期で栄養価計算を実行（await不要）
+        (async () => {
+          try {
+            // 再度レコードを取得（先ほど保存したレコードを取得）
+            const { data: updatedDailyRecords } = await client.models.DailyRecord.list();
+            const currentRecord = updatedDailyRecords?.find(record => 
+              record.userId === cognitoUserId && record.date === dateString
+            );
+
+            if (!currentRecord) {
+              console.error("保存後のレコードが見つかりません");
+              setIsCalculatingNutrition(false);
+              return;
+            }
+
+            // 既存栄養価を保持
+            let breakfastNutrition = {
+              calories: currentRecord.calories_bre || 0,
+              protein: currentRecord.protein_bre || 0,
+              fat: currentRecord.fat_bre || 0,
+              carbs: currentRecord.carbs_bre || 0,
+            };
+            let lunchNutrition = {
+              calories: currentRecord.calories_lun || 0,
+              protein: currentRecord.protein_lun || 0,
+              fat: currentRecord.fat_lun || 0,
+              carbs: currentRecord.carbs_lun || 0,
+            };
+            let dinnerNutrition = {
+              calories: currentRecord.calories_din || 0,
+              protein: currentRecord.protein_din || 0,
+              fat: currentRecord.fat_din || 0,
+              carbs: currentRecord.carbs_din || 0,
+            };
+
+            // 変更された食事のみ栄養価を計算
+            for (const meal of changedMeals) {
+              const nutrition = await analyzeMealWithAPI(meal.type, meal.content);
+              
+              if (meal.type === 'breakfast') breakfastNutrition = nutrition;
+              else if (meal.type === 'lunch') lunchNutrition = nutrition;
+              else if (meal.type === 'dinner') dinnerNutrition = nutrition;
+            }
+
+            console.log("計算された栄養価:", {
+              breakfast: breakfastNutrition,
+              lunch: lunchNutrition,
+              dinner: dinnerNutrition
+            });
+
+            // 栄養価をデータベースに保存
+            await client.models.DailyRecord.update({
+              id: currentRecord.id,
+              calories_bre: breakfastNutrition.calories,
+              calories_lun: lunchNutrition.calories,
+              calories_din: dinnerNutrition.calories,
+              protein_bre: breakfastNutrition.protein,
+              protein_lun: lunchNutrition.protein,
+              protein_din: dinnerNutrition.protein,
+              fat_bre: breakfastNutrition.fat,
+              fat_lun: lunchNutrition.fat,
+              fat_din: dinnerNutrition.fat,
+              carbs_bre: breakfastNutrition.carbs,
+              carbs_lun: lunchNutrition.carbs,
+              carbs_din: dinnerNutrition.carbs,
+            });
+
+            console.log("栄養価の更新が完了しました");
+
+            // 画面の栄養価表示を更新
+            await fetchNutritionData(dateString);
+            
+            // ローディング表示を終了
+            setIsCalculatingNutrition(false);
+          } catch (error) {
+            console.error("バックグラウンド栄養価計算エラー:", error);
+            // エラーが発生してもユーザーには通知しない（保存自体は成功しているため）
+            // ローディング表示を終了
+            setIsCalculatingNutrition(false);
+          }
+        })();
+      }
       
       // 食事データを再取得して表示を確実に更新
       await fetchMealData(dateString);
       
-      console.log("「本日の食事」が保存されました:", mealEditData);
       console.log("=== handleMealSave 完了 ===");
     } catch (error) {
       console.error("=== 食事データ保存エラー ===");
@@ -873,21 +904,53 @@ export default function HomePage() {
       <section className="nutrition-section">
         <h3 className="section-title-highlight">食事バランス</h3>
         <div className="nutrition-header">
-          <span className="nutrition-label">カロリー</span>
-          <span className="calories-value">{nutritionData.calories} kcal / {recommendedCalories} kcal</span>
+          <span className="nutrition-label">概算カロリー</span>
+          <span className="calories-value">
+            {isCalculatingNutrition ? (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                <span className="spinner"></span> kcal / {recommendedCalories} kcal
+              </span>
+            ) : (
+              `${Math.round(nutritionData.calories)} kcal / ${recommendedCalories} kcal`
+            )}
+          </span>
         </div>
         <div className="nutrition-details">
           <div className="nutrition-row">
             <span className="nutrition-type">P（タンパク質）</span>
-            <span className="nutrition-values">{nutritionData.protein.value}g / {calculateTargetPFC(recommendedCalories).protein}g</span>
+            <span className="nutrition-values">
+              {isCalculatingNutrition ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <span className="spinner"></span>g / {Math.round(calculateTargetPFC(recommendedCalories).protein)}g
+                </span>
+              ) : (
+                `${Math.round(nutritionData.protein.value)}g / ${Math.round(calculateTargetPFC(recommendedCalories).protein)}g`
+              )}
+            </span>
           </div>
           <div className="nutrition-row">
             <span className="nutrition-type">F（脂質）</span>
-            <span className="nutrition-values">{nutritionData.fat.value}g / {calculateTargetPFC(recommendedCalories).fat}g</span>
+            <span className="nutrition-values">
+              {isCalculatingNutrition ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <span className="spinner"></span>g / {Math.round(calculateTargetPFC(recommendedCalories).fat)}g
+                </span>
+              ) : (
+                `${Math.round(nutritionData.fat.value)}g / ${Math.round(calculateTargetPFC(recommendedCalories).fat)}g`
+              )}
+            </span>
           </div>
           <div className="nutrition-row">
             <span className="nutrition-type">C（炭水化物）</span>
-            <span className="nutrition-values">{nutritionData.carbs.value}g / {calculateTargetPFC(recommendedCalories).carbs}g</span>
+            <span className="nutrition-values">
+              {isCalculatingNutrition ? (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <span className="spinner"></span>g / {Math.round(calculateTargetPFC(recommendedCalories).carbs)}g
+                </span>
+              ) : (
+                `${Math.round(nutritionData.carbs.value)}g / ${Math.round(calculateTargetPFC(recommendedCalories).carbs)}g`
+              )}
+            </span>
           </div>
         </div>
       </section>
