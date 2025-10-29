@@ -304,6 +304,9 @@ export default function MealPage() {
       // DynamoDBからユーザープロファイルを取得してアレルギー情報を取得
       let allergiesInfo = "なし";
       let userName = "ユーザー";
+      let recommendedCalories = 2000; // デフォルト値
+      let conditionInfo = ""; // 体調情報
+      let moodInfo = ""; // 気分情報
       
       if (cognitoUserId) {
         try {
@@ -320,14 +323,58 @@ export default function MealPage() {
             allergiesInfo = profile.allergies || "なし";
             userName = profile.name || "ユーザー";
             
-            console.log('✅ DynamoDBからアレルギー情報を取得:', {
+            // 推奨カロリー（TDEE）を計算
+            recommendedCalories = calculateTDEE(profile);
+            
+            console.log('✅ DynamoDBからユーザー情報を取得:', {
               userName: userName,
               allergies: allergiesInfo,
+              recommendedCalories: recommendedCalories,
               profileData: profile
             });
           } else {
             console.log('⚠️ UserProfileが見つかりませんでした');
           }
+
+          // DailyRecordから本日の体調・気分を取得
+          console.log('🔍 DynamoDB DailyRecord取得開始...');
+          const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD形式
+          
+          const { data: dailyRecords } = await client.models.DailyRecord.list({
+            filter: {
+              userId: { eq: cognitoUserId },
+              date: { eq: today }
+            }
+          });
+          
+          console.log('📊 取得したDailyRecord数:', dailyRecords?.length || 0);
+          
+          if (dailyRecords && dailyRecords.length > 0) {
+            const dailyRecord = dailyRecords[0];
+            
+            // 有効な体調・気分のみを設定（絵文字付き）
+            const validConditions = ['とても良い 😊', '良い 😌', '普通 😐', '少し悪い 😟', '悪い 😵'];
+            const validMoods = ['ポジティブ', '普通', 'ネガティブ', 'リラックス', 'やる気満々', '疲れ気味'];
+            
+            if (dailyRecord.condition && validConditions.includes(dailyRecord.condition)) {
+              conditionInfo = dailyRecord.condition;
+            }
+            
+            if (dailyRecord.mood && validMoods.includes(dailyRecord.mood)) {
+              moodInfo = dailyRecord.mood;
+            }
+            
+            console.log('✅ DailyRecordから体調・気分を取得:', {
+              condition: conditionInfo || '未設定',
+              mood: moodInfo || '未設定',
+              rawCondition: dailyRecord.condition,
+              rawMood: dailyRecord.mood,
+              dailyRecordData: dailyRecord
+            });
+          } else {
+            console.log('⚠️ 本日のDailyRecordが見つかりませんでした');
+          }
+          
         } catch (dbError) {
           console.error('❌ DynamoDB取得エラー:', dbError);
           // エラーの場合はデフォルト値を使用
@@ -341,18 +388,30 @@ export default function MealPage() {
         userName: userName,
         userId: cognitoUserId,
         allergies: allergiesInfo,
+        recommendedCalories: recommendedCalories,
+        condition: conditionInfo || "未設定",
+        mood: moodInfo || "未設定",
         timestamp: new Date().toISOString(),
-        source: 'DynamoDB UserProfile'
+        source: 'DynamoDB UserProfile & DailyRecord'
       };
       
       setKondateDebugInfo(debugData);
       console.log('🔍 デバッグ情報を設定:', debugData);
       
-      console.log('🤖 呼び出しパラメータ:', { userName, allergies: allergiesInfo });
+      console.log('🤖 呼び出しパラメータ:', { 
+        userName, 
+        allergies: allergiesInfo, 
+        recommendedCalories,
+        condition: conditionInfo || "未設定",
+        mood: moodInfo || "未設定"
+      });
       
       const result = await client.queries.kondateAI({
         name: userName,
-        allergies: allergiesInfo
+        allergies: allergiesInfo,
+        recommendedCalories: recommendedCalories,
+        condition: conditionInfo,
+        mood: moodInfo
       });
       
       console.log('🤖 kondateAI結果:', result);

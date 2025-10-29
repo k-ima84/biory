@@ -18,6 +18,9 @@ export const schema = a.schema({
     .arguments({
       name: a.string(),
       allergies: a.string(),
+      recommendedCalories: a.integer(), // 🆕 推奨カロリーを追加
+      condition: a.string(), // 🆕 体調情報を追加
+      mood: a.string(), // 🆕 気分情報を追加
     })
     .returns(a.string())
     //.authorization((allow) => [allow.authenticated()]) // 認証ルール追加
