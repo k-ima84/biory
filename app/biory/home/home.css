@@ -89,6 +89,13 @@
   margin-right: auto;
 }
 
+/* 栄養情報セクション内でより強い優先度を持たせる（カレンダーCSSとの競合を防ぐ） */
+.nutrition-section .nutrition-label {
+  font-size: 16px !important;
+  color: #333 !important;
+  font-weight: bold !important;
+}
+
 .user-selector {
   display: flex;
   align-items: center;
