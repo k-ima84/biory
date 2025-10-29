@@ -8,7 +8,7 @@ import outputs from "../../../amplify_outputs.json";
 import type { Schema } from "../../../amplify/data/resource";
 import BioryLayout from "../components/BioryLayout";
 import "./home.css";
-import { getCognitoUserId, fetchCognitoUserInfo } from '../components/function';
+import { getCognitoUserId, fetchCognitoUserInfo, setMealGeneratedFlag, checkHasGeneratedMeal } from '../components/function';
 
 
 Amplify.configure(outputs);
@@ -40,6 +40,7 @@ export default function HomePage() {
   const [cognitoUserId, setCognitoUserId] = useState("");
   const [userProfile, setUserProfile] = useState<any>(null); // ユーザープロファイル
   const [profileLoaded, setProfileLoaded] = useState(false); // プロファイル読み込み完了フラグ
+  const [hasGeneratedMeal, setHasGeneratedMeal] = useState(false); // 初回AI献立生成フラグ
   const [nutritionData, setNutritionData] = useState<NutritionData>({
     calories: 0,
     protein: { value: 0, percentage: 0 },
@@ -137,6 +138,8 @@ export default function HomePage() {
   const checkProfileExists = (profile: any) => {
     return profile !== null && profile !== undefined;
   };
+
+
 
   // 推奨カロリーを計算
   const recommendedCalories = userProfile ? calculateTDEE(userProfile) : 2000;
@@ -435,6 +438,10 @@ export default function HomePage() {
   useEffect(() => {
     if (cognitoUserId) {
       console.log("cognitoUserId が取得できました:", cognitoUserId);
+      
+      // 初回献立生成フラグをチェック
+      const hasGenerated = checkHasGeneratedMeal(cognitoUserId);
+      setHasGeneratedMeal(hasGenerated);
       
       // 初期データ取得処理
       const loadInitialData = async () => {
@@ -1433,11 +1440,33 @@ export default function HomePage() {
             </div>
             <div className="prompt-bubble">
               <div className="prompt-content">
-                <h3>🎯 まずは基本情報を登録しよう！</h3>
+                <h3> まずは基本情報を登録しよう！</h3>
                 <p>
                   年齢、身長、体重などの基本情報を登録すると、<br />
                   あなたにぴったりの献立やアドバイスが受けられるよ！<br />
-                  <strong>📱 下のナビから「設定」をタップしてね！</strong>
+                  <strong>下のナビから「⚙設定」をタップしてね！</strong>
+                </p>
+              </div>
+              <div className="prompt-tail"></div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI献立生成案内セクション */}
+      {profileLoaded && checkProfileExists(userProfile) && !hasGeneratedMeal && (
+        <div className="profile-setup-prompt">
+          <div className="prompt-container">
+            <div className="exercise-character">
+              <img src="/exercise.png" alt="エクササイズキャラクター" />
+            </div>
+            <div className="prompt-bubble">
+              <div className="prompt-content">
+                <h3>次はAI献立生成をしてみよう！</h3>
+                <p>
+                  基本情報の登録が完了しました！🎉<br />
+                  次は「🍽献立」画面に移って、<br />
+                  <strong>あなた専用のAI献立を作成してみてね！</strong>
                 </p>
               </div>
               <div className="prompt-tail"></div>
