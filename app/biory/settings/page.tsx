@@ -300,22 +300,21 @@ export default function SettingsPage() {
       );
 
       if (existingHealthRecord) {
-        // 既存のレコードを更新
+        // 既存のレコードを更新（体重のみ）
         await client.models.DailyRecord.update({
           id: existingHealthRecord.id,
           weight: newWeight,
         });
         console.log("DailyRecordの体重を更新しました:", newWeight);
       } else {
-        // 新しいレコードを作成（健康データ専用）
+        // 新しいレコードを作成（体重のみ、体調・気分は未設定のまま）
         await client.models.DailyRecord.create({
           userId: currentUserId,
           date: dateString,
-          condition: "とても良い 😊", // デフォルト値
-          mood: "ポジティブ", // デフォルト値
           weight: newWeight,
+          // condition と mood は省略（nullのまま）
         });
-        console.log("新しいDailyRecord健康データを作成しました（体重のみ）:", newWeight);
+        console.log("新しいDailyRecordを作成しました（体重のみ）:", newWeight);
       }
     } catch (error) {
       console.error("DailyRecord体重更新エラー:", error);
