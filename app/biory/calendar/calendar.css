@@ -140,21 +140,25 @@
   color: #6f6b68;
 }
 
+/* ホバー効果を削除
 .calendar-day:hover {
   background: #f8f9ff;
   transform: scale(1.02);
   z-index: 1;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
+*/
 
 .calendar-day.other-month {
   background: #f8f9fa;
   color: #adb5bd;
 }
 
+/* 他の月のセルのホバー効果も削除
 .calendar-day.other-month:hover {
   background: #f1f3f4;
 }
+*/
 
 .calendar-day.today {
   background: white;
@@ -445,46 +449,52 @@
     bottom: 1px;
   }
   
-  .calendar-meal-icon {
-    width: 14px;
-    height: 14px;
-    mask-size: 12px 12px;
-    -webkit-mask-size: 12px 12px;
+  .calendar-meal-icon,
+  .calendar-record-icon {
+    width: 24px;
+    height: 24px;
+    mask-size: 20px 20px;
+    -webkit-mask-size: 20px 20px;
   }
 }
 
 /* より小さなモバイル画面対応 */
 @media (max-width: 480px) {
-  .calendar-meal-icon {
-    width: 12px;
-    height: 12px;
-    mask-size: 10px 10px;
-    -webkit-mask-size: 10px 10px;
+  .calendar-meal-icon,
+  .calendar-record-icon {
+    width: 22px;
+    height: 22px;
+    mask-size: 18px 18px;
+    -webkit-mask-size: 18px 18px;
   }
 }
 
 /* 食事記録インジケーター - 日付下部に配置 */
 .meal-indicator {
   position: absolute;
-  bottom: 2px;           /* 下部に配置 */
+  bottom: 4px;           /* 下部に配置（少し余裕を持たせる） */
   left: 50%;             /* 水平中央 */
   transform: translateX(-50%); /* 中央揃え */
   z-index: 1;
   display: flex;         /* 🆕 横並び配置 */
-  gap: 2px;              /* 🆕 アイコン間のスペース */
+  gap: 4px;              /* 🆕 アイコン間のスペース（少し広く） */
+  align-items: center;   /* 縦方向中央揃え */
 }
 
 .calendar-meal-icon {
-  width: 16px;              /* SVGアイコンのサイズ */
-  height: 16px;
-  background-color: #70472B;
-  mask-size: 14px 14px;      /* マスクサイズ */
+  width: 28px;              /* SVGアイコンのサイズをさらに大きく */
+  height: 28px;
+  background-color: #70472B;  /* 元の茶色に戻す */
+  mask-size: 24px 24px;      /* マスクサイズも大きく */
   mask-repeat: no-repeat;
   mask-position: center;
   transition: all 0.2s ease;
-  -webkit-mask-size: 14px 14px;
+  -webkit-mask-size: 24px 24px;
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: center;
+  border-radius: 50%;        /* 丸い背景 */
+  box-shadow: 0 2px 4px rgba(112, 71, 43, 0.3); /* 影の色も茶色に */
+  animation: pulse-meal 2s infinite; /* パルス効果 */
   /* ボトムナビと同じフォーク&ナイフのSVGアイコンを使用 */
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2'/%3E%3Cpath d='M7 2v20'/%3E%3Cpath d='M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7'/%3E%3C/svg%3E");
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2'/%3E%3Cpath d='M7 2v20'/%3E%3Cpath d='M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7'/%3E%3C/svg%3E");
@@ -492,29 +502,34 @@
 
 /* 🆕 鉛筆アイコン（体重・気分・体調記録用） */
 .calendar-record-icon {
-  width: 16px;
-  height: 16px;
-  background-color: #70472B;
-  mask-size: 14px 14px;
+  width: 28px;
+  height: 28px;
+  background-color: #70472B;  /* 元の茶色に戻す */
+  mask-size: 24px 24px;
   mask-repeat: no-repeat;
   mask-position: center;
   transition: all 0.2s ease;
-  -webkit-mask-size: 14px 14px;
+  -webkit-mask-size: 24px 24px;
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: center;
+  border-radius: 50%;        /* 丸い背景 */
+  box-shadow: 0 2px 4px rgba(112, 71, 43, 0.3); /* 影の色も茶色に */
+  animation: pulse-record 2s infinite; /* パルス効果 */
   /* 鉛筆のSVGアイコン */
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z'/%3E%3Cpath d='m15 5 4 4'/%3E%3C/svg%3E");
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2'%3E%3Cpath d='M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z'/%3E%3Cpath d='m15 5 4 4'/%3E%3C/svg%3E");
 }
 
 .calendar-day:hover .calendar-meal-icon {
-  background-color: #70472B; 
-  transform: scale(1.1);     /* 少し拡大 */
+  background-color: #8B5A3C; 
+  transform: scale(1.2);     /* さらに拡大 */
+  box-shadow: 0 4px 8px rgba(112, 71, 43, 0.4); /* 影も強く */
 }
 
 .calendar-day:hover .calendar-record-icon {
-  background-color: #70472B; 
-  transform: scale(1.1);     /* 少し拡大 */
+  background-color: #8B5A3C; 
+  transform: scale(1.2);     /* さらに拡大 */
+  box-shadow: 0 4px 8px rgba(112, 71, 43, 0.4); /* 影も強く */
 }
 
 /* 栄養情報表示のスタイル */
@@ -867,5 +882,30 @@
   .registration-count {
     font-size: 0.75rem;
     padding: 3px 8px;
+  }
+}
+
+/* アイコンのパルス効果アニメーション */
+@keyframes pulse-meal {
+  0% {
+    box-shadow: 0 2px 4px rgba(112, 71, 43, 0.3);
+  }
+  50% {
+    box-shadow: 0 2px 8px rgba(112, 71, 43, 0.5), 0 0 0 4px rgba(112, 71, 43, 0.1);
+  }
+  100% {
+    box-shadow: 0 2px 4px rgba(112, 71, 43, 0.3);
+  }
+}
+
+@keyframes pulse-record {
+  0% {
+    box-shadow: 0 2px 4px rgba(112, 71, 43, 0.3);
+  }
+  50% {
+    box-shadow: 0 2px 8px rgba(112, 71, 43, 0.5), 0 0 0 4px rgba(112, 71, 43, 0.1);
+  }
+  100% {
+    box-shadow: 0 2px 4px rgba(112, 71, 43, 0.3);
   }
 }
